@@ -19,7 +19,7 @@ boa-web/
 │   │   ├── layout.tsx
 │   │   ├── page.tsx               # 首頁，導向今日靈修
 │   │   ├── [date]/
-│   │   │   └── page.tsx           # 每日靈修頁 /2026-04-20
+│   │   │   └── page.tsx           # 每日靈修頁 /2026-04-21
 │   ├── globals.css
 │   └── layout.tsx                 # Root layout
 ├── components/
@@ -130,10 +130,10 @@ export async function getArticle(date: string): Promise<Article> {
 
 ## 頁面策略
 
-| 路由       | 渲染策略                     | 說明                 |
-| ---------- | ---------------------------- | -------------------- |
-| `/`        | ISR (revalidate: 86400)      | 首頁，導向今日靈修   |
-| `/[date]`  | ISR + `generateStaticParams` | 每日靈修，每天更新   |
+| 路由      | 渲染策略                     | 說明               |
+| --------- | ---------------------------- | ------------------ |
+| `/`       | ISR (revalidate: 86400)      | 首頁，導向今日靈修 |
+| `/[date]` | ISR + `generateStaticParams` | 每日靈修，每天更新 |
 
 ### `[date]` 頁面實作要點
 
