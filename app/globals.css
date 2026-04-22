@@ -41,9 +41,15 @@ body {
   color: #2c2c2c;
 }
 
-.prose-tc h1 { font-size: 1.5rem; }
-.prose-tc h2 { font-size: 1.25rem; }
-.prose-tc h3 { font-size: 1.125rem; }
+.prose-tc h1 {
+  font-size: 1.5rem;
+}
+.prose-tc h2 {
+  font-size: 1.25rem;
+}
+.prose-tc h3 {
+  font-size: 1.125rem;
+}
 
 .prose-tc ul {
   list-style-type: disc;
