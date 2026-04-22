@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-pebble-50: #f9f8f7;
+  --color-pebble-100: #f2f1f0;
+  --color-pebble-200: #e5e3e1;
+  --color-pebble-300: #cac6c2;
+  --color-pebble-400: #afa9a3;
+  --color-pebble-500: #7d7771;
+  --color-pebble-600: #645f5a;
+  --color-pebble-700: #4b4744;
+  --color-pebble-800: #322f2d;
+  --color-pebble-900: #191816;
+
+  --color-juniper-50: #edf2f1;
+  --color-juniper-100: #dbe5e3;
+  --color-juniper-200: #dbe5e3;
+  --color-juniper-300: #dbe5e3;
+  --color-juniper-400: #dbe5e3;
+  --color-juniper-500: #dbe5e3;
+  --color-juniper-600: #dbe5e3;
+  --color-juniper-700: #dbe5e3;
+  --color-juniper-800: #dbe5e3;
+  --color-juniper-900: #dbe5e3;
+
+  --color-zinnia-50: #feefea;
+  --color-zinnia-100: #fdd7ca;
+  --color-zinnia-200: #fbaea1;
+  --color-zinnia-300: #f8846f;
+  --color-zinnia-400: #f66f3a;
+  --color-zinnia-500: #f35b04;
+  --color-zinnia-600: #db5204;
+  --color-zinnia-700: #bc4603;
+  --color-zinnia-800: #9c3a03;
+  --color-zinnia-900: #612402;
+
+  --color-poppy-50: #fef3e1;
+  --color-poppy-100: #fde1b4;
+  --color-poppy-200: #fbc269;
+  --color-poppy-300: #f9a31f;
+  --color-poppy-400: #f59510;
+  --color-poppy-500: #f18701;
+  --color-poppy-600: #d97a01;
+  --color-poppy-700: #ba6801;
+  --color-poppy-800: #9a5601;
+  --color-poppy-900: #603601;
+
+  --color-marigold-50: #fef8e1;
+  --color-marigold-100: #fdefb4;
+  --color-marigold-200: #fce26a;
+  --color-marigold-300: #fbd420;
+  --color-marigold-400: #f9c611;
+  --color-marigold-500: #f7b801;
+  --color-marigold-600: #dfa601;
+  --color-marigold-700: #bf8e01;
+  --color-marigold-800: #9e7601;
+  --color-marigold-900: #634a01;
+
+  --color-iris-50: #f1f1fd;
+  --color-iris-100: #e4e4fb;
+  --color-iris-200: #c8c9f7;
+  --color-iris-300: #adb0f3;
+  --color-iris-400: #7678ed;
+  --color-iris-500: #5b59cd;
+  --color-iris-600: #3d348b;
+  --color-iris-700: #332b74;
+  --color-iris-800: #29235d;
+  --color-iris-900: #181537;
+}

@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
+@import "./styles/colors.css";
+
 :root {
-  --background: #faf9f6;
-  --foreground: #2c2c2c;
-  --muted: #8b7355;
-  --accent: #8b6f47;
-  --border-warm: #e8e0d6;
+  --background: var(--color-pebble-50);
+  --foreground: var(--color-pebble-900);
+  --muted: var(--color-iris-400);
+  --accent: var(--color-iris-500);
+  --border-warm: var(--color-pebble-200);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-accent: var(--accent);
-  --color-border-warm: var(--border-warm);
   --font-serif: var(--font-noto-serif-tc);
+  --font-sans: var(--font-noto-sans-tc);
+
+  --color-primary: var(--color-iris-400);
 }
 
 @layer base {

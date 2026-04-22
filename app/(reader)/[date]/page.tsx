@@ -41,16 +41,16 @@ export default async function DatePage({
     <article>
       <div className="mx-auto max-w-2xl px-6 py-10">
         <header className="mb-8">
-          <p className="text-sm sm:text-base text-muted mb-2">
+          <p className="text-sm sm:text-base text-primary mb-2">
             <span>{formatDateTC(article.date)} </span>
             <span>{renderDailyVerseRange()}</span>
           </p>
           {article.title && (
-            <h1 className="text-2xl sm:text-4xl font-bold leading-snug text-foreground">
+            <h1 className="text-2xl sm:text-4xl font-bold leading-snug text-pebble-800">
               {article.title}
             </h1>
           )}
-          <hr className="mt-6 border-brand-secondary" />
+          <hr className="mt-6 border-pebble-300" />
         </header>
 
         {coverUrl && (

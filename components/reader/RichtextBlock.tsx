@@ -4,7 +4,7 @@ export function RichtextBlock({ block }: { block: RichtextBlockType }) {
   return (
     <div className="my-8">
       {block.subheading && (
-        <p className="text-sm font-semibold text-accent mb-3">
+        <p className="font-sans text-sm font-semibold text-primary mb-3">
           {block.subheading}
         </p>
       )}
