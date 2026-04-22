@@ -1,17 +1,5 @@
 import type { VerseBlock as VerseBlockType } from "@/lib/types";
-
-function formatVerseRef(range: VerseBlockType["content"]["range"]): string {
-  const { book, chapterStart, verseStart, chapterEnd, verseEnd } = range;
-  if (chapterEnd !== undefined && verseEnd !== undefined) {
-    if (chapterEnd !== chapterStart) {
-      return `${book} ${chapterStart}:${verseStart}–${chapterEnd}:${verseEnd}`;
-    }
-    if (verseEnd !== verseStart) {
-      return `${book} ${chapterStart}:${verseStart}–${verseEnd}`;
-    }
-  }
-  return `${book} ${chapterStart}:${verseStart}`;
-}
+import { formatVerseRef } from "@/lib/utils";
 
 export function VerseBlock({ block }: { block: VerseBlockType }) {
   return (
