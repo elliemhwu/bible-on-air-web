@@ -2,7 +2,7 @@
 
 ## 專案概覽
 
-Bible On Air（BOA）的前端網站，提供教會每日靈修內容的閱讀與編輯介面。
+Bible On Air（BOA）的前端網站，提供教會每日靈修內容的閱讀介面。
 
 - **框架**：Next.js App Router（TypeScript）
 - **後端 API**：`boa-server`（NestJS，本機預設 `http://localhost:3001`）
@@ -22,15 +22,10 @@ boa-web/
 │   │   │   └── page.tsx           # 每日靈修頁 /2026-04-20
 │   │   └── archive/
 │   │       └── page.tsx           # 歷史列表頁
-│   ├── (editor)/                  # 編輯端（CSR，需登入）
-│   │   ├── layout.tsx
-│   │   └── editor/
-│   │       └── [...]/             # 編輯介面（之後陸續補充）
 │   ├── globals.css
 │   └── layout.tsx                 # Root layout
 ├── components/
-│   ├── reader/                    # 閱讀端元件
-│   └── editor/                    # 編輯端元件（之後補充）
+│   └── reader/                    # 閱讀端元件
 ├── lib/
 │   ├── api.ts                     # API fetch 封裝
 │   └── types.ts                   # 共用型別定義
@@ -117,7 +112,7 @@ const PUB = "bible-on-air";
 
 export async function getArticles(): Promise<ArticleSummary[]> {
   const res = await fetch(`${BASE}/api/v1/magazines/${PUB}/articles`, {
-    next: { revalidate: 3600 },
+    next: { revalidate: 86400 },
   });
   if (!res.ok) throw new Error("Failed to fetch articles");
   return res.json();
@@ -125,7 +120,7 @@ export async function getArticles(): Promise<ArticleSummary[]> {
 
 export async function getArticle(date: string): Promise<Article> {
   const res = await fetch(`${BASE}/api/v1/magazines/${PUB}/articles/${date}`, {
-    next: { revalidate: 3600 },
+    next: { revalidate: 86400 },
   });
   if (!res.ok) throw new Error(`Failed to fetch article: ${date}`);
   return res.json();
@@ -136,12 +131,11 @@ export async function getArticle(date: string): Promise<Article> {
 
 ## 頁面策略
 
-| 路由          | 渲染策略                     | 說明                       |
-| ------------- | ---------------------------- | -------------------------- |
-| `/`           | ISR (revalidate: 3600)       | 首頁，導向今日靈修         |
-| `/[date]`     | ISR + `generateStaticParams` | 每日靈修，每小時更新       |
-| `/archive`    | ISR (revalidate: 3600)       | 歷史列表                   |
-| `/editor/...` | CSR（`"use client"`）        | 編輯介面，需登入，之後補充 |
+| 路由       | 渲染策略                     | 說明                 |
+| ---------- | ---------------------------- | -------------------- |
+| `/`        | ISR (revalidate: 86400)      | 首頁，導向今日靈修   |
+| `/[date]`  | ISR + `generateStaticParams` | 每日靈修，每天更新   |
+| `/archive` | ISR (revalidate: 86400)      | 歷史列表             |
 
 ### `[date]` 頁面實作要點
 
@@ -189,7 +183,6 @@ export const revalidate = 3600;
 
 - 使用 TypeScript，避免 `any`。
 - Server Component 優先；只有需要互動或瀏覽器 API 的元件才加 `"use client"`。
-- 編輯端（`(editor)` route group）的登入與 API 格式之後陸續補充，目前先預留結構即可。
 - CSS：使用 Tailwind CSS（如已安裝）或 CSS Modules，避免 inline style。
 - 日期格式統一用 `YYYY-MM-DD`（ISO 8601），顯示時再轉換為中文格式。
 
@@ -197,7 +190,5 @@ export const revalidate = 3600;
 
 ## 尚未決定 / 待補充
 
-- 編輯端登入機制（JWT / Session / NextAuth）
-- 編輯 API 格式（新增、修改 Article 與 Block）
 - i18n（目前僅繁體中文）
 - 部署環境（Vercel / self-hosted）
