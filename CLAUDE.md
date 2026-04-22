@@ -39,6 +39,7 @@ export type ArticleSummary = {
   id: string;
   publicationUid: string;
   date: string; // "YYYY-MM-DD"
+  title: string | null;
   status: "published" | "draft";
   templateId: string | null;
   coverImageUrl: string | null;

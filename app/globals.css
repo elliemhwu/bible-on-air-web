@@ -1,26 +1,89 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf9f6;
+  --foreground: #2c2c2c;
+  --muted: #8b7355;
+  --accent: #8b6f47;
+  --border-warm: #e8e0d6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-border-warm: var(--border-warm);
+  --font-serif: var(--font-noto-serif-tc);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto-serif-tc), "Noto Serif TC", serif;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+}
+
+.prose-tc p {
+  margin-bottom: 1.25rem;
+  line-height: 1.9;
+}
+
+.prose-tc h1,
+.prose-tc h2,
+.prose-tc h3,
+.prose-tc h4 {
+  font-weight: 700;
+  line-height: 1.4;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  color: #2c2c2c;
+}
+
+.prose-tc h1 { font-size: 1.5rem; }
+.prose-tc h2 { font-size: 1.25rem; }
+.prose-tc h3 { font-size: 1.125rem; }
+
+.prose-tc ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.prose-tc ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.prose-tc li {
+  margin-bottom: 0.5rem;
+  line-height: 1.9;
+}
+
+.prose-tc strong {
+  font-weight: 700;
+}
+
+.prose-tc em {
+  font-style: italic;
+}
+
+.prose-tc a {
+  color: #8b6f47;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-tc a:hover {
+  color: #6b5037;
+}
+
+.prose-tc blockquote {
+  border-left: 4px solid #8b6f47;
+  padding-left: 1.25rem;
+  margin-left: 0;
+  font-style: italic;
+  color: #5c4a35;
 }
