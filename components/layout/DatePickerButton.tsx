@@ -1,29 +1,13 @@
 "use client";
 
 import type { ArticleSummary } from "@/lib/types";
+import { toDate, toDateStr } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { zhTW } from "react-day-picker/locale";
 import "react-day-picker/style.css";
 import "./DatePickerButton.css";
-
-function formatDateTC(dateStr: string): string {
-  const [year, month, day] = dateStr.split("-");
-  return `${year}年${parseInt(month)}月${parseInt(day)}日`;
-}
-
-function toDate(dateStr: string): Date {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function toDateStr(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
 
 export function DatePickerButton({ articles }: { articles: ArticleSummary[] }) {
   const router = useRouter();

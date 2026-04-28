@@ -1,4 +1,4 @@
-import { Header } from "@/components/reader/Header";
+import { Header } from "@/components/layout/Header";
 
 export default function ReaderLayout({
   children,
