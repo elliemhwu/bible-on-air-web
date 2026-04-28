@@ -1,7 +1,7 @@
 import type { Block } from "@/lib/types";
-import { VerseBlock } from "./VerseBlock";
 import { QuestionsBlock } from "./QuestionsBlock";
 import { RichtextBlock } from "./RichtextBlock";
+import { VerseBlock } from "./VerseBlock";
 
 export function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {

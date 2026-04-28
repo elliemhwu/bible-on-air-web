@@ -1,7 +1,17 @@
 import type { VerseBlock as VerseBlockType } from "@/lib/types";
 import { formatVerseRef } from "@/lib/utils";
 
-export function VerseBlock({ block }: { block: VerseBlockType }) {
+type VerseDisplayMode = "ordered" | "inline" | "inline-numbered";
+
+export function VerseBlock({
+  block,
+  mode = "ordered",
+}: {
+  block: VerseBlockType;
+  mode?: VerseDisplayMode;
+}) {
+  const verses = block.content.verses;
+
   return (
     <div className="my-8">
       {block.subheading && (
@@ -12,11 +22,36 @@ export function VerseBlock({ block }: { block: VerseBlockType }) {
       <blockquote className="relative pl-5 py-1">
         <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-iris-300" />
 
-        <p className="italic text-iris-600 whitespace-pre-line leading-[1.9]">
-          {block.content.verses.map((verse, idx) => (
-            <span key={idx}>{verse.text}</span>
-          ))}
-        </p>
+        {mode === "ordered" && (
+          <ul className="italic text-iris-600 leading-[1.9] space-y-1 list-none pl-0">
+            {verses.map((verse) => (
+              <li key={verse.verse} className="flex gap-2">
+                <span className="shrink-0 not-italic tabular-nums">
+                  {verse.verse}.
+                </span>
+                <span>{verse.text}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {mode === "inline" && (
+          <p className="italic text-iris-600 leading-[1.9]">
+            {verses.map((v) => v.text).join(" ")}
+          </p>
+        )}
+
+        {mode === "inline-numbered" && (
+          <p className="italic text-iris-600 leading-[1.9]">
+            {verses.map((verse, idx) => (
+              <span key={verse.verse}>
+                {idx > 0 && " "}
+                <sup className="not-italic text-iris-400">{verse.verse}</sup>
+                {verse.text}
+              </span>
+            ))}
+          </p>
+        )}
       </blockquote>
       <p className="text-right text-sm text-primary mt-2">
         ── {formatVerseRef(block.content.ranges)}
