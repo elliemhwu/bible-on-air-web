@@ -6,8 +6,9 @@ export async function Header() {
   const articles = await getArticles();
 
   return (
-    <header className="sticky top-0 z-40 bg-pebble-50/90 backdrop-blur-sm border-b border-pebble-200">
-      <div className="mx-auto max-w-2xl px-6 h-14 flex items-center justify-between">
+    <header className="relative sticky top-0 z-40 border-b border-pebble-200">
+      <div aria-hidden className="absolute inset-0 bg-pebble-50/90 backdrop-blur-sm" />
+      <div className="relative mx-auto max-w-2xl px-6 h-14 flex items-center justify-between">
         <Link
           href="/"
           className="text-sm font-semibold text-pebble-800 hover:text-pebble-900 font-sans tracking-wide transition-colors"

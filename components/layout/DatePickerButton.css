@@ -11,3 +11,71 @@
 .date-picker-popover .rdp-day_button:disabled {
   cursor: not-allowed;
 }
+
+/* Mobile: slide up from bottom */
+.date-picker-dialog {
+  animation: dialog-slide-up 0.28s ease-out;
+}
+
+@keyframes dialog-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Desktop: subtle fade + tiny drop */
+@media (min-width: 640px) {
+  .date-picker-dialog {
+    animation: dialog-fade-in 0.15s ease-out;
+  }
+}
+
+@keyframes dialog-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Closing — mobile: slide back down */
+.date-picker-dialog--closing {
+  animation: dialog-slide-down 0.25s ease-in forwards;
+}
+
+@keyframes dialog-slide-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+/* Closing — desktop: subtle fade + tiny rise */
+@media (min-width: 640px) {
+  .date-picker-dialog--closing {
+    animation: dialog-fade-out 0.15s ease-in forwards;
+  }
+}
+
+@keyframes dialog-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
