@@ -11,6 +11,8 @@ export type ArticleSummary = {
   updatedAt: string;
 };
 
+export type VerseDisplayMode = "ordered" | "inline" | "inline-numbered";
+
 export type Block = VerseBlock | QuestionsBlock | RichtextBlock;
 
 export type VerseRange = {
@@ -44,6 +46,7 @@ export type VerseBlock = {
   content: {
     ranges: VerseRange[];
     verses: Verse[];
+    displayMode?: VerseDisplayMode;
   };
   createdAt: string;
   updatedAt: string;

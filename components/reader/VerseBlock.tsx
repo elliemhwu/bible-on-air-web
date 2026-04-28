@@ -1,7 +1,5 @@
-import type { VerseBlock as VerseBlockType } from "@/lib/types";
+import type { VerseBlock as VerseBlockType, VerseDisplayMode } from "@/lib/types";
 import { formatVerseRef } from "@/lib/utils";
-
-type VerseDisplayMode = "ordered" | "inline" | "inline-numbered";
 
 export function VerseBlock({
   block,
@@ -26,7 +24,7 @@ export function VerseBlock({
           <ul className="italic text-iris-600 leading-[1.9] space-y-1 list-none pl-0">
             {verses.map((verse) => (
               <li key={verse.verse} className="flex gap-2">
-                <span className="shrink-0 not-italic tabular-nums">
+                <span className="shrink-0 tabular-nums">
                   {verse.verse}.
                 </span>
                 <span>{verse.text}</span>

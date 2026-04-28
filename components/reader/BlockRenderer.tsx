@@ -6,7 +6,7 @@ import { VerseBlock } from "./VerseBlock";
 export function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {
     case "verse":
-      return <VerseBlock block={block} />;
+      return <VerseBlock block={block} mode={block.content.displayMode} />;
     case "questions":
       return <QuestionsBlock block={block} />;
     case "richtext":

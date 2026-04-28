@@ -42,7 +42,7 @@ export default async function DatePage({
       <div className="mx-auto max-w-2xl px-6 py-10">
         <header className="mb-8">
           <p className="text-sm sm:text-base text-primary mb-2">
-            <span>{formatDateTC(article.date)} </span>
+            <span className="pr-2">{formatDateTC(article.date)} </span>
             <span>{renderDailyVerseRange()}</span>
           </p>
           {article.title && (
