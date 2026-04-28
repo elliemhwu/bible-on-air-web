@@ -4,6 +4,7 @@ import type { ArticleSummary } from "@/lib/types";
 import { toDate, toDateStr } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { ChevronDown } from "@/components/icons/ChevronDown";
 import { DayPicker } from "react-day-picker";
 import { zhTW } from "react-day-picker/locale";
 import "react-day-picker/style.css";
@@ -66,16 +67,7 @@ export function DatePickerButton({ articles }: { articles: ArticleSummary[] }) {
         aria-haspopup="dialog"
       >
         <span>每日靈修</span>
-        <svg
-          width="10"
-          height="10"
-          viewBox="0 0 10 10"
-          fill="currentColor"
-          className="mt-0.5"
-          aria-hidden
-        >
-          <path d="M5 7 L1 3 L9 3 Z" />
-        </svg>
+        <ChevronDown className="mt-0.5" />
       </button>
 
       {open && (
@@ -88,7 +80,7 @@ export function DatePickerButton({ articles }: { articles: ArticleSummary[] }) {
           <div
             role="dialog"
             aria-label="選擇日期"
-            className={`date-picker-popover ${isClosing ? "date-picker-dialog--closing" : "date-picker-dialog"} fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl border-t border-x border-pebble-200 shadow-lg p-4 sm:absolute sm:bottom-auto sm:left-auto sm:top-full sm:mt-2 sm:right-0 sm:rounded-xl sm:border sm:p-3 bg-pebble-50`}
+            className={`date-picker-popover ${isClosing ? "dialog-exit" : "dialog-enter"} fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl border-t border-x border-pebble-200 shadow-lg p-4 sm:absolute sm:bottom-auto sm:left-auto sm:top-full sm:mt-2 sm:right-0 sm:rounded-xl sm:border sm:p-3 bg-pebble-50`}
             onAnimationEnd={handleAnimationEnd}
           >
             <div className="flex justify-center mb-3 sm:hidden">
