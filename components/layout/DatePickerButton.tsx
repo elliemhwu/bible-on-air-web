@@ -45,10 +45,10 @@ export function DatePickerButton({ articles }: { articles: ArticleSummary[] }) {
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative font-sans">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 text-sm text-pebble-600 hover:text-pebble-900 transition-colors font-sans"
+        className="flex items-center gap-1 text-sm text-pebble-600 hover:text-pebble-900 transition-colors"
         aria-expanded={open}
         aria-haspopup="dialog"
       >
@@ -72,13 +72,13 @@ export function DatePickerButton({ articles }: { articles: ArticleSummary[] }) {
           className="date-picker-popover absolute top-full mt-2 right-0 z-50 bg-pebble-50 border border-pebble-200 rounded-xl shadow-lg p-3"
         >
           <div className="flex justify-between items-center mb-1 pb-2 border-b border-pebble-200">
-            <span className="text-xs text-pebble-500 font-sans">選擇日期</span>
+            <span className="text-xs text-pebble-500">選擇日期</span>
             <button
               onClick={() => {
                 router.push(`/${todayStr}`);
                 setOpen(false);
               }}
-              className="text-xs text-primary hover:opacity-70 font-medium font-sans transition-opacity"
+              className="text-xs text-primary hover:opacity-70 font-medium transition-opacity"
             >
               今日
             </button>

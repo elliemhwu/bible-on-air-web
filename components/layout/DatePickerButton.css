@@ -1,5 +1,13 @@
 .date-picker-popover {
-  --rdp-accent-color: #7678ed;
-  --rdp-accent-background-color: #f1f1fd;
-  --rdp-today-color: #7678ed;
+  --rdp-accent-color: var(--color-primary);
+  --rdp-accent-background-color: var(--color-iris-50);
+  --rdp-today-color: var(--color-primary);
+}
+
+.date-picker-popover .rdp-day_button {
+  cursor: pointer;
+}
+
+.date-picker-popover .rdp-day_button:disabled {
+  cursor: not-allowed;
 }
