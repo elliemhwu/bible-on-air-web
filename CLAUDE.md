@@ -50,6 +50,25 @@ export type ArticleSummary = {
 
 export type Block = VerseBlock | QuestionsBlock | RichtextBlock;
 
+export type VerseRange = {
+  abbrZh: string;
+  chapterStart: number;
+  verseStart: number;
+  chapterEnd?: number;
+  verseEnd?: number;
+};
+
+export type Verse = {
+  abbrZh: string;
+  zh: string;
+  en: string;
+  abbrEn: string;
+  chapter: number;
+  verse: number;
+  text: string;
+  version: string;
+};
+
 export type VerseBlock = {
   id: string;
   articleId: string;
@@ -57,15 +76,9 @@ export type VerseBlock = {
   type: "verse";
   subheading: string | null;
   content: {
-    range: {
-      book: string;
-      chapterStart: number;
-      verseStart: number;
-      chapterEnd?: number;
-      verseEnd?: number;
-    };
-    cachedText: string;
+    ranges: VerseRange[];
   };
+  verses: Verse[];
   createdAt: string;
   updatedAt: string;
 };
@@ -155,7 +168,7 @@ export const revalidate = 3600;
 
 | Block type  | 元件               | 說明                                                           |
 | ----------- | ------------------ | -------------------------------------------------------------- |
-| `verse`     | `<VerseBlock>`     | 顯示 `subheading`（若有）+ `cachedText`                        |
+| `verse`     | `<VerseBlock>`     | 顯示 `subheading`（若有）+ `verses[].text` 逐節渲染            |
 | `questions` | `<QuestionsBlock>` | 顯示 `subheading` + `items` 清單                               |
 | `richtext`  | `<RichtextBlock>`  | 顯示 `subheading`（若有）+ `dangerouslySetInnerHTML` 渲染 HTML |
 

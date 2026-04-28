@@ -1,14 +1,18 @@
-import { VerseBlock } from "./types";
+import { VerseRange } from "./types";
 
-export function formatVerseRef(range: VerseBlock["content"]["range"]): string {
-  const { book, chapterStart, verseStart, chapterEnd, verseEnd } = range;
-  if (chapterEnd !== undefined && verseEnd !== undefined) {
-    if (chapterEnd !== chapterStart) {
-      return `${book} ${chapterStart}:${verseStart}–${chapterEnd}:${verseEnd}`;
+export function formatVerseRef(ranges: VerseRange[]): string {
+  const rangeTexts = ranges.map((range) => {
+    const { zh, chapterStart, verseStart, chapterEnd, verseEnd } = range;
+    if (chapterEnd !== undefined && verseEnd !== undefined) {
+      if (chapterEnd !== chapterStart) {
+        return `${zh} ${chapterStart}:${verseStart}–${chapterEnd}:${verseEnd}`;
+      }
+      if (verseEnd !== verseStart) {
+        return `${zh} ${chapterStart}:${verseStart}–${verseEnd}`;
+      }
     }
-    if (verseEnd !== verseStart) {
-      return `${book} ${chapterStart}:${verseStart}–${verseEnd}`;
-    }
-  }
-  return `${book} ${chapterStart}:${verseStart}`;
+    return `${zh} ${chapterStart}:${verseStart}`;
+  });
+
+  return rangeTexts.join("；");
 }

@@ -13,11 +13,13 @@ export function VerseBlock({ block }: { block: VerseBlockType }) {
         <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-iris-300" />
 
         <p className="italic text-iris-600 whitespace-pre-line leading-[1.9]">
-          {block.content.cachedText}
+          {block.content.verses.map((verse, idx) => (
+            <span key={idx}>{verse.text}</span>
+          ))}
         </p>
       </blockquote>
       <p className="text-right text-sm text-primary mt-2">
-        ── {formatVerseRef(block.content.range)}
+        ── {formatVerseRef(block.content.ranges)}
       </p>
     </div>
   );

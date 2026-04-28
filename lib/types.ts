@@ -13,6 +13,28 @@ export type ArticleSummary = {
 
 export type Block = VerseBlock | QuestionsBlock | RichtextBlock;
 
+export type VerseRange = {
+  abbrZh: string;
+  zh: string;
+  en: string;
+  abbrEn: string;
+  chapterStart: number;
+  verseStart: number;
+  chapterEnd?: number;
+  verseEnd?: number;
+};
+
+export type Verse = {
+  abbrZh: string;
+  zh: string;
+  en: string;
+  abbrEn: string;
+  chapter: number;
+  verse: number;
+  text: string;
+  version: string;
+};
+
 export type VerseBlock = {
   id: string;
   articleId: string;
@@ -20,14 +42,8 @@ export type VerseBlock = {
   type: "verse";
   subheading: string | null;
   content: {
-    range: {
-      book: string;
-      chapterStart: number;
-      verseStart: number;
-      chapterEnd?: number;
-      verseEnd?: number;
-    };
-    cachedText: string;
+    ranges: VerseRange[];
+    verses: Verse[];
   };
   createdAt: string;
   updatedAt: string;

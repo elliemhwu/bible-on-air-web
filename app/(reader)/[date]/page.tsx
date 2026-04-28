@@ -34,7 +34,7 @@ export default async function DatePage({
     const mainDailyVerseBlock = sortedBlocks.find(
       (b) => b.type === "verse" && !b.subheading,
     ) as VerseBlock;
-    return formatVerseRef(mainDailyVerseBlock.content.range);
+    return formatVerseRef(mainDailyVerseBlock.content.ranges);
   }
 
   return (
