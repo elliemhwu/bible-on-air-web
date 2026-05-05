@@ -1,27 +1,45 @@
-import type { Article, ArticleSummary } from "@/lib/types";
+import { apiClient } from "@/lib/axios";
+import type {
+  Article,
+  ArticleSummary,
+  AuthUser,
+  LoginResponse,
+} from "@/lib/types";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 const PUB = "bible-on-air";
 
-const fetchOptions: RequestInit =
-  process.env.NODE_ENV === "development"
-    ? { cache: "no-store" }
-    : { next: { revalidate: 86400 } };
-
 export async function getArticles(): Promise<ArticleSummary[]> {
-  const res = await fetch(
-    `${BASE}/api/v1/magazines/${PUB}/articles`,
-    fetchOptions
+  const { data } = await apiClient.get<ArticleSummary[]>(
+    `/magazines/${PUB}/articles`,
   );
-  if (!res.ok) throw new Error("Failed to fetch articles");
-  return res.json();
+  return data;
 }
 
 export async function getArticle(date: string): Promise<Article> {
-  const res = await fetch(
-    `${BASE}/api/v1/magazines/${PUB}/articles/${date}`,
-    fetchOptions
+  const { data } = await apiClient.get<Article>(
+    `/magazines/${PUB}/articles/${date}`,
   );
-  if (!res.ok) throw new Error(`Failed to fetch article: ${date}`);
-  return res.json();
+  return data;
+}
+
+export async function login(
+  email: string,
+  password: string,
+): Promise<LoginResponse> {
+  try {
+    const { data } = await apiClient.post<LoginResponse>("/auth/login", {
+      email,
+      password,
+    });
+    return data;
+  } catch {
+    throw new Error("登入失敗，請確認帳號密碼");
+  }
+}
+
+export async function getMe(token: string): Promise<AuthUser> {
+  const { data } = await apiClient.get<AuthUser>("/auth/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
 }

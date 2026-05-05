@@ -81,3 +81,15 @@ export type RichtextBlock = {
 export type Article = ArticleSummary & {
   blocks: Block[];
 };
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  name: string;
+  roles: string[];
+};
+
+export type LoginResponse = {
+  accessToken: string;
+  user: AuthUser;
+};
