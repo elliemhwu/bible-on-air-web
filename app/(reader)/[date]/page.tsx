@@ -16,8 +16,6 @@ export async function generateStaticParams() {
   return articles.map((a) => ({ date: a.date }));
 }
 
-export const revalidate = process.env.NODE_ENV === "development" ? 0 : 86400;
-
 export default async function DatePage({
   params,
 }: {

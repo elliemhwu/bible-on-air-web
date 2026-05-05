@@ -5,6 +5,14 @@ const apiUrl = new URL(apiBase);
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${apiBase}/api/v1/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
