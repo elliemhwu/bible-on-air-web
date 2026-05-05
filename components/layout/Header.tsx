@@ -1,5 +1,6 @@
 import { getArticles } from "@/lib/api";
 import Link from "next/link";
+import { AuthButton } from "./AuthButton";
 import { DatePickerButton } from "./DatePickerButton";
 
 export async function Header() {
@@ -23,6 +24,7 @@ export async function Header() {
           >
             關於
           </Link>
+          <AuthButton />
         </nav>
       </div>
     </header>
