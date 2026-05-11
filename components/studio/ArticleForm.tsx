@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth-context";
 import type { ArticleTemplate, VerseRange } from "@/lib/types";
 import { toDateStr } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useFormData } from "@/lib/useFormData";
 import { useEffect, useRef, useState } from "react";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -50,36 +51,38 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
   } = useDatePicker();
 
   const [templates, setTemplates] = useState<ArticleTemplate[]>([]);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<number | "">("");
-  const [date, setDate] = useState(() => toDateStr(new Date()));
-  const [title, setTitle] = useState("");
-  const [verseRanges, setVerseRanges] = useState<Record<number, VerseRange[]>>(
-    {},
-  );
-  const [questionItems, setQuestionItems] = useState<Record<number, string[]>>(
-    {},
-  );
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { formData, setFormData, onFormChange, formError, setFormError } =
+    useFormData({
+      selectedTemplateId: "" as number | "",
+      date: toDateStr(new Date()),
+      title: "",
+      verseRanges: {} as Record<number, VerseRange[]>,
+      questionItems: {} as Record<number, string[]>,
+    });
+
+  const { selectedTemplateId, date, title, verseRanges, questionItems } =
+    formData;
 
   useEffect(() => {
     if (!token) return;
     getArticleTemplates(token)
       .then((ts) => {
         setTemplates(ts);
-        if (mode === "new") setSelectedTemplateId(ts[0]?.id ?? "");
+        if (mode === "new") onFormChange("selectedTemplateId", ts[0]?.id ?? "");
       })
-      .catch(() => setError("無法載入文章模板"))
+      .catch(() => setFormError("無法載入文章模板"))
       .finally(() => setIsLoadingTemplates(false));
-  }, [token]);
+  }, [token, mode, onFormChange, setFormError]);
 
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!token || !date) return;
-    setError(null);
+    setFormError(null);
     setIsSubmitting(true);
     try {
       const blocks = selectedTemplate
@@ -104,7 +107,7 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
       });
       router.push("/studio");
     } catch {
-      setError("儲存失敗，請再試一次");
+      setFormError("儲存失敗，請再試一次");
     } finally {
       setIsSubmitting(false);
     }
@@ -132,7 +135,8 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
             <select
               value={selectedTemplateId}
               onChange={(e) =>
-                setSelectedTemplateId(
+                onFormChange(
+                  "selectedTemplateId",
                   e.target.value === "" ? "" : Number(e.target.value),
                 )
               }
@@ -168,7 +172,7 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
               <DatePicker
                 ref={datePickerRef}
                 date={date}
-                onSelect={(d) => setDate(d ?? "")}
+                onSelect={(d) => onFormChange("date", d ?? "")}
                 onOpenChange={setDatePickerOpen}
               />
             )}
@@ -184,13 +188,13 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
             id="title"
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => onFormChange("title", e.target.value)}
             placeholder="留空則無標題"
             className="w-full rounded-lg border border-pebble-200 bg-white px-3.5 py-2.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
           />
         </div>
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {formError && <p className="text-sm text-red-500">{formError}</p>}
 
         {/* Blocks */}
         {selectedTemplate ? (
@@ -207,9 +211,9 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
                     {block.type === "verse" ? (
                       <VerseBlockEditor
                         onChange={(ranges) =>
-                          setVerseRanges((prev) => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            [block.order]: ranges,
+                            verseRanges: { ...prev.verseRanges, [block.order]: ranges },
                           }))
                         }
                       />
@@ -217,9 +221,9 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
                       <QuestionsBlockEditor
                         items={questionItems[block.order] ?? [""]}
                         onChange={(items) =>
-                          setQuestionItems((prev) => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            [block.order]: items,
+                            questionItems: { ...prev.questionItems, [block.order]: items },
                           }))
                         }
                       />
