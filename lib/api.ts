@@ -2,7 +2,9 @@ import { apiClient } from "@/lib/axios";
 import type {
   Article,
   ArticleSummary,
+  ArticleTemplate,
   AuthUser,
+  CreateArticleData,
   LoginResponse,
 } from "@/lib/types";
 
@@ -41,5 +43,25 @@ export async function getMe(token: string): Promise<AuthUser> {
   const { data } = await apiClient.get<AuthUser>("/auth/me", {
     headers: { Authorization: `Bearer ${token}` },
   });
+  return data;
+}
+
+export async function getArticleTemplates(token: string): Promise<ArticleTemplate[]> {
+  const { data } = await apiClient.get<ArticleTemplate[]>(
+    "/article-templates?publicationUid=bible-on-air",
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
+export async function createArticle(
+  token: string,
+  payload: CreateArticleData,
+): Promise<ArticleSummary> {
+  const { data } = await apiClient.post<ArticleSummary>(
+    `/magazines/${PUB}/articles`,
+    payload,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
   return data;
 }

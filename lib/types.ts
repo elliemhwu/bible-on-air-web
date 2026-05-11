@@ -4,7 +4,7 @@ export type ArticleSummary = {
   date: string; // "YYYY-MM-DD"
   title: string | null;
   status: "published" | "draft";
-  templateId: string | null;
+  articleTemplateId: string | null;
   coverImageUrl: string | null;
   publishedAt: string | null;
   createdAt: string;
@@ -80,6 +80,28 @@ export type RichtextBlock = {
 
 export type Article = ArticleSummary & {
   blocks: Block[];
+};
+
+export type BlockDefinition = {
+  order: number;
+  type: "verse" | "questions" | "richtext";
+  subheading: string | null;
+  label: string;
+  required: boolean;
+};
+
+export type ArticleTemplate = {
+  id: number;
+  name: string;
+  publicationUid: string;
+  blockDefinitions: BlockDefinition[];
+};
+
+export type CreateArticleData = {
+  date: string;
+  title: string;
+  articleTemplateId?: number;
+  blocks?: { order: number; type: string; subheading?: string }[];
 };
 
 export type AuthUser = {
