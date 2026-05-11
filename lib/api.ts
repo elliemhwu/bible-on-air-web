@@ -48,7 +48,9 @@ export async function getMe(token: string): Promise<AuthUser> {
   return data;
 }
 
-export async function getArticleTemplates(token: string): Promise<ArticleTemplate[]> {
+export async function getArticleTemplates(
+  token: string,
+): Promise<ArticleTemplate[]> {
   const { data } = await apiClient.get<ArticleTemplate[]>(
     "/article-templates?publicationUid=bible-on-air",
     { headers: { Authorization: `Bearer ${token}` } },
