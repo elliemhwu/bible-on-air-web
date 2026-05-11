@@ -238,15 +238,15 @@ export async function getArticle(date: string): Promise<Article> {
 
 ### 待辦（依序）
 
-1. **登入頁**（`/login`）+ token 儲存 + studio route protection
-2. **文章編輯**（`/studio/articles/new`、`/studio/articles/[id]/edit`）
-3. **圖片上傳**（`/studio/images`）
-4. **Editor & Image Editor Dashboard**（`/studio`）
-5. **History View**（`/history` monthly list）
-6. **Review mode**（`/studio/articles/[id]/review`）+ Reviewer Dashboard
-7. **Manager 發布頁**（`/studio/publish`）+ Manager Dashboard
-8. **PDF 匯出**（下載入口）
-9. **Migration 驗證**（確認爬蟲搬來的資料顯示正確）
+1. [x] **登入頁**（`/login`）+ token 儲存 + studio route protection
+2. [ ] **文章編輯**（`/studio/articles/new`、`/studio/articles/[id]/edit`）
+3. [ ] **圖片上傳**（`/studio/images`）
+4. [ ] **Editor & Image Editor Dashboard**（`/studio`）
+5. [ ] **History View**（`/history` monthly list）
+6. [ ] **Review mode**（`/studio/articles/[id]/review`）+ Reviewer Dashboard
+7. [ ] **Manager 發布頁**（`/studio/publish`）+ Manager Dashboard
+8. [ ] **PDF 匯出**（下載入口）
+9. [ ] **Migration 驗證**（確認爬蟲搬來的資料顯示正確）
 
 ---
 
