@@ -247,7 +247,7 @@ export async function getArticle(date: string): Promise<Article> {
 - [x] `[2a]` 新增文章頁（`/studio/articles/new`、`/studio/articles/[id]/edit`；選 article template、帶入 blocks、填日期）
 - [x] `[2b]` Verse block 編輯（輸入範圍 → 查詢顯示）
 - [x] `[2c]` Questions block 編輯（逐題輸入）
-- [ ] `[2d]` Richtext block 編輯（選套件）
+- [x] `[2d]` Richtext block 編輯（選套件）
 
 **3. 圖片上傳**
 
