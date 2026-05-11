@@ -24,6 +24,12 @@ export default function QuestionsBlockEditor({ items, onChange }: Props) {
     onChange(items.filter((_, i) => i !== idx));
   }
 
+  function move(idx: number, dir: -1 | 1) {
+    const next = [...items];
+    [next[idx], next[idx + dir]] = [next[idx + dir], next[idx]];
+    onChange(next);
+  }
+
   function handleKeyDown(e: React.KeyboardEvent, idx: number) {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -59,16 +65,36 @@ export default function QuestionsBlockEditor({ items, onChange }: Props) {
               placeholder={`問題 ${idx + 1}`}
               className="flex-1 rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
             />
-            {items.length > 1 && (
+            <div className="flex gap-0.5">
               <button
                 type="button"
-                onClick={() => remove(idx)}
-                className="text-pebble-300 hover:text-red-400 transition-colors text-lg leading-none"
-                aria-label="移除此題"
+                onClick={() => move(idx, -1)}
+                disabled={idx === 0}
+                className="text-pebble-300 hover:text-pebble-600 disabled:opacity-20 transition-colors px-0.5"
+                aria-label="上移"
               >
-                ×
+                ↑
               </button>
-            )}
+              <button
+                type="button"
+                onClick={() => move(idx, 1)}
+                disabled={idx === items.length - 1}
+                className="text-pebble-300 hover:text-pebble-600 disabled:opacity-20 transition-colors px-0.5"
+                aria-label="下移"
+              >
+                ↓
+              </button>
+              {items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => remove(idx)}
+                  className="text-pebble-300 hover:text-red-400 transition-colors text-lg leading-none ml-0.5"
+                  aria-label="移除此題"
+                >
+                  ×
+                </button>
+              )}
+            </div>
           </li>
         ))}
       </ol>
