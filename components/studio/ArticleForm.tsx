@@ -100,14 +100,15 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
             subheading: b.subheading ?? undefined,
             content:
               b.type === "verse"
-                ? { ranges: verseRanges[b.order] ?? [] }
+                ? { ...b.defaultContent, ranges: verseRanges[b.order] ?? [] }
                 : b.type === "questions"
-                  ? { items: questionItems[b.order] ?? [] }
+                  ? { ...b.defaultContent, items: questionItems[b.order] ?? [] }
                   : b.type === "richtext"
-                    ? { html: richtextHtml[b.order] ?? "" }
-                    : undefined,
+                    ? { ...b.defaultContent, html: richtextHtml[b.order] ?? "" }
+                    : { ...b.defaultContent },
           }))
         : [];
+
       await createArticle(token, {
         date,
         title,
@@ -115,7 +116,15 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
           selectedTemplateId !== "" ? selectedTemplateId : undefined,
         blocks,
       });
-      router.push("/studio");
+
+      setFormData({
+        selectedTemplateId: templates[0]?.id ?? ("" as number | ""),
+        date: toDateStr(new Date()),
+        title: "",
+        verseRanges: {} as Record<number, VerseRange[]>,
+        questionItems: {} as Record<number, string[]>,
+        richtextHtml: {} as Record<number, string>,
+      });
     } catch {
       setFormError("儲存失敗，請再試一次");
     } finally {
