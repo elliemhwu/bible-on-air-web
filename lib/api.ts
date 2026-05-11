@@ -4,8 +4,10 @@ import type {
   ArticleSummary,
   ArticleTemplate,
   AuthUser,
+  BibleBook,
   CreateArticleData,
   LoginResponse,
+  VerseResultResponse,
 } from "@/lib/types";
 
 const PUB = "bible-on-air";
@@ -51,6 +53,18 @@ export async function getArticleTemplates(token: string): Promise<ArticleTemplat
     "/article-templates?publicationUid=bible-on-air",
     { headers: { Authorization: `Bearer ${token}` } },
   );
+  return data;
+}
+
+export async function getBibleBooks(): Promise<BibleBook[]> {
+  const { data } = await apiClient.get<BibleBook[]>("/bible/books");
+  return data;
+}
+
+export async function lookupVerses(ref: string): Promise<VerseResultResponse> {
+  const { data } = await apiClient.get<VerseResultResponse>("/bible/verses", {
+    params: { ref },
+  });
   return data;
 }
 

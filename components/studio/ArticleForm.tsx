@@ -4,26 +4,15 @@ import {
   DatePicker,
   type DatePickerHandle,
 } from "@/components/layout/DatePicker";
+import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
 import { createArticle, getArticleTemplates } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import type { ArticleTemplate, BlockDefinition } from "@/lib/types";
+import type { ArticleTemplate, VerseRange } from "@/lib/types";
 import { toDateStr } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
-
-const BLOCK_TYPE_LABEL: Record<BlockDefinition["type"], string> = {
-  verse: "經文",
-  questions: "問題",
-  richtext: "內容",
-};
-
-const BLOCK_TYPE_COLOR: Record<BlockDefinition["type"], string> = {
-  verse: "bg-blue-50 text-blue-700 border-blue-200",
-  questions: "bg-amber-50 text-amber-700 border-amber-200",
-  richtext: "bg-emerald-50 text-emerald-700 border-emerald-200",
-};
 
 function useDatePicker() {
   const [open, setOpen] = useState(false);
@@ -63,6 +52,9 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | "">("");
   const [date, setDate] = useState(() => toDateStr(new Date()));
   const [title, setTitle] = useState("");
+  const [verseRanges, setVerseRanges] = useState<Record<number, VerseRange[]>>(
+    {},
+  );
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,12 +78,23 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
     setError(null);
     setIsSubmitting(true);
     try {
+      const blocks = selectedTemplate
+        ? selectedTemplate.blockDefinitions.map((b) => ({
+            order: b.order,
+            type: b.type,
+            subheading: b.subheading ?? undefined,
+            content:
+              b.type === "verse"
+                ? { ranges: verseRanges[b.order] ?? [] }
+                : undefined,
+          }))
+        : [];
       await createArticle(token, {
         date,
         title,
         articleTemplateId:
           selectedTemplateId !== "" ? selectedTemplateId : undefined,
-        blocks: [],
+        blocks,
       });
       router.push("/studio");
     } catch {
@@ -192,28 +195,26 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
                 .slice()
                 .sort((a, b) => a.order - b.order)
                 .map((block) => (
-                  <div
-                    key={block.order}
-                    className="rounded-lg border border-pebble-200 bg-white p-4 flex flex-col gap-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium border ${BLOCK_TYPE_COLOR[block.type]}`}
-                      >
-                        {BLOCK_TYPE_LABEL[block.type]}
-                      </span>
-                      <span className="text-sm font-medium text-pebble-700">
+                  <div key={block.order} className="flex flex-col gap-1.5">
+                    {block.label && (
+                      <div className="text-sm text-pebble-600">
                         {block.label}
-                      </span>
-                      {!block.required && (
-                        <span className="text-xs text-pebble-400">
-                          （選填）
-                        </span>
+                      </div>
+                    )}
+                    <div className="rounded-lg border border-pebble-200 bg-white p-4">
+                      {block.type === "verse" ? (
+                        <VerseBlockEditor
+                          onChange={(ranges) =>
+                            setVerseRanges((prev) => ({
+                              ...prev,
+                              [block.order]: ranges,
+                            }))
+                          }
+                        />
+                      ) : (
+                        <p className="text-xs text-pebble-400">[待實作]</p>
                       )}
                     </div>
-                    <p className="text-xs text-pebble-400">
-                      [{BLOCK_TYPE_LABEL[block.type]} 編輯區 — 待實作]
-                    </p>
                   </div>
                 ))}
             </>
