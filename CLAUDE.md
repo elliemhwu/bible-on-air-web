@@ -102,7 +102,7 @@ export type ArticleSummary = {
   date: string; // "YYYY-MM-DD"
   title: string | null;
   status: "published" | "draft" | "reviewed";
-  templateId: string | null;
+  articleTemplateId: string | null;
   coverImageUrl: string | null;
   publishedAt: string | null;
   createdAt: string;
