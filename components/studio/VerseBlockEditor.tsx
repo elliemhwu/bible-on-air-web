@@ -67,20 +67,25 @@ export default function VerseBlockEditor({ onChange }: Props) {
     return {
       book: theBook,
       chapCount: theBook?.chapters.length ?? 1,
-      verseCountStart: theBook ? theBook.chapters[editing?.chapterStart - 1] : 1,
+      verseCountStart: theBook
+        ? theBook.chapters[editing?.chapterStart - 1]
+        : 1,
       verseCountEnd: theBook ? theBook.chapters[editing?.chapterEnd - 1] : 1,
     };
   }, [books, editing]);
 
   function updateForms(next: EditingRange[]) {
+    onChange(
+      next
+        .filter((_, idx) => idx !== editingIdx)
+        .map((f) => buildRange(books[f.bookIdx], f)),
+    );
+
     setForms(next);
-    onChange(next.map((f) => buildRange(books[f.bookIdx], f)));
   }
 
   function updateEditing(updater: (prev: EditingRange) => EditingRange) {
-    updateForms(
-      forms.map((f, i) => (i === editingIdx ? updater(f) : f)),
-    );
+    updateForms(forms.map((f, i) => (i === editingIdx ? updater(f) : f)));
   }
 
   function set<K extends keyof EditingRange>(key: K, val: EditingRange[K]) {
@@ -117,10 +122,11 @@ export default function VerseBlockEditor({ onChange }: Props) {
   }
 
   function handleAdd() {
+    onChange(forms.map((f) => buildRange(books[f.bookIdx], f)));
+
     const next = [...forms, { ...emptyForm }];
     setForms(next);
     setEditingIdx(next.length - 1);
-    onChange(next.map((f) => buildRange(books[f.bookIdx], f)));
   }
 
   function handleRemove(idx: number) {
@@ -128,10 +134,15 @@ export default function VerseBlockEditor({ onChange }: Props) {
       // reset this slot rather than removing, to keep editing in place
       updateForms(forms.map((f, i) => (i === idx ? { ...emptyForm } : f)));
     } else {
+      onChange(
+        forms
+          .filter((_, i) => i !== idx && i !== editingIdx)
+          .map((f) => buildRange(books[f.bookIdx], f)),
+      );
+
       const next = forms.filter((_, i) => i !== idx);
       setForms(next);
       setEditingIdx(idx < editingIdx ? editingIdx - 1 : editingIdx);
-      onChange(next.map((f) => buildRange(books[f.bookIdx], f)));
     }
   }
 

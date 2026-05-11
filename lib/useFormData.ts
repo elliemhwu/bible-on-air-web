@@ -8,5 +8,17 @@ export function useFormData<T extends object>(initialState: T) {
     setFormData((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  return { formData, setFormData, onFormChange, formError, setFormError };
+  const resetFormData = useCallback(() => {
+    setFormData(initialState);
+    setFormError(null);
+  }, [initialState]);
+
+  return {
+    formData,
+    setFormData,
+    onFormChange,
+    formError,
+    setFormError,
+    resetFormData,
+  };
 }

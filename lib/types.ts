@@ -133,6 +133,7 @@ export type BlockDefinition = {
   subheading: string | null;
   label: string; // display label shown in the editor UI
   required: boolean;
+  defaultContent?: Record<string, unknown>; // template-level content defaults merged into block on save
 };
 
 /** A named article template that prescribes a fixed set of block slots. */

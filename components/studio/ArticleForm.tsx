@@ -5,13 +5,14 @@ import {
   type DatePickerHandle,
 } from "@/components/layout/DatePicker";
 import QuestionsBlockEditor from "@/components/studio/QuestionsBlockEditor";
+import RichtextBlockEditor from "@/components/studio/RichtextBlockEditor";
 import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
 import { createArticle, getArticleTemplates } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { ArticleTemplate, VerseRange } from "@/lib/types";
+import { useFormData } from "@/lib/useFormData";
 import { toDateStr } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useFormData } from "@/lib/useFormData";
 import { useEffect, useRef, useState } from "react";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -61,10 +62,17 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
       title: "",
       verseRanges: {} as Record<number, VerseRange[]>,
       questionItems: {} as Record<number, string[]>,
+      richtextHtml: {} as Record<number, string>,
     });
 
-  const { selectedTemplateId, date, title, verseRanges, questionItems } =
-    formData;
+  const {
+    selectedTemplateId,
+    date,
+    title,
+    verseRanges,
+    questionItems,
+    richtextHtml,
+  } = formData;
 
   useEffect(() => {
     if (!token) return;
@@ -92,12 +100,15 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
             subheading: b.subheading ?? undefined,
             content:
               b.type === "verse"
-                ? { ranges: verseRanges[b.order] ?? [] }
+                ? { ...b.defaultContent, ranges: verseRanges[b.order] ?? [] }
                 : b.type === "questions"
-                  ? { items: questionItems[b.order] ?? [] }
-                  : undefined,
+                  ? { ...b.defaultContent, items: questionItems[b.order] ?? [] }
+                  : b.type === "richtext"
+                    ? { ...b.defaultContent, html: richtextHtml[b.order] ?? "" }
+                    : { ...b.defaultContent },
           }))
         : [];
+
       await createArticle(token, {
         date,
         title,
@@ -105,7 +116,15 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
           selectedTemplateId !== "" ? selectedTemplateId : undefined,
         blocks,
       });
-      router.push("/studio");
+
+      setFormData({
+        selectedTemplateId: templates[0]?.id ?? ("" as number | ""),
+        date: toDateStr(new Date()),
+        title: "",
+        verseRanges: {} as Record<number, VerseRange[]>,
+        questionItems: {} as Record<number, string[]>,
+        richtextHtml: {} as Record<number, string>,
+      });
     } catch {
       setFormError("儲存失敗，請再試一次");
     } finally {
@@ -207,30 +226,51 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
                   {block.label && (
                     <div className="text-sm text-pebble-600">{block.label}</div>
                   )}
-                  <div className="rounded-lg border border-pebble-200 bg-white p-4">
-                    {block.type === "verse" ? (
-                      <VerseBlockEditor
-                        onChange={(ranges) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            verseRanges: { ...prev.verseRanges, [block.order]: ranges },
-                          }))
-                        }
-                      />
-                    ) : block.type === "questions" ? (
-                      <QuestionsBlockEditor
-                        items={questionItems[block.order] ?? [""]}
-                        onChange={(items) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            questionItems: { ...prev.questionItems, [block.order]: items },
-                          }))
-                        }
-                      />
-                    ) : (
-                      <p className="text-xs text-pebble-400">[待實作]</p>
-                    )}
-                  </div>
+                  {block.type === "richtext" ? (
+                    <RichtextBlockEditor
+                      html={richtextHtml[block.order] ?? ""}
+                      onChange={(html) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          richtextHtml: {
+                            ...prev.richtextHtml,
+                            [block.order]: html,
+                          },
+                        }))
+                      }
+                    />
+                  ) : (
+                    <div className="rounded-lg border border-pebble-200 bg-white p-4">
+                      {block.type === "verse" ? (
+                        <VerseBlockEditor
+                          onChange={(ranges) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              verseRanges: {
+                                ...prev.verseRanges,
+                                [block.order]: ranges,
+                              },
+                            }))
+                          }
+                        />
+                      ) : block.type === "questions" ? (
+                        <QuestionsBlockEditor
+                          items={questionItems[block.order] ?? [""]}
+                          onChange={(items) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              questionItems: {
+                                ...prev.questionItems,
+                                [block.order]: items,
+                              },
+                            }))
+                          }
+                        />
+                      ) : (
+                        <p className="text-xs text-pebble-400">[待實作]</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
           </>
