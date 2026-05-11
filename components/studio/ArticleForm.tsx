@@ -4,6 +4,7 @@ import {
   DatePicker,
   type DatePickerHandle,
 } from "@/components/layout/DatePicker";
+import QuestionsBlockEditor from "@/components/studio/QuestionsBlockEditor";
 import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
 import { createArticle, getArticleTemplates } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -55,6 +56,9 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
   const [verseRanges, setVerseRanges] = useState<Record<number, VerseRange[]>>(
     {},
   );
+  const [questionItems, setQuestionItems] = useState<Record<number, string[]>>(
+    {},
+  );
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +90,9 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
             content:
               b.type === "verse"
                 ? { ranges: verseRanges[b.order] ?? [] }
-                : undefined,
+                : b.type === "questions"
+                  ? { items: questionItems[b.order] ?? [] }
+                  : undefined,
           }))
         : [];
       await createArticle(token, {
@@ -208,6 +214,16 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
                             setVerseRanges((prev) => ({
                               ...prev,
                               [block.order]: ranges,
+                            }))
+                          }
+                        />
+                      ) : block.type === "questions" ? (
+                        <QuestionsBlockEditor
+                          items={questionItems[block.order] ?? [""]}
+                          onChange={(items) =>
+                            setQuestionItems((prev) => ({
+                              ...prev,
+                              [block.order]: items,
                             }))
                           }
                         />
