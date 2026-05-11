@@ -102,7 +102,7 @@ export type ArticleSummary = {
   date: string; // "YYYY-MM-DD"
   title: string | null;
   status: "published" | "draft" | "reviewed";
-  templateId: string | null;
+  articleTemplateId: string | null;
   coverImageUrl: string | null;
   publishedAt: string | null;
   createdAt: string;
@@ -238,15 +238,44 @@ export async function getArticle(date: string): Promise<Article> {
 
 ### 待辦（依序）
 
-1. **登入頁**（`/login`）+ token 儲存 + studio route protection
-2. **文章編輯**（`/studio/articles/new`、`/studio/articles/[id]/edit`）
-3. **圖片上傳**（`/studio/images`）
-4. **Editor & Image Editor Dashboard**（`/studio`）
-5. **History View**（`/history` monthly list）
-6. **Review mode**（`/studio/articles/[id]/review`）+ Reviewer Dashboard
-7. **Manager 發布頁**（`/studio/publish`）+ Manager Dashboard
-8. **PDF 匯出**（下載入口）
-9. **Migration 驗證**（確認爬蟲搬來的資料顯示正確）
+**1. 登入系統**
+
+- [x] `[1c]` 前端登入頁（`/login`） + token 儲存 + route protection
+
+**2. 文章編輯**
+
+- [x] `[2a]` 新增文章頁（`/studio/articles/new`、`/studio/articles/[id]/edit`；選 article template、帶入 blocks、填日期）
+- [ ] `[2b]` Verse block 編輯（輸入範圍 → 查詢顯示）
+- [ ] `[2c]` Questions block 編輯（逐題輸入）
+- [ ] `[2d]` Richtext block 編輯（選套件）
+
+**3. 圖片上傳**
+
+- [ ] `[3b]` 前端：批次上傳介面（`/studio/images`）
+
+**4. Editor & Image Editor Dashboard**（`/studio`）
+
+- [ ] `[4a]` Editor dashboard（所有 draft / reviewed 文章列表）
+- [ ] `[4b]` Image editor dashboard（待上傳圖片日期列表）
+
+**5. History View**
+
+- [ ] `[5b]` 前端：Monthly list view（`/history/[month]`）
+
+**6. Review mode + Reviewer Dashboard**
+
+- [ ] `[6a]` Reviewer dashboard（待 review 文章列表）
+- [ ] `[6b]` Review mode UI（`/studio/review/[reviewTaskId]` or `/studio/review/[rangeStart]/[rangeEnd]`；批次閱讀視圖 + hover edit）
+
+**7. Manager 發布 + Dashboard**
+
+- [ ] `[7b]` Manager dashboard（`/studio/publish`） + 發布按鈕
+
+**8. PDF 匯出**
+
+- [ ] `[8b]` 前端下載入口
+
+**9. Migration 爬蟲**（確認爬蟲搬來的資料顯示正確）
 
 ---
 

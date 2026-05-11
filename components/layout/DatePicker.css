@@ -2,6 +2,8 @@
   --rdp-accent-color: var(--color-primary);
   --rdp-accent-background-color: var(--color-iris-50);
   --rdp-today-color: var(--color-primary);
+  background-color: var(--color-white);
+  font-family: var(--font-noto-sans-tc);
 }
 
 .date-picker-popover .rdp-day_button {

@@ -19,8 +19,11 @@
 }
 
 @layer base {
-  button, [role="button"] {
-    cursor: pointer;
+  button,
+  [role="button"] {
+    &:not(:disabled):not([disabled]) {
+      cursor: pointer;
+    }
   }
 
   @media (min-width: 640px) {
