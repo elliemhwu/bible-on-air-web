@@ -152,6 +152,17 @@ export type CreateArticleData = {
   blocks?: { order: number; type: string; subheading?: string }[];
 };
 
+/** Payload for PATCH /magazines/:pub/articles/:date */
+export type UpdateArticleData = {
+  date?: string;
+  title?: string;
+};
+
+/** Payload for PATCH /magazines/:pub/articles/:date/blocks/:blockId */
+export type UpdateBlockData = {
+  content: Record<string, unknown>;
+};
+
 // ── Auth ──────────────────────────────────────────────────────────────────
 
 /** Authenticated user profile returned from the API. */

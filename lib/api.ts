@@ -7,6 +7,8 @@ import type {
   BibleBook,
   CreateArticleData,
   LoginResponse,
+  UpdateArticleData,
+  UpdateBlockData,
   VerseResultResponse,
 } from "@/lib/types";
 
@@ -80,4 +82,41 @@ export async function createArticle(
     { headers: { Authorization: `Bearer ${token}` } },
   );
   return data;
+}
+
+export async function getArticleById(
+  token: string,
+  id: string,
+): Promise<Article> {
+  const { data } = await apiClient.get<Article>(
+    `/magazines/${PUB}/articles/${id}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
+export async function updateArticle(
+  token: string,
+  date: string,
+  payload: UpdateArticleData,
+): Promise<ArticleSummary> {
+  const { data } = await apiClient.patch<ArticleSummary>(
+    `/magazines/${PUB}/articles/${date}`,
+    payload,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
+export async function updateBlock(
+  token: string,
+  date: string,
+  blockId: string,
+  payload: UpdateBlockData,
+): Promise<void> {
+  await apiClient.patch(
+    `/magazines/${PUB}/articles/${date}/blocks/${blockId}`,
+    payload,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
 }
