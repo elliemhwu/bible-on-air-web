@@ -60,9 +60,15 @@ export async function getArticleTemplates(
   return data;
 }
 
-export async function getBibleBooks(): Promise<BibleBook[]> {
-  const { data } = await apiClient.get<BibleBook[]>("/bible/books");
-  return data;
+let bibleBooksPromise: Promise<BibleBook[]> | null = null;
+
+export function getBibleBooks(): Promise<BibleBook[]> {
+  if (!bibleBooksPromise) {
+    bibleBooksPromise = apiClient
+      .get<BibleBook[]>("/bible/books")
+      .then(({ data }) => data);
+  }
+  return bibleBooksPromise;
 }
 
 export async function lookupVerses(ref: string): Promise<VerseResultResponse> {

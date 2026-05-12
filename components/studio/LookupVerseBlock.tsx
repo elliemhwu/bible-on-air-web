@@ -7,15 +7,15 @@ type Props = Partial<VerseResultResponse> & {
 };
 
 export default function LookupVerseBlock({
-  ranges: [range] = [],
+  ranges = [],
   verses = [],
   onRemove,
 }: Props) {
   return (
-    <div>
-      <div className="mb-4 flex justify-between align-center">
+    <div className="rounded-lg bg-iris-50 p-4">
+      <div className="mb-2 flex justify-between align-center">
         <h6 className="text-xs font-semibold text-primary">
-          {formatVerseRef([range])}
+          {formatVerseRef(ranges)}
         </h6>
 
         {onRemove && (
