@@ -6,11 +6,17 @@ import RichtextBlockEditor from "@/components/studio/RichtextBlockEditor";
 import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
 import { createArticle, getArticleTemplates } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import {
+  btnPrimaryCls,
+  btnSecondaryCls,
+  inputCls,
+  selectCls,
+} from "@/lib/styles";
 import type { ArticleTemplate, VerseRange } from "@/lib/types";
-import { btnPrimaryCls, btnSecondaryCls, inputCls, selectCls } from "@/lib/styles";
 import { useDatePicker } from "@/lib/useDatePicker";
 import { useFormData } from "@/lib/useFormData";
 import { toDateStr } from "@/lib/utils";
+import { find } from "lodash";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -38,21 +44,30 @@ export default function CreateArticleForm() {
       richtextHtml: {} as Record<number, string>,
     });
 
-  const { selectedTemplateId, date, title, verseRanges, questionItems, richtextHtml } =
-    formData;
+  const {
+    selectedTemplateId,
+    date,
+    title,
+    verseRanges,
+    questionItems,
+    richtextHtml,
+  } = formData;
 
   useEffect(() => {
     if (!token) return;
     getArticleTemplates(token)
-      .then((ts) => {
-        setTemplates(ts);
-        onFormChange("selectedTemplateId", ts[0]?.id ?? "");
+      .then((temps) => {
+        const defaultTemplate = find(temps, { isDefault: true }) || temps[0];
+        setTemplates(temps);
+        onFormChange("selectedTemplateId", defaultTemplate?.id ?? "");
       })
       .catch(() => setFormError("無法載入文章模板"))
       .finally(() => setIsLoadingTemplates(false));
   }, [token, onFormChange, setFormError]);
 
-  const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
+  const selectedTemplate = find(templates, { id: selectedTemplateId }) as
+    | ArticleTemplate
+    | undefined;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -79,12 +94,15 @@ export default function CreateArticleForm() {
       await createArticle(token, {
         date,
         title,
-        articleTemplateId: selectedTemplateId !== "" ? selectedTemplateId : undefined,
+        articleTemplateId:
+          selectedTemplateId !== "" ? selectedTemplateId : undefined,
         blocks,
       });
 
       setFormData({
-        selectedTemplateId: templates[0]?.id ?? ("" as number | ""),
+        selectedTemplateId:
+          (find(templates, { isDefault: true }) || templates[0])?.id ??
+          ("" as number | ""),
         date: toDateStr(new Date()),
         title: "",
         verseRanges: {},
@@ -174,58 +192,65 @@ export default function CreateArticleForm() {
         {formError && <p className="text-sm text-red-500">{formError}</p>}
 
         {/* Blocks */}
-        {selectedTemplate ? (
-          selectedTemplate.blockDefinitions
-            .slice()
-            .sort((a, b) => a.order - b.order)
-            .map((block) => (
-              <div key={block.order} className="flex flex-col gap-1.5">
-                {block.label && (
-                  <div className="text-sm text-pebble-600">{block.label}</div>
-                )}
-                {block.type === "richtext" ? (
-                  <RichtextBlockEditor
-                    html={richtextHtml[block.order] ?? ""}
-                    onChange={(html) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        richtextHtml: { ...prev.richtextHtml, [block.order]: html },
-                      }))
-                    }
-                  />
-                ) : (
-                  <div className="rounded-lg border border-pebble-200 bg-white p-4">
-                    {block.type === "verse" ? (
-                      <VerseBlockEditor
-                        onChange={(ranges) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            verseRanges: { ...prev.verseRanges, [block.order]: ranges },
-                          }))
-                        }
-                      />
-                    ) : block.type === "questions" ? (
-                      <QuestionsBlockEditor
-                        items={questionItems[block.order] ?? [""]}
-                        onChange={(items) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            questionItems: { ...prev.questionItems, [block.order]: items },
-                          }))
-                        }
-                      />
-                    ) : (
-                      <p className="text-xs text-pebble-400">[待實作]</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))
-        ) : (
-          !isLoadingTemplates && (
-            <p className="text-sm text-pebble-400">選擇模板後顯示區塊預覽</p>
-          )
-        )}
+        {selectedTemplate
+          ? selectedTemplate.blockDefinitions
+              .slice()
+              .sort((a, b) => a.order - b.order)
+              .map((block) => (
+                <div key={block.order} className="flex flex-col gap-1.5">
+                  {block.label && (
+                    <div className="text-sm text-pebble-600">{block.label}</div>
+                  )}
+                  {block.type === "richtext" ? (
+                    <RichtextBlockEditor
+                      html={richtextHtml[block.order] ?? ""}
+                      onChange={(html) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          richtextHtml: {
+                            ...prev.richtextHtml,
+                            [block.order]: html,
+                          },
+                        }))
+                      }
+                    />
+                  ) : (
+                    <div className="rounded-lg border border-pebble-200 bg-white p-4">
+                      {block.type === "verse" ? (
+                        <VerseBlockEditor
+                          onChange={(ranges) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              verseRanges: {
+                                ...prev.verseRanges,
+                                [block.order]: ranges,
+                              },
+                            }))
+                          }
+                        />
+                      ) : block.type === "questions" ? (
+                        <QuestionsBlockEditor
+                          items={questionItems[block.order] ?? [""]}
+                          onChange={(items) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              questionItems: {
+                                ...prev.questionItems,
+                                [block.order]: items,
+                              },
+                            }))
+                          }
+                        />
+                      ) : (
+                        <p className="text-xs text-pebble-400">[待實作]</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+          : !isLoadingTemplates && (
+              <p className="text-sm text-pebble-400">選擇模板後顯示區塊預覽</p>
+            )}
 
         <div className="flex items-center gap-3">
           <button

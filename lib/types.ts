@@ -142,6 +142,7 @@ export type ArticleTemplate = {
   name: string;
   publicationUid: string;
   blockDefinitions: BlockDefinition[];
+  isDefault: boolean;
 };
 
 /** Payload for the create-article API call. */

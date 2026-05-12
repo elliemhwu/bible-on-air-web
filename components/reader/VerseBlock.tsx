@@ -17,7 +17,7 @@ export function VerseBlock({
         <ul className="leading-[1.9] space-y-1 list-none pl-0">
           {verses.map((verse) => (
             <li
-              key={verse.verse}
+              key={`${verse.abbrEn}${verse.chapter}_${verse.verse}`}
               className={`flex gap-${textSize === "md" ? 2 : 0}`}
             >
               <span className="shrink-0 tabular-nums">{verse.verse}.</span>
