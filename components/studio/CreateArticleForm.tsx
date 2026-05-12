@@ -1,47 +1,26 @@
 "use client";
 
-import {
-  DatePicker,
-  type DatePickerHandle,
-} from "@/components/layout/DatePicker";
+import { DatePicker } from "@/components/layout/DatePicker";
 import QuestionsBlockEditor from "@/components/studio/QuestionsBlockEditor";
 import RichtextBlockEditor from "@/components/studio/RichtextBlockEditor";
 import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
 import { createArticle, getArticleTemplates } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import {
+  btnPrimaryCls,
+  btnSecondaryCls,
+  inputCls,
+  selectCls,
+} from "@/lib/styles";
 import type { ArticleTemplate, VerseRange } from "@/lib/types";
+import { useDatePicker } from "@/lib/useDatePicker";
 import { useFormData } from "@/lib/useFormData";
 import { toDateStr } from "@/lib/utils";
+import { find } from "lodash";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-
-function useDatePicker() {
-  const [open, setOpen] = useState(false);
-  const pickerRef = useRef<DatePickerHandle>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        pickerRef.current?.close();
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  return { open, setOpen, pickerRef, containerRef };
-}
-
-// ─── component ────────────────────────────────────────────────────────────────
-
-export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
+export default function CreateArticleForm() {
   const router = useRouter();
   const { token } = useAuth();
   const {
@@ -77,15 +56,18 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
   useEffect(() => {
     if (!token) return;
     getArticleTemplates(token)
-      .then((ts) => {
-        setTemplates(ts);
-        if (mode === "new") onFormChange("selectedTemplateId", ts[0]?.id ?? "");
+      .then((temps) => {
+        const defaultTemplate = find(temps, { isDefault: true }) || temps[0];
+        setTemplates(temps);
+        onFormChange("selectedTemplateId", defaultTemplate?.id ?? "");
       })
       .catch(() => setFormError("無法載入文章模板"))
       .finally(() => setIsLoadingTemplates(false));
-  }, [token, mode, onFormChange, setFormError]);
+  }, [token, onFormChange, setFormError]);
 
-  const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
+  const selectedTemplate = find(templates, { id: selectedTemplateId }) as
+    | ArticleTemplate
+    | undefined;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -118,26 +100,20 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
       });
 
       setFormData({
-        selectedTemplateId: templates[0]?.id ?? ("" as number | ""),
+        selectedTemplateId:
+          (find(templates, { isDefault: true }) || templates[0])?.id ??
+          ("" as number | ""),
         date: toDateStr(new Date()),
         title: "",
-        verseRanges: {} as Record<number, VerseRange[]>,
-        questionItems: {} as Record<number, string[]>,
-        richtextHtml: {} as Record<number, string>,
+        verseRanges: {},
+        questionItems: {},
+        richtextHtml: {},
       });
     } catch {
       setFormError("儲存失敗，請再試一次");
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  if (mode === "edit") {
-    return (
-      <main className="min-h-screen px-6 py-12 max-w-5xl mx-auto font-sans">
-        <p className="text-sm text-pebble-400">編輯功能待實作</p>
-      </main>
-    );
   }
 
   return (
@@ -159,7 +135,7 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
                   e.target.value === "" ? "" : Number(e.target.value),
                 )
               }
-              className="w-full rounded-lg border border-pebble-200 bg-white px-3.5 py-2.5 text-sm text-pebble-900 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+              className={selectCls}
             >
               {templates.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -181,7 +157,7 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
                   ? datePickerRef.current?.close()
                   : setDatePickerOpen(true)
               }
-              className="w-full rounded-lg border border-pebble-200 bg-white px-3.5 py-2.5 text-sm text-left outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+              className={`${selectCls} text-left`}
             >
               <span className={date ? "text-pebble-900" : "text-pebble-300"}>
                 {date || "選擇日期"}
@@ -209,16 +185,15 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
             value={title}
             onChange={(e) => onFormChange("title", e.target.value)}
             placeholder="留空則無標題"
-            className="w-full rounded-lg border border-pebble-200 bg-white px-3.5 py-2.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+            className={inputCls}
           />
         </div>
 
         {formError && <p className="text-sm text-red-500">{formError}</p>}
 
         {/* Blocks */}
-        {selectedTemplate ? (
-          <>
-            {selectedTemplate.blockDefinitions
+        {selectedTemplate
+          ? selectedTemplate.blockDefinitions
               .slice()
               .sort((a, b) => a.order - b.order)
               .map((block) => (
@@ -243,6 +218,7 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
                     <div className="rounded-lg border border-pebble-200 bg-white p-4">
                       {block.type === "verse" ? (
                         <VerseBlockEditor
+                          ranges={formData.verseRanges[block.order]}
                           onChange={(ranges) =>
                             setFormData((prev) => ({
                               ...prev,
@@ -272,26 +248,23 @@ export default function ArticleForm({ mode }: { mode: "new" | "edit" }) {
                     </div>
                   )}
                 </div>
-              ))}
-          </>
-        ) : (
-          !isLoadingTemplates && (
-            <p className="text-sm text-pebble-400">選擇模板後顯示區塊預覽</p>
-          )
-        )}
+              ))
+          : !isLoadingTemplates && (
+              <p className="text-sm text-pebble-400">選擇模板後顯示區塊預覽</p>
+            )}
 
         <div className="flex items-center gap-3">
           <button
             type="submit"
             disabled={isSubmitting || !date}
-            className="rounded-lg bg-iris-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-iris-600 disabled:opacity-50 transition-colors"
+            className={btnPrimaryCls}
           >
             {isSubmitting ? "儲存中…" : "儲存"}
           </button>
           <button
             type="button"
             onClick={() => router.push("/studio")}
-            className="rounded-lg border border-pebble-200 px-5 py-2.5 text-sm text-pebble-600 hover:border-pebble-300 transition-colors"
+            className={btnSecondaryCls}
           >
             取消
           </button>

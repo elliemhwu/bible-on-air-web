@@ -1,7 +1,8 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useEffect } from "react";
 
 type Props = {
   html: string;
@@ -23,10 +24,16 @@ export default function RichtextBlockEditor({ html, onChange }: Props) {
     editorProps: {
       attributes: {
         class:
-          "min-h-[120px] px-3.5 py-2.5 outline-none text-sm text-pebble-900 [&_strong]:font-semibold [&_em]:italic [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_h3]:font-semibold [&_h3]:text-base",
+          "min-h-[120px] px-3.5 py-2.5 outline-none text-sm text-pebble-900 prose-tc [&_p]:indent-8",
       },
     },
   });
+
+  useEffect(() => {
+    if (editor && html !== editor.getHTML()) {
+      editor.commands.setContent(html);
+    }
+  }, [html]);
 
   if (!editor) return null;
 
@@ -73,7 +80,9 @@ export default function RichtextBlockEditor({ html, onChange }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }
           className={`${TOOLBAR_BTN} ${editor.isActive("heading", { level: 3 }) ? TOOLBAR_BTN_ACTIVE : ""}`}
         >
           H3

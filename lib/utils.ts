@@ -38,3 +38,16 @@ export function formatVerseRef(ranges: VerseRange[]): string {
   }
   return result.join("");
 }
+
+export function formatLookupRef(range: VerseRange): string {
+  const abbr = range.abbrZh;
+  const isRange =
+    range.chapterEnd &&
+    range.verseEnd &&
+    (range.chapterEnd !== range.chapterStart ||
+      range.verseEnd !== range.verseStart);
+  if (!isRange) return `${abbr}${range.chapterStart}:${range.verseStart}`;
+  if (range.chapterEnd === range.chapterStart)
+    return `${abbr}${range.chapterStart}:${range.verseStart}-${range.verseEnd}`;
+  return `${abbr}${range.chapterStart}:${range.verseStart}-${range.chapterEnd}:${range.verseEnd}`;
+}

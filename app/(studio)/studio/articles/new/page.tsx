@@ -1,5 +1,5 @@
-import ArticleForm from "@/components/studio/ArticleForm";
+import CreateArticleForm from "@/components/studio/CreateArticleForm";
 
 export default function NewArticlePage() {
-  return <ArticleForm mode="new" />;
+  return <CreateArticleForm />;
 }

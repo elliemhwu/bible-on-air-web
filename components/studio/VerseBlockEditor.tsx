@@ -1,152 +1,136 @@
 "use client";
 
 import { getBibleBooks, lookupVerses } from "@/lib/api";
-import type { BibleBook, VerseRange, VerseResultResponse } from "@/lib/types";
-import { useEffect, useMemo, useState } from "react";
+import type { BibleBook, Verse, VerseRange } from "@/lib/types";
+import { useFormData } from "@/lib/useFormData";
+import { formatLookupRef } from "@/lib/utils";
+import { find, isEmpty } from "lodash";
+import { useEffect, useRef, useState } from "react";
 import LookupVerseBlock from "./LookupVerseBlock";
 
 type Props = {
+  ranges?: VerseRange[];
   onChange: (ranges: VerseRange[]) => void;
 };
 
-type EditingRange = {
-  bookIdx: number;
-  chapterStart: number;
-  verseStart: number;
-  isRange: boolean;
-  chapterEnd: number;
-  verseEnd: number;
-  preview: VerseResultResponse | null;
-};
+const smSelect =
+  "rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition";
 
-const emptyForm: EditingRange = {
-  bookIdx: 0,
-  chapterStart: 1,
-  verseStart: 1,
-  isRange: false,
-  chapterEnd: 1,
-  verseEnd: 1,
-  preview: null,
-};
-
-function buildRef(book: BibleBook, r: EditingRange): string {
-  const abbr = book.abbrZh;
-  if (!r.isRange) return `${abbr}${r.chapterStart}:${r.verseStart}`;
-  if (r.chapterEnd === r.chapterStart)
-    return `${abbr}${r.chapterStart}:${r.verseStart}-${r.verseEnd}`;
-  return `${abbr}${r.chapterStart}:${r.verseStart}-${r.chapterEnd}:${r.verseEnd}`;
-}
-
-function buildRange(book: BibleBook, r: EditingRange): VerseRange {
-  const base = {
-    zh: book.zh,
-    abbrZh: book.abbrZh,
-    en: book.en,
-    abbrEn: book.abbrEn,
-    chapterStart: r.chapterStart,
-    verseStart: r.verseStart,
-  };
-  if (!r.isRange) return base;
-  return { ...base, chapterEnd: r.chapterEnd, verseEnd: r.verseEnd };
-}
-
-export default function VerseBlockEditor({ onChange }: Props) {
+export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
   const [books, setBooks] = useState<BibleBook[]>([]);
-  const [forms, setForms] = useState<EditingRange[]>([{ ...emptyForm }]);
-  const [editingIdx, setEditingIdx] = useState(0);
-  const [lookupError, setLookupError] = useState<string | null>(null);
-  const [isLooking, setIsLooking] = useState(false);
+  const [previews, setPreviews] = useState<Record<string, Verse[]>>({});
+  const {
+    formData,
+    onFormChange,
+    setFormData,
+    resetFormData,
+    setInitialState,
+  } = useFormData({
+    abbrZh: "",
+    chapterStart: 1,
+    verseStart: 1,
+    isRange: false,
+    chapterEnd: 1,
+    verseEnd: 1,
+  });
+  const [isAdding, setIsAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    getBibleBooks().then(setBooks);
+    getBibleBooks().then((bks) => {
+      const defaultAbbrZh = bks[0]?.abbrZh ?? "";
+      setInitialState((prev) => ({ ...prev, abbrZh: defaultAbbrZh }));
+      onFormChange("abbrZh", defaultAbbrZh);
+      setBooks(bks);
+    });
   }, []);
 
-  const editing = forms[editingIdx];
-  const { book, chapCount, verseCountStart, verseCountEnd } = useMemo(() => {
-    const theBook = books[editing?.bookIdx];
-    return {
-      book: theBook,
-      chapCount: theBook?.chapters.length ?? 1,
-      verseCountStart: theBook
-        ? theBook.chapters[editing?.chapterStart - 1]
-        : 1,
-      verseCountEnd: theBook ? theBook.chapters[editing?.chapterEnd - 1] : 1,
-    };
-  }, [books, editing]);
+  // Pre-populate committed ranges from initialRanges once books are loaded
+  useEffect(() => {
+    if (books.length === 0 || !ranges?.length || initializedRef.current) return;
+    initializedRef.current = true;
 
-  function updateForms(next: EditingRange[]) {
-    onChange(
-      next
-        .filter((_, idx) => idx !== editingIdx)
-        .map((f) => buildRange(books[f.bookIdx], f)),
-    );
+    const lookupRefs = ranges
+      .map(formatLookupRef)
+      .filter((ref): ref is string => ref !== null);
 
-    setForms(next);
-  }
-
-  function updateEditing(updater: (prev: EditingRange) => EditingRange) {
-    updateForms(forms.map((f, i) => (i === editingIdx ? updater(f) : f)));
-  }
-
-  function set<K extends keyof EditingRange>(key: K, val: EditingRange[K]) {
-    updateEditing((prev) => {
-      const next = { ...prev, [key]: val };
-      if (key === "chapterStart") {
-        const max = book?.chapters[(val as number) - 1] ?? 1;
-        next.verseStart = Math.min(next.verseStart, max);
-        if (!next.isRange || next.chapterEnd < (val as number)) {
-          next.chapterEnd = val as number;
-          next.verseEnd = Math.min(next.verseEnd, max);
-        }
-      }
-      if (key === "chapterEnd") {
-        const max = book?.chapters[(val as number) - 1] ?? 1;
-        next.verseEnd = Math.min(next.verseEnd, max);
-      }
-      return next;
+    Promise.all(lookupRefs.map((ref) => lookupVerses(ref))).then((results) => {
+      const prev = results.reduce(
+        (acc, res, i) => {
+          const ref = lookupRefs[i];
+          if (ref) {
+            acc[ref] = res.verses;
+          }
+          return acc;
+        },
+        {} as Record<string, Verse[]>,
+      );
+      setPreviews(prev);
     });
+  }, [books, ranges]);
+
+  const book = find(books, { abbrZh: formData.abbrZh });
+  const chapCount = book?.chapters.length ?? 1;
+  const verseCountStart = book
+    ? (book.chapters[formData.chapterStart - 1] ?? 1)
+    : 1;
+  const verseCountEnd = book
+    ? (book.chapters[formData.chapterEnd - 1] ?? 1)
+    : 1;
+
+  function openDialog() {
+    resetFormData();
+    setAddError(null);
+    dialogRef.current?.showModal();
   }
 
-  async function handleLookup(idx: number) {
+  function closeDialog() {
+    dialogRef.current?.close();
+  }
+
+  async function handleAdd() {
     if (!book) return;
-    setLookupError(null);
-    setIsLooking(true);
+    setAddError(null);
+    setIsAdding(true);
+    const range = {
+      abbrZh: formData.abbrZh,
+      zh: book.zh,
+      en: book.en,
+      abbrEn: book.abbrEn,
+      chapterStart: formData.chapterStart,
+      verseStart: formData.verseStart,
+      chapterEnd: formData.isRange ? formData.chapterEnd : undefined,
+      verseEnd: formData.isRange ? formData.verseEnd : undefined,
+    };
+
+    onChange([...ranges, range]);
+
+    const ref = formatLookupRef(range);
+
     try {
-      const preview = await lookupVerses(buildRef(book, forms[idx]));
-      updateForms(forms.map((f, i) => (i === idx ? { ...f, preview } : f)));
+      const res = await lookupVerses(ref);
+      const verses = res.verses;
+      setPreviews((prev) => ({ ...prev, [ref]: verses }));
+      closeDialog();
     } catch {
-      setLookupError("找不到經文，請確認範圍是否正確");
+      setAddError("找不到經文，請確認範圍是否正確");
     } finally {
-      setIsLooking(false);
+      setIsAdding(false);
     }
-  }
-
-  function handleAdd() {
-    onChange(forms.map((f) => buildRange(books[f.bookIdx], f)));
-
-    const next = [...forms, { ...emptyForm }];
-    setForms(next);
-    setEditingIdx(next.length - 1);
   }
 
   function handleRemove(idx: number) {
-    if (idx === editingIdx) {
-      // reset this slot rather than removing, to keep editing in place
-      updateForms(forms.map((f, i) => (i === idx ? { ...emptyForm } : f)));
-    } else {
-      onChange(
-        forms
-          .filter((_, i) => i !== idx && i !== editingIdx)
-          .map((f) => buildRange(books[f.bookIdx], f)),
-      );
-
-      const next = forms.filter((_, i) => i !== idx);
-      setForms(next);
-      setEditingIdx(idx < editingIdx ? editingIdx - 1 : editingIdx);
-    }
+    const removingRange = ranges[idx];
+    const ref = formatLookupRef(removingRange);
+    onChange(ranges.filter((_, i) => i !== idx));
+    setPreviews((prev) => {
+      const newPreviews = { ...prev };
+      delete newPreviews[ref ?? ""];
+      return newPreviews;
+    });
   }
-
-  const hasNoRanges = forms.every((f) => f.preview === null);
 
   if (books.length === 0) {
     return <p className="text-xs text-pebble-400">載入書卷清單中…</p>;
@@ -154,152 +138,186 @@ export default function VerseBlockEditor({ onChange }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* ── picker row ── */}
-      <div className="flex flex-wrap items-end gap-2">
-        {/* Book */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-pebble-500">書卷</label>
-          <select
-            value={editing?.bookIdx}
-            onChange={(e) => {
-              updateEditing(() => ({
-                ...emptyForm,
-                bookIdx: Number(e.target.value),
-              }));
-            }}
-            className="rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
-          >
-            {books.map((b, i) => (
-              <option key={b.id} value={i}>
-                {b.zh}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Chapter start */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-pebble-500">章</label>
-          <select
-            value={editing?.chapterStart}
-            onChange={(e) => set("chapterStart", Number(e.target.value))}
-            className="rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition w-16"
-          >
-            {Array.from({ length: chapCount }, (_, i) => i + 1).map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Verse start */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-pebble-500">節</label>
-          <select
-            value={editing?.verseStart}
-            onChange={(e) => set("verseStart", Number(e.target.value))}
-            className="rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition w-16"
-          >
-            {Array.from({ length: verseCountStart }, (_, i) => i + 1).map(
-              (v) => (
-                <option key={v} value={v}>
-                  {v}
-                </option>
-              ),
-            )}
-          </select>
-        </div>
-
-        {/* Range toggle */}
-        <label className="flex items-center gap-1.5 pb-1.5 cursor-pointer select-none text-sm text-pebble-600">
-          <input
-            type="checkbox"
-            checked={editing?.isRange}
-            onChange={(e) => {
-              updateEditing((prev) => ({
-                ...prev,
-                isRange: e.target.checked,
-                chapterEnd: prev.chapterStart,
-                verseEnd: prev.verseStart,
-              }));
-            }}
-            className="accent-iris-500"
-          />
-          範圍
-        </label>
-
-        {/* End chapter + verse (range only) */}
-        {editing?.isRange && (
-          <>
-            <span className="pb-1.5 text-pebble-400 text-sm">至</span>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-pebble-500">章</label>
-              <select
-                value={editing?.chapterEnd}
-                onChange={(e) => set("chapterEnd", Number(e.target.value))}
-                className="rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition w-16"
-              >
-                {Array.from({ length: chapCount }, (_, i) => i + 1)
-                  .filter((c) => c >= editing?.chapterStart)
-                  .map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-pebble-500">節</label>
-              <select
-                value={editing?.verseEnd}
-                onChange={(e) => set("verseEnd", Number(e.target.value))}
-                className="rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition w-16"
-              >
-                {Array.from({ length: verseCountEnd }, (_, i) => i + 1)
-                  .filter((v) =>
-                    editing?.chapterEnd === editing?.chapterStart
-                      ? v >= editing?.verseStart
-                      : true,
-                  )
-                  .map((v) => (
-                    <option key={v} value={v}>
-                      {v}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          </>
-        )}
-
-        <button
-          type="button"
-          onClick={() => handleLookup(editingIdx)}
-          disabled={isLooking}
-          className="mb-0 pb-1.5 self-end text-sm font-medium text-iris-600 hover:text-iris-700 disabled:opacity-50 transition-colors"
-        >
-          {isLooking ? "查詢中…" : "查詢"}
-        </button>
-      </div>
-
-      {/* ── preview list ── */}
-      {lookupError && <p className="text-xs text-red-500">{lookupError}</p>}
-      {forms.map(
-        (f, i) =>
-          f.preview && (
-            <LookupVerseBlock
-              key={i}
-              ranges={f.preview.ranges}
-              verses={f.preview.verses}
-              onAdd={i === editingIdx ? handleAdd : undefined}
-              onRemove={() => handleRemove(i)}
-            />
-          ),
-      )}
-
-      {hasNoRanges && (
+      {isEmpty(previews) && (
         <p className="text-xs text-pebble-300">尚未加入任何經文段落</p>
       )}
+
+      {ranges.map((range, idx) => {
+        const ref = formatLookupRef(range);
+        const verses = previews[ref];
+        if (!verses?.length) return null;
+        return (
+          <LookupVerseBlock
+            key={idx}
+            ranges={[range]}
+            verses={verses}
+            onRemove={() => handleRemove(idx)}
+          />
+        );
+      })}
+
+      {/* Add button */}
+      <button
+        type="button"
+        onClick={openDialog}
+        className="self-start rounded-md border border-pebble-200 px-3 py-1.5 text-xs text-pebble-600 hover:border-pebble-300 hover:text-pebble-800 transition-colors"
+      >
+        ＋ 新增經文
+      </button>
+
+      {/* Add dialog */}
+      <dialog
+        ref={dialogRef}
+        className="m-auto rounded-xl border border-pebble-200 bg-white p-6 shadow-lg backdrop:bg-black/30 w-full max-w-md"
+        onCancel={closeDialog}
+      >
+        <h3 className="text-sm font-semibold text-pebble-800 mb-4">
+          新增經文段落
+        </h3>
+
+        <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2.5">
+          {/* Book */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-pebble-500">書卷</label>
+            <select
+              value={formData.abbrZh}
+              onChange={(e) => onFormChange("abbrZh", e.target.value)}
+              className={smSelect}
+            >
+              {books.map((b) => (
+                <option key={b.id} value={b.abbrZh}>
+                  {b.zh}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Chapter start */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-pebble-500">章</label>
+            <select
+              value={formData.chapterStart}
+              onChange={(e) =>
+                onFormChange("chapterStart", Number(e.target.value))
+              }
+              className={`${smSelect} w-16`}
+            >
+              {Array.from({ length: chapCount }, (_, i) => i + 1).map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Verse start */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-pebble-500">節</label>
+            <select
+              value={formData.verseStart}
+              onChange={(e) =>
+                onFormChange("verseStart", Number(e.target.value))
+              }
+              className={`${smSelect} w-16`}
+            >
+              {Array.from({ length: verseCountStart }, (_, i) => i + 1).map(
+                (v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
+
+          {/* Range toggle */}
+          <label className="flex items-center gap-1.5 h-9 cursor-pointer select-none text-sm text-pebble-600 mt-5 ml-1">
+            <input
+              type="checkbox"
+              checked={formData.isRange}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  isRange: e.target.checked,
+                  chapterEnd: prev.chapterStart,
+                  verseEnd: prev.verseStart,
+                }))
+              }
+              className="accent-iris-500"
+            />
+            範圍
+          </label>
+
+          {/* End chapter + verse */}
+          {formData.isRange && (
+            <>
+              <span className="text-pebble-400 text-sm flex items-center justify-end mt-5 mr-2">
+                至
+              </span>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-pebble-500">章</label>
+                <select
+                  value={formData.chapterEnd}
+                  onChange={(e) =>
+                    onFormChange("chapterEnd", Number(e.target.value))
+                  }
+                  className={`${smSelect} w-16`}
+                >
+                  {Array.from({ length: chapCount }, (_, i) => i + 1)
+                    .filter((c) => c >= formData.chapterStart)
+                    .map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-pebble-500">節</label>
+                <select
+                  value={formData.verseEnd}
+                  onChange={(e) =>
+                    onFormChange("verseEnd", Number(e.target.value))
+                  }
+                  className={`${smSelect} w-16`}
+                >
+                  {Array.from({ length: verseCountEnd }, (_, i) => i + 1)
+                    .filter((v) =>
+                      formData.chapterEnd === formData.chapterStart
+                        ? v >= formData.verseStart
+                        : true,
+                    )
+                    .map((v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </>
+          )}
+        </div>
+
+        {addError && <p className="mt-3 text-xs text-red-500">{addError}</p>}
+
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={isAdding}
+            className="rounded-lg bg-iris-500 px-4 py-2 text-sm font-semibold text-white hover:bg-iris-600 disabled:opacity-50 transition-colors"
+          >
+            {isAdding ? "查詢中…" : "新增"}
+          </button>
+          <button
+            type="button"
+            onClick={closeDialog}
+            className="rounded-lg border border-pebble-200 px-4 py-2 text-sm text-pebble-600 hover:border-pebble-300 transition-colors"
+          >
+            取消
+          </button>
+        </div>
+      </dialog>
     </div>
   );
 }

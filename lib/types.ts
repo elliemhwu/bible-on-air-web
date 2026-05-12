@@ -142,6 +142,7 @@ export type ArticleTemplate = {
   name: string;
   publicationUid: string;
   blockDefinitions: BlockDefinition[];
+  isDefault: boolean;
 };
 
 /** Payload for the create-article API call. */
@@ -150,6 +151,17 @@ export type CreateArticleData = {
   title: string;
   articleTemplateId?: number;
   blocks?: { order: number; type: string; subheading?: string }[];
+};
+
+/** Payload for PATCH /magazines/:pub/articles/:date */
+export type UpdateArticleData = {
+  date?: string;
+  title?: string;
+};
+
+/** Payload for PATCH /magazines/:pub/articles/:date/blocks/:blockId */
+export type UpdateBlockData = {
+  content: Record<string, unknown>;
 };
 
 // ── Auth ──────────────────────────────────────────────────────────────────
