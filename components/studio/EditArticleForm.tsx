@@ -5,6 +5,7 @@ import RichtextBlockEditor from "@/components/studio/RichtextBlockEditor";
 import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
 import { getArticleById, updateArticle, updateBlock } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { btnPrimaryCls, btnSecondaryCls, inputCls } from "@/lib/styles";
 import type { Article, VerseRange } from "@/lib/types";
 import { useFormData } from "@/lib/useFormData";
 import { useRouter } from "next/navigation";
@@ -125,7 +126,7 @@ export default function EditArticleForm({ articleId }: Props) {
             value={title}
             onChange={(e) => onFormChange("title", e.target.value)}
             placeholder="留空則無標題"
-            className="w-full rounded-lg border border-pebble-200 bg-white px-3.5 py-2.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+            className={inputCls}
           />
         </div>
 
@@ -195,14 +196,14 @@ export default function EditArticleForm({ articleId }: Props) {
           <button
             type="submit"
             disabled={isSubmitting || !date}
-            className="rounded-lg bg-iris-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-iris-600 disabled:opacity-50 transition-colors"
+            className={btnPrimaryCls}
           >
             {isSubmitting ? "儲存中…" : "儲存"}
           </button>
           <button
             type="button"
             onClick={() => router.push("/studio")}
-            className="rounded-lg border border-pebble-200 px-5 py-2.5 text-sm text-pebble-600 hover:border-pebble-300 transition-colors"
+            className={btnSecondaryCls}
           >
             取消
           </button>

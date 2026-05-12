@@ -7,6 +7,7 @@ import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
 import { createArticle, getArticleTemplates } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { ArticleTemplate, VerseRange } from "@/lib/types";
+import { btnPrimaryCls, btnSecondaryCls, inputCls, selectCls } from "@/lib/styles";
 import { useDatePicker } from "@/lib/useDatePicker";
 import { useFormData } from "@/lib/useFormData";
 import { toDateStr } from "@/lib/utils";
@@ -116,7 +117,7 @@ export default function CreateArticleForm() {
                   e.target.value === "" ? "" : Number(e.target.value),
                 )
               }
-              className="w-full rounded-lg border border-pebble-200 bg-white px-3.5 py-2.5 text-sm text-pebble-900 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+              className={selectCls}
             >
               {templates.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -138,7 +139,7 @@ export default function CreateArticleForm() {
                   ? datePickerRef.current?.close()
                   : setDatePickerOpen(true)
               }
-              className="w-full rounded-lg border border-pebble-200 bg-white px-3.5 py-2.5 text-sm text-left outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+              className={`${selectCls} text-left`}
             >
               <span className={date ? "text-pebble-900" : "text-pebble-300"}>
                 {date || "選擇日期"}
@@ -166,7 +167,7 @@ export default function CreateArticleForm() {
             value={title}
             onChange={(e) => onFormChange("title", e.target.value)}
             placeholder="留空則無標題"
-            className="w-full rounded-lg border border-pebble-200 bg-white px-3.5 py-2.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+            className={inputCls}
           />
         </div>
 
@@ -230,14 +231,14 @@ export default function CreateArticleForm() {
           <button
             type="submit"
             disabled={isSubmitting || !date}
-            className="rounded-lg bg-iris-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-iris-600 disabled:opacity-50 transition-colors"
+            className={btnPrimaryCls}
           >
             {isSubmitting ? "儲存中…" : "儲存"}
           </button>
           <button
             type="button"
             onClick={() => router.push("/studio")}
-            className="rounded-lg border border-pebble-200 px-5 py-2.5 text-sm text-pebble-600 hover:border-pebble-300 transition-colors"
+            className={btnSecondaryCls}
           >
             取消
           </button>

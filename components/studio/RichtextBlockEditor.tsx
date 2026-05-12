@@ -23,7 +23,7 @@ export default function RichtextBlockEditor({ html, onChange }: Props) {
     editorProps: {
       attributes: {
         class:
-          "min-h-[120px] px-3.5 py-2.5 outline-none text-sm text-pebble-900 [&_strong]:font-semibold [&_em]:italic [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_h3]:font-semibold [&_h3]:text-base",
+          "min-h-[120px] px-3.5 py-2.5 outline-none text-sm text-pebble-900 prose-tc",
       },
     },
   });
