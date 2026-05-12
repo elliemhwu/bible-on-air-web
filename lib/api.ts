@@ -114,6 +114,29 @@ export async function updateArticle(
   return data;
 }
 
+export async function uploadImage(
+  token: string,
+  file: File,
+): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const { data } = await apiClient.post<{ url: string }>("/uploads/images", form, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return data.url;
+}
+
+export async function setArticleCoverImage(
+  token: string,
+  date: string,
+  coverImageUrl: string,
+): Promise<void> {
+  await updateArticle(token, date, { coverImageUrl });
+}
+
 export async function updateBlock(
   token: string,
   date: string,

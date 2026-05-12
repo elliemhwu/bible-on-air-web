@@ -252,31 +252,31 @@ export async function getArticle(date: string): Promise<Article> {
 
 **3. 圖片上傳**
 
-- [ ] `[3b]` 前端：批次上傳介面（`/studio/images`）
+- [x] `[3b]` 前端：批次上傳介面（`/studio/images`）
 
-**4. Editor & Image Editor Dashboard**（`/studio`）
+**4. Migration 爬蟲**（確認爬蟲搬來的資料顯示正確）
 
-- [ ] `[4a]` Editor dashboard（所有 draft / reviewed 文章列表）
-- [ ] `[4b]` Image editor dashboard（待上傳圖片日期列表）
+**5. Editor & Image Editor Dashboard**（`/studio`）
 
-**5. History View**
+- [ ] `[5a]` Editor dashboard（所有 draft / reviewed 文章列表）
+- [ ] `[5b]` Image editor dashboard（待上傳圖片日期列表）
 
-- [ ] `[5b]` 前端：Monthly list view（`/history/[month]`）
+**6. History View**
 
-**6. Review mode + Reviewer Dashboard**
+- [ ] `[6b]` 前端：Monthly list view（`/history/[month]`）
 
-- [ ] `[6a]` Reviewer dashboard（待 review 文章列表）
-- [ ] `[6b]` Review mode UI（`/studio/review/[reviewTaskId]` or `/studio/review/[rangeStart]/[rangeEnd]`；批次閱讀視圖 + hover edit）
+**7. Review mode + Reviewer Dashboard**
 
-**7. Manager 發布 + Dashboard**
+- [ ] `[7a]` Reviewer dashboard（待 review 文章列表）
+- [ ] `[7b]` Review mode UI（`/studio/review/[reviewTaskId]` or `/studio/review/[rangeStart]/[rangeEnd]`；批次閱讀視圖 + hover edit）
 
-- [ ] `[7b]` Manager dashboard（`/studio/publish`） + 發布按鈕
+**8. Manager 發布 + Dashboard**
 
-**8. PDF 匯出**
+- [ ] `[8b]` Manager dashboard（`/studio/publish`） + 發布按鈕
 
-- [ ] `[8b]` 前端下載入口
+**9. PDF 匯出**
 
-**9. Migration 爬蟲**（確認爬蟲搬來的資料顯示正確）
+- [ ] `[9b]` 前端下載入口
 
 ---
 
