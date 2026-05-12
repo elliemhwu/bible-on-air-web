@@ -160,7 +160,7 @@ export default function EditArticleForm({ articleId }: Props) {
                 <div className="rounded-lg border border-pebble-200 bg-white p-4">
                   {block.type === "verse" ? (
                     <VerseBlockEditor
-                      initialRanges={block.content.ranges}
+                      ranges={formData.verseRanges[block.order]}
                       onChange={(ranges) =>
                         setFormData((prev) => ({
                           ...prev,

@@ -218,6 +218,7 @@ export default function CreateArticleForm() {
                     <div className="rounded-lg border border-pebble-200 bg-white p-4">
                       {block.type === "verse" ? (
                         <VerseBlockEditor
+                          ranges={formData.verseRanges[block.order]}
                           onChange={(ranges) =>
                             setFormData((prev) => ({
                               ...prev,

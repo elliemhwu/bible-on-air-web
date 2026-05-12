@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 
-export function useFormData<T extends object>(initialState: T) {
+export function useFormData<T extends object>(_initialState: T) {
+  const [initialState, setInitialState] = useState<T>(_initialState);
   const [formData, setFormData] = useState<T>(initialState);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -20,5 +21,6 @@ export function useFormData<T extends object>(initialState: T) {
     formError,
     setFormError,
     resetFormData,
+    setInitialState,
   };
 }
