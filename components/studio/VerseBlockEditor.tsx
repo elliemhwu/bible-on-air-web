@@ -2,11 +2,12 @@
 
 import { getBibleBooks, lookupVerses } from "@/lib/api";
 import type { BibleBook, VerseRange, VerseResultResponse } from "@/lib/types";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import LookupVerseBlock from "./LookupVerseBlock";
 
 type Props = {
   onChange: (ranges: VerseRange[]) => void;
+  initialRanges?: VerseRange[];
 };
 
 type EditingRange = {
@@ -50,16 +51,58 @@ function buildRange(book: BibleBook, r: EditingRange): VerseRange {
   return { ...base, chapterEnd: r.chapterEnd, verseEnd: r.verseEnd };
 }
 
-export default function VerseBlockEditor({ onChange }: Props) {
+export default function VerseBlockEditor({ onChange, initialRanges }: Props) {
   const [books, setBooks] = useState<BibleBook[]>([]);
   const [forms, setForms] = useState<EditingRange[]>([{ ...emptyForm }]);
   const [editingIdx, setEditingIdx] = useState(0);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [isLooking, setIsLooking] = useState(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     getBibleBooks().then(setBooks);
   }, []);
+
+  // Pre-populate from initialRanges once books are loaded
+  useEffect(() => {
+    if (books.length === 0 || !initialRanges?.length || initializedRef.current)
+      return;
+    initializedRef.current = true;
+
+    const initial: EditingRange[] = initialRanges.map((r) => {
+      const bookIdx = Math.max(
+        books.findIndex((b) => b.abbrZh === r.abbrZh),
+        0,
+      );
+      const isRange = !!(r.chapterEnd && r.verseEnd);
+      return {
+        bookIdx,
+        chapterStart: r.chapterStart,
+        verseStart: r.verseStart,
+        isRange,
+        chapterEnd: r.chapterEnd ?? r.chapterStart,
+        verseEnd: r.verseEnd ?? r.verseStart,
+        preview: null,
+      };
+    });
+
+    // Append an empty editing slot so all initial forms are "committed"
+    setForms([...initial, { ...emptyForm }]);
+    setEditingIdx(initial.length);
+
+    // Auto-fetch previews for each initial range
+    initial.forEach((f, idx) => {
+      const b = books[f.bookIdx];
+      if (!b) return;
+      lookupVerses(buildRef(b, f))
+        .then((preview) => {
+          setForms((prev) =>
+            prev.map((p, i) => (i === idx ? { ...p, preview } : p)),
+          );
+        })
+        .catch(() => {});
+    });
+  }, [books, initialRanges]);
 
   const editing = forms[editingIdx];
   const { book, chapCount, verseCountStart, verseCountEnd } = useMemo(() => {
