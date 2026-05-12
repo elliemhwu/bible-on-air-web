@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
 type Props = {
@@ -23,7 +23,7 @@ export default function RichtextBlockEditor({ html, onChange }: Props) {
     editorProps: {
       attributes: {
         class:
-          "min-h-[120px] px-3.5 py-2.5 outline-none text-sm text-pebble-900 prose-tc",
+          "min-h-[120px] px-3.5 py-2.5 outline-none text-sm text-pebble-900 prose-tc [&_p]:indent-8",
       },
     },
   });
@@ -73,7 +73,9 @@ export default function RichtextBlockEditor({ html, onChange }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }
           className={`${TOOLBAR_BTN} ${editor.isActive("heading", { level: 3 }) ? TOOLBAR_BTN_ACTIVE : ""}`}
         >
           H3
