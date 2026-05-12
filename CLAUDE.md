@@ -252,7 +252,7 @@ export async function getArticle(date: string): Promise<Article> {
 
 **3. 圖片上傳**
 
-- [ ] `[3b]` 前端：批次上傳介面（`/studio/images`）
+- [x] `[3b]` 前端：批次上傳介面（`/studio/images`）
 
 **4. Editor & Image Editor Dashboard**（`/studio`）
 
