@@ -248,13 +248,16 @@ export async function getArticle(date: string): Promise<Article> {
 - [x] `[2b]` Verse block 編輯（輸入範圍 → 查詢顯示）
 - [x] `[2c]` Questions block 編輯（逐題輸入）
 - [x] `[2d]` Richtext block 編輯（選套件）
-- [ ] `[2e]` 編輯已存在的文章
+- [x] `[2e]` 編輯已存在的文章
+- [ ] `[2f]` 補完編輯功能（例如鳥瞰 template 才比較會用到的 richtext 清單、subheading、鳥瞰 template 顯示）
 
 **3. 圖片上傳**
 
 - [x] `[3b]` 前端：批次上傳介面（`/studio/images`）
 
 **4. Migration 爬蟲**（確認爬蟲搬來的資料顯示正確）
+
+- [x] （主要在後端和另一個爬蟲程式）
 
 **5. Editor & Image Editor Dashboard**（`/studio`）
 
