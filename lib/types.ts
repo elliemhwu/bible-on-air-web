@@ -157,6 +157,7 @@ export type CreateArticleData = {
 export type UpdateArticleData = {
   date?: string;
   title?: string;
+  coverImageUrl?: string;
 };
 
 /** Payload for PATCH /magazines/:pub/articles/:date/blocks/:blockId */
