@@ -2,6 +2,7 @@
 
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useEffect } from "react";
 
 type Props = {
   html: string;
@@ -27,6 +28,12 @@ export default function RichtextBlockEditor({ html, onChange }: Props) {
       },
     },
   });
+
+  useEffect(() => {
+    if (editor && html !== editor.getHTML()) {
+      editor.commands.setContent(html);
+    }
+  }, [html]);
 
   if (!editor) return null;
 
