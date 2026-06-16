@@ -16,14 +16,14 @@ export function toDateStr(date: Date): string {
 
 function formatSingleRange(range: VerseRange, includeBook: boolean): string {
   const { zh, chapterStart, verseStart, chapterEnd, verseEnd } = range;
+
   const loc =
-    chapterEnd !== undefined && verseEnd !== undefined
-      ? chapterEnd !== chapterStart
+    verseEnd !== undefined && verseEnd !== verseStart
+      ? chapterEnd !== undefined && chapterEnd !== chapterStart
         ? `${chapterStart}:${verseStart}–${chapterEnd}:${verseEnd}`
-        : verseEnd !== verseStart
-          ? `${chapterStart}:${verseStart}–${verseEnd}`
-          : `${chapterStart}:${verseStart}`
+        : `${chapterStart}:${verseStart}–${verseEnd}`
       : `${chapterStart}:${verseStart}`;
+
   return includeBook ? `${zh} ${loc}` : loc;
 }
 
