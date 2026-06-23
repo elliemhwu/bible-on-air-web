@@ -58,6 +58,29 @@ export type VerseResultResponse = {
   verses: Verse[];
 };
 
+// ── Pagination ────────────────────────────────────────────────────────────
+
+export type PaginationMeta = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  pagination: PaginationMeta;
+};
+
+export type ArticleQuery = {
+  page?: number;
+  pageSize?: number;
+  status?: "draft" | "pending_review" | "approved" | "published";
+  dateFrom?: string;
+  dateTo?: string;
+  book?: string[]; // 書卷中文縮寫陣列，e.g. ["創", "出"]
+};
+
 // ── Article & Blocks ──────────────────────────────────────────────────────
 
 /** Article list item — no block content, used in index/dashboard views. */
@@ -66,7 +89,8 @@ export type ArticleSummary = {
   publicationUid: string;
   date: string; // "YYYY-MM-DD"
   title: string | null;
-  status: "published" | "draft";
+  status: "published" | "draft" | "pending_review" | "approved";
+  verseRange: string | null;
   articleTemplateId: string | null;
   coverImageUrl: string | null;
   publishedAt: string | null;

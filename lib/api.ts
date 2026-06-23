@@ -1,12 +1,14 @@
 import { apiClient } from "@/lib/axios";
 import type {
   Article,
+  ArticleQuery,
   ArticleSummary,
   ArticleTemplate,
   AuthUser,
   BibleBook,
   CreateArticleData,
   LoginResponse,
+  PaginatedResponse,
   UpdateArticleData,
   UpdateBlockData,
   VerseResultResponse,
@@ -14,9 +16,12 @@ import type {
 
 const PUB = "bible-on-air";
 
-export async function getArticles(): Promise<ArticleSummary[]> {
-  const { data } = await apiClient.get<ArticleSummary[]>(
+export async function getArticles(
+  query?: ArticleQuery,
+): Promise<PaginatedResponse<ArticleSummary>> {
+  const { data } = await apiClient.get<PaginatedResponse<ArticleSummary>>(
     `/magazines/${PUB}/articles`,
+    { params: query },
   );
   return data;
 }
@@ -135,6 +140,56 @@ export async function setArticleCoverImage(
   coverImageUrl: string,
 ): Promise<void> {
   await updateArticle(token, date, { coverImageUrl });
+}
+
+const PUB_ARTICLES = `/magazines/${PUB}/articles`;
+
+export async function batchSubmit(
+  token: string,
+  ids: string[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.post<ArticleSummary[]>(
+    `${PUB_ARTICLES}/batch-submit`,
+    { ids },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
+export async function batchReview(
+  token: string,
+  ids: string[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.post<ArticleSummary[]>(
+    `${PUB_ARTICLES}/batch-review`,
+    { ids },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
+export async function batchPublish(
+  token: string,
+  ids: string[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.post<ArticleSummary[]>(
+    `${PUB_ARTICLES}/batch-publish`,
+    { ids },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
+export async function batchUnpublish(
+  token: string,
+  ids: string[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.post<ArticleSummary[]>(
+    `${PUB_ARTICLES}/batch-unpublish`,
+    { ids },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
 }
 
 export async function updateBlock(

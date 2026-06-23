@@ -4,7 +4,7 @@ import { AuthButton } from "./AuthButton";
 import { DatePickerButton } from "./DatePickerButton";
 
 export async function Header() {
-  const articles = await getArticles();
+  const { data: articles } = await getArticles();
 
   return (
     <header className="relative sticky top-0 z-40 border-b border-pebble-200">
