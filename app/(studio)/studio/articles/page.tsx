@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getArticles } from "@/lib/api";
 import type { ArticleSummary } from "@/lib/types";
 import ArticleListView from "@/components/studio/ArticleListView";
@@ -9,8 +10,15 @@ import ArticleCalendarView from "@/components/studio/ArticleCalendarView";
 
 type Tab = "calendar" | "list";
 
+function parseTab(value: string | null): Tab {
+  return value === "list" ? "list" : "calendar";
+}
+
 export default function ArticlesPage() {
-  const [tab, setTab] = useState<Tab>("calendar");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tab = parseTab(searchParams.get("view"));
+
   const [articles, setArticles] = useState<ArticleSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +29,12 @@ export default function ArticlesPage() {
       .catch(() => setError("載入文章失敗"))
       .finally(() => setLoading(false));
   }, []);
+
+  function setTab(t: Tab) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", t);
+    router.replace(`?${params.toString()}`);
+  }
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-6 flex flex-col gap-5">
