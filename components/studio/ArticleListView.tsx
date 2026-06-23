@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  batchPublish,
+  batchReview,
+  batchSubmit,
+  batchUnpublish,
+} from "@/lib/api";
 import type { ArticleSummary } from "@/lib/types";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -60,13 +66,19 @@ function formatDateTime(iso: string | null) {
 
 export default function ArticleListView({
   articles,
+  token,
+  onArticlesUpdated,
 }: {
   articles: ArticleSummary[];
+  token: string | null;
+  onArticlesUpdated: (updated: ArticleSummary[]) => void;
 }) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [batchError, setBatchError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -125,7 +137,35 @@ export default function ArticleListView({
   }
 
   const selectedArticles = sorted.filter((a) => selected.has(a.id));
-  const batchButtons = deriveBatchButtons(selectedArticles);
+
+  async function runBatch(
+    fn: (token: string, ids: string[]) => Promise<ArticleSummary[]>,
+  ) {
+    if (!token) return;
+    const ids = Array.from(selected);
+    setBatchLoading(true);
+    setBatchError(null);
+    try {
+      const updated = await fn(token, ids);
+      onArticlesUpdated(updated);
+      setSelected(new Set());
+    } catch {
+      setBatchError("操作失敗，請再試一次");
+    } finally {
+      setBatchLoading(false);
+    }
+  }
+
+  const statuses = new Set(selectedArticles.map((a) => a.status));
+  const batchButtons: { label: string; onClick: () => void }[] = [];
+  if (statuses.has("draft"))
+    batchButtons.push({ label: "提交校閱", onClick: () => runBatch(batchSubmit) });
+  if (statuses.has("pending_review"))
+    batchButtons.push({ label: "標記已校閱", onClick: () => runBatch(batchReview) });
+  if (statuses.has("approved"))
+    batchButtons.push({ label: "發布", onClick: () => runBatch(batchPublish) });
+  if (statuses.has("published"))
+    batchButtons.push({ label: "下架", onClick: () => runBatch(batchUnpublish) });
 
   return (
     <div className="flex flex-col gap-3">
@@ -139,17 +179,19 @@ export default function ArticleListView({
           className="border border-gray-300 rounded px-3 py-1.5 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         {selected.size > 0 && (
-          <div className="flex items-center gap-2 ml-auto">
-            <span className="text-sm text-gray-500">
-              已選 {selected.size} 筆
-            </span>
+          <div className="flex items-center gap-2 ml-auto flex-wrap">
+            <span className="text-sm text-gray-500">已選 {selected.size} 筆</span>
+            {batchError && (
+              <span className="text-sm text-red-500">{batchError}</span>
+            )}
             {batchButtons.map((btn) => (
               <button
                 key={btn.label}
-                onClick={() => btn.onClick(Array.from(selected))}
-                className="px-3 py-1.5 text-sm rounded border border-gray-300 hover:bg-gray-50 transition-colors"
+                onClick={() => btn.onClick()}
+                disabled={batchLoading}
+                className="px-3 py-1.5 text-sm rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {btn.label}
+                {batchLoading ? "處理中…" : btn.label}
               </button>
             ))}
           </div>
@@ -262,50 +304,3 @@ export default function ArticleListView({
   );
 }
 
-type BatchButton = {
-  label: string;
-  onClick: (ids: string[]) => void;
-};
-
-function deriveBatchButtons(articles: ArticleSummary[]): BatchButton[] {
-  if (articles.length === 0) return [];
-
-  const statuses = new Set(articles.map((a) => a.status));
-  const buttons: BatchButton[] = [];
-
-  if (statuses.has("draft")) {
-    buttons.push({
-      label: "批次提交校閱",
-      onClick: (ids) => {
-        // TODO: call API
-        console.log("submit for review", ids);
-      },
-    });
-  }
-  if (statuses.has("pending_review")) {
-    buttons.push({
-      label: "批次核准",
-      onClick: (ids) => {
-        console.log("approve", ids);
-      },
-    });
-  }
-  if (statuses.has("approved")) {
-    buttons.push({
-      label: "批次發布",
-      onClick: (ids) => {
-        console.log("publish", ids);
-      },
-    });
-  }
-  if (statuses.has("published")) {
-    buttons.push({
-      label: "批次下架",
-      onClick: (ids) => {
-        console.log("unpublish", ids);
-      },
-    });
-  }
-
-  return buttons;
-}

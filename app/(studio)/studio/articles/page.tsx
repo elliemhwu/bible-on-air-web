@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getArticles } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import type { ArticleSummary } from "@/lib/types";
 import ArticleListView from "@/components/studio/ArticleListView";
 import ArticleCalendarView from "@/components/studio/ArticleCalendarView";
@@ -18,6 +19,7 @@ export default function ArticlesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tab = parseTab(searchParams.get("view"));
+  const { token } = useAuth();
 
   const [articles, setArticles] = useState<ArticleSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,14 @@ export default function ArticlesPage() {
     const params = new URLSearchParams(searchParams.toString());
     params.set("view", t);
     router.replace(`?${params.toString()}`);
+  }
+
+  function handleArticlesUpdated(updated: ArticleSummary[]) {
+    setArticles((prev) => {
+      const map = new Map(prev.map((a) => [a.id, a]));
+      for (const a of updated) map.set(a.id, a);
+      return Array.from(map.values());
+    });
   }
 
   return (
@@ -79,7 +89,11 @@ export default function ArticlesPage() {
             <ArticleCalendarView articles={articles} />
           </div>
           <div className={tab === "list" ? "" : "hidden"}>
-            <ArticleListView articles={articles} />
+            <ArticleListView
+              articles={articles}
+              token={token}
+              onArticlesUpdated={handleArticlesUpdated}
+            />
           </div>
         </>
       )}

@@ -137,6 +137,56 @@ export async function setArticleCoverImage(
   await updateArticle(token, date, { coverImageUrl });
 }
 
+const PUB_ARTICLES = `/magazines/${PUB}/articles`;
+
+export async function batchSubmit(
+  token: string,
+  ids: string[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.post<ArticleSummary[]>(
+    `${PUB_ARTICLES}/batch-submit`,
+    { ids },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
+export async function batchReview(
+  token: string,
+  ids: string[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.post<ArticleSummary[]>(
+    `${PUB_ARTICLES}/batch-review`,
+    { ids },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
+export async function batchPublish(
+  token: string,
+  ids: string[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.post<ArticleSummary[]>(
+    `${PUB_ARTICLES}/batch-publish`,
+    { ids },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
+export async function batchUnpublish(
+  token: string,
+  ids: string[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.post<ArticleSummary[]>(
+    `${PUB_ARTICLES}/batch-unpublish`,
+    { ids },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return data;
+}
+
 export async function updateBlock(
   token: string,
   date: string,
