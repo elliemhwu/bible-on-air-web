@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { ArticleSummary } from "@/lib/types";
@@ -22,11 +22,21 @@ function toDateStr(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+type Props = {
+  articles: ArticleSummary[];
+  year: number;
+  month: number;
+  loading: boolean;
+  onMonthChange: (year: number, month: number) => void;
+};
+
 export default function ArticleCalendarView({
   articles,
-}: {
-  articles: ArticleSummary[];
-}) {
+  year,
+  month,
+  loading,
+  onMonthChange,
+}: Props) {
   const router = useRouter();
   const today = new Date();
   const todayStr = toDateStr(
@@ -34,8 +44,8 @@ export default function ArticleCalendarView({
     today.getMonth() + 1,
     today.getDate(),
   );
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth() + 1);
+  const isCurrentMonth =
+    year === today.getFullYear() && month === today.getMonth() + 1;
 
   const articleByDate = useMemo(() => {
     const map = new Map<string, ArticleSummary>();
@@ -46,22 +56,14 @@ export default function ArticleCalendarView({
   const cells = buildCalendarDays(year, month);
 
   function prevMonth() {
-    if (month === 1) { setYear((y) => y - 1); setMonth(12); }
-    else setMonth((m) => m - 1);
+    if (month === 1) onMonthChange(year - 1, 12);
+    else onMonthChange(year, month - 1);
   }
 
   function nextMonth() {
-    if (month === 12) { setYear((y) => y + 1); setMonth(1); }
-    else setMonth((m) => m + 1);
+    if (month === 12) onMonthChange(year + 1, 1);
+    else onMonthChange(year, month + 1);
   }
-
-  function goToToday() {
-    setYear(today.getFullYear());
-    setMonth(today.getMonth() + 1);
-  }
-
-  const isCurrentMonth =
-    year === today.getFullYear() && month === today.getMonth() + 1;
 
   function handleDayClick(day: number) {
     const dateStr = toDateStr(year, month, day);
@@ -94,11 +96,14 @@ export default function ArticleCalendarView({
         </span>
         {!isCurrentMonth && (
           <button
-            onClick={goToToday}
+            onClick={() => onMonthChange(today.getFullYear(), today.getMonth() + 1)}
             className="ml-1 px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 text-sm text-gray-500 transition-colors"
           >
             回到今天
           </button>
+        )}
+        {loading && (
+          <span className="text-xs text-gray-400 ml-2">載入中…</span>
         )}
       </div>
 
@@ -116,7 +121,7 @@ export default function ArticleCalendarView({
           ))}
         </div>
 
-        {/* day cells — fixed height rows so grid fills width */}
+        {/* day cells */}
         <div className="grid grid-cols-7">
           {cells.map((day, i) => {
             if (day === null) {
@@ -143,7 +148,6 @@ export default function ArticleCalendarView({
                 onClick={() => handleDayClick(day)}
                 className="relative h-32 cursor-pointer group overflow-hidden border-t border-l border-gray-100"
               >
-                {/* background */}
                 {coverUrl ? (
                   <Image
                     src={coverUrl}
@@ -157,10 +161,8 @@ export default function ArticleCalendarView({
                   <div className="absolute inset-0 bg-white" />
                 )}
 
-                {/* hover overlay */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
 
-                {/* day number */}
                 <span
                   className={`absolute top-2 left-2.5 text-xs font-semibold leading-none select-none ${
                     isToday
@@ -173,7 +175,6 @@ export default function ArticleCalendarView({
                   {day}
                 </span>
 
-                {/* article title */}
                 {article?.title && (
                   <span
                     className={`absolute bottom-2 left-2 right-2 text-[11px] leading-tight line-clamp-2 select-none ${
@@ -184,7 +185,6 @@ export default function ArticleCalendarView({
                   </span>
                 )}
 
-                {/* no article: plus icon on hover */}
                 {!article && (
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <span className="text-2xl text-gray-400 leading-none">+</span>

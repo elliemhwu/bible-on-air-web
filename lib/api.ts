@@ -1,12 +1,14 @@
 import { apiClient } from "@/lib/axios";
 import type {
   Article,
+  ArticleQuery,
   ArticleSummary,
   ArticleTemplate,
   AuthUser,
   BibleBook,
   CreateArticleData,
   LoginResponse,
+  PaginatedResponse,
   UpdateArticleData,
   UpdateBlockData,
   VerseResultResponse,
@@ -14,9 +16,12 @@ import type {
 
 const PUB = "bible-on-air";
 
-export async function getArticles(): Promise<ArticleSummary[]> {
-  const { data } = await apiClient.get<ArticleSummary[]>(
+export async function getArticles(
+  query?: ArticleQuery,
+): Promise<PaginatedResponse<ArticleSummary>> {
+  const { data } = await apiClient.get<PaginatedResponse<ArticleSummary>>(
     `/magazines/${PUB}/articles`,
+    { params: query },
   );
   return data;
 }

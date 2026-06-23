@@ -6,7 +6,7 @@ import {
   batchSubmit,
   batchUnpublish,
 } from "@/lib/api";
-import type { ArticleSummary } from "@/lib/types";
+import type { ArticleQuery, ArticleSummary, PaginationMeta } from "@/lib/types";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -64,15 +64,27 @@ function formatDateTime(iso: string | null) {
   return iso.slice(0, 16).replace("T", " ");
 }
 
+type Props = {
+  articles: ArticleSummary[];
+  pagination: PaginationMeta;
+  query: ArticleQuery;
+  loading: boolean;
+  error: string | null;
+  token: string | null;
+  onQueryChange: (patch: Partial<ArticleQuery>) => void;
+  onArticlesUpdated: (updated: ArticleSummary[]) => void;
+};
+
 export default function ArticleListView({
   articles,
+  pagination,
+  query,
+  loading,
+  error,
   token,
+  onQueryChange,
   onArticlesUpdated,
-}: {
-  articles: ArticleSummary[];
-  token: string | null;
-  onArticlesUpdated: (updated: ArticleSummary[]) => void;
-}) {
+}: Props) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -91,41 +103,23 @@ export default function ArticleListView({
     return [...filtered].sort((a, b) => {
       let av = "";
       let bv = "";
-      if (sortKey === "date") {
-        av = a.date;
-        bv = b.date;
-      } else if (sortKey === "title") {
-        av = a.title ?? "";
-        bv = b.title ?? "";
-      } else if (sortKey === "status") {
-        av = a.status;
-        bv = b.status;
-      } else if (sortKey === "updatedAt") {
-        av = a.updatedAt;
-        bv = b.updatedAt;
-      } else if (sortKey === "publishedAt") {
-        av = a.publishedAt ?? "";
-        bv = b.publishedAt ?? "";
-      }
+      if (sortKey === "date") { av = a.date; bv = b.date; }
+      else if (sortKey === "title") { av = a.title ?? ""; bv = b.title ?? ""; }
+      else if (sortKey === "status") { av = a.status; bv = b.status; }
+      else if (sortKey === "updatedAt") { av = a.updatedAt; bv = b.updatedAt; }
+      else if (sortKey === "publishedAt") { av = a.publishedAt ?? ""; bv = b.publishedAt ?? ""; }
       return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
     });
   }, [filtered, sortKey, sortDir]);
 
   function toggleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("desc");
-    }
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("desc"); }
   }
 
   function toggleAll() {
-    if (selected.size === sorted.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(sorted.map((a) => a.id)));
-    }
+    if (selected.size === sorted.length) setSelected(new Set());
+    else setSelected(new Set(sorted.map((a) => a.id)));
   }
 
   function toggleOne(id: string) {
@@ -167,17 +161,54 @@ export default function ArticleListView({
   if (statuses.has("published"))
     batchButtons.push({ label: "下架", onClick: () => runBatch(batchUnpublish) });
 
+  const { page, totalPages, total } = pagination;
+
   return (
     <div className="flex flex-col gap-3">
-      {/* toolbar */}
+      {/* filters toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
+        {/* title search */}
         <input
           type="text"
           placeholder="搜尋標題…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="border border-gray-300 rounded px-3 py-1.5 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
+
+        {/* status filter */}
+        <select
+          value={query.status ?? ""}
+          onChange={(e) =>
+            onQueryChange({
+              status: (e.target.value as ArticleQuery["status"]) || undefined,
+            })
+          }
+          className="border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          <option value="">全部狀態</option>
+          <option value="draft">草稿</option>
+          <option value="pending_review">待校閱</option>
+          <option value="approved">待發布</option>
+          <option value="published">已發布</option>
+        </select>
+
+        {/* date range */}
+        <input
+          type="date"
+          value={query.dateFrom ?? ""}
+          onChange={(e) => onQueryChange({ dateFrom: e.target.value || undefined })}
+          className="border border-gray-300 rounded px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+        <span className="text-gray-400 text-sm">—</span>
+        <input
+          type="date"
+          value={query.dateTo ?? ""}
+          onChange={(e) => onQueryChange({ dateTo: e.target.value || undefined })}
+          className="border border-gray-300 rounded px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+
+        {/* batch actions */}
         {selected.size > 0 && (
           <div className="flex items-center gap-2 ml-auto flex-wrap">
             <span className="text-sm text-gray-500">已選 {selected.size} 筆</span>
@@ -207,9 +238,7 @@ export default function ArticleListView({
                 <th className="px-3 py-2 w-8">
                   <input
                     type="checkbox"
-                    checked={
-                      sorted.length > 0 && selected.size === sorted.length
-                    }
+                    checked={sorted.length > 0 && selected.size === sorted.length}
                     onChange={toggleAll}
                     className="rounded"
                   />
@@ -228,22 +257,31 @@ export default function ArticleListView({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {sorted.length === 0 && (
+              {loading && (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-3 py-8 text-center text-gray-400"
-                  >
+                  <td colSpan={8} className="px-3 py-8 text-center text-gray-400">
+                    載入中…
+                  </td>
+                </tr>
+              )}
+              {!loading && error && (
+                <tr>
+                  <td colSpan={8} className="px-3 py-8 text-center text-red-400">
+                    {error}
+                  </td>
+                </tr>
+              )}
+              {!loading && !error && sorted.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-3 py-8 text-center text-gray-400">
                     沒有符合的文章
                   </td>
                 </tr>
               )}
-              {sorted.map((article) => (
+              {!loading && !error && sorted.map((article) => (
                 <tr
                   key={article.id}
-                  className={
-                    selected.has(article.id) ? "bg-blue-50" : "hover:bg-gray-50"
-                  }
+                  className={selected.has(article.id) ? "bg-blue-50" : "hover:bg-gray-50"}
                 >
                   <td className="px-3 py-2">
                     <input
@@ -256,17 +294,17 @@ export default function ArticleListView({
                   <td className="px-3 py-2 whitespace-nowrap font-mono text-gray-700">
                     {formatDate(article.date)}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-gray-600 text-xs">
-                    {article.verseRange ?? "—"}
-                  </td>
                   <td className="px-3 py-2 max-w-xs truncate text-gray-800">
                     {article.title ?? (
                       <span className="text-gray-400 italic">（無標題）</span>
                     )}
                   </td>
+                  <td className="px-3 py-2 whitespace-nowrap text-gray-600 text-xs">
+                    {article.verseRange ?? "—"}
+                  </td>
                   <td className="px-3 py-2">
                     <span
-                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR[article.status]}`}
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${STATUS_COLOR[article.status]}`}
                     >
                       {STATUS_LABEL[article.status]}
                     </span>
@@ -300,7 +338,32 @@ export default function ArticleListView({
           </table>
         </div>
       </div>
+
+      {/* pagination */}
+      {!loading && !error && totalPages > 0 && (
+        <div className="flex items-center justify-between text-sm text-gray-500">
+          <span>共 {total} 筆</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onQueryChange({ page: page - 1 })}
+              disabled={page <= 1}
+              className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              上一頁
+            </button>
+            <span className="px-1">
+              第 {page} / {totalPages} 頁
+            </span>
+            <button
+              onClick={() => onQueryChange({ page: page + 1 })}
+              disabled={page >= totalPages}
+              className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              下一頁
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

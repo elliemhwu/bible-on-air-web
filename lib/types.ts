@@ -58,6 +58,28 @@ export type VerseResultResponse = {
   verses: Verse[];
 };
 
+// ── Pagination ────────────────────────────────────────────────────────────
+
+export type PaginationMeta = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  pagination: PaginationMeta;
+};
+
+export type ArticleQuery = {
+  page?: number;
+  pageSize?: number;
+  status?: "draft" | "pending_review" | "approved" | "published";
+  dateFrom?: string;
+  dateTo?: string;
+};
+
 // ── Article & Blocks ──────────────────────────────────────────────────────
 
 /** Article list item — no block content, used in index/dashboard views. */

@@ -5,15 +5,28 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getArticles } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import type { ArticleSummary } from "@/lib/types";
+import type { ArticleSummary, ArticleQuery, PaginatedResponse, PaginationMeta } from "@/lib/types";
 import ArticleListView from "@/components/studio/ArticleListView";
 import ArticleCalendarView from "@/components/studio/ArticleCalendarView";
 
 type Tab = "calendar" | "list";
 
+const PAGE_SIZE = 20;
+
 function parseTab(value: string | null): Tab {
   return value === "list" ? "list" : "calendar";
 }
+
+function monthBounds(year: number, month: number) {
+  const mm = String(month).padStart(2, "0");
+  const daysInMonth = new Date(year, month, 0).getDate();
+  return {
+    dateFrom: `${year}-${mm}-01`,
+    dateTo: `${year}-${mm}-${String(daysInMonth).padStart(2, "0")}`,
+  };
+}
+
+const EMPTY_PAGINATION: PaginationMeta = { page: 1, pageSize: PAGE_SIZE, total: 0, totalPages: 0 };
 
 export default function ArticlesPage() {
   const router = useRouter();
@@ -21,16 +34,42 @@ export default function ArticlesPage() {
   const tab = parseTab(searchParams.get("view"));
   const { token } = useAuth();
 
-  const [articles, setArticles] = useState<ArticleSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // ── list state ────────────────────────────────────────────────────────────
+  const [listArticles, setListArticles] = useState<ArticleSummary[]>([]);
+  const [listPagination, setListPagination] = useState<PaginationMeta>(EMPTY_PAGINATION);
+  const [listLoading, setListLoading] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
+  const [listQuery, setListQuery] = useState<ArticleQuery>({ page: 1, pageSize: PAGE_SIZE });
 
+  // ── calendar state ────────────────────────────────────────────────────────
+  const today = new Date();
+  const [calYear, setCalYear] = useState(today.getFullYear());
+  const [calMonth, setCalMonth] = useState(today.getMonth() + 1);
+  const [calArticles, setCalArticles] = useState<ArticleSummary[]>([]);
+  const [calLoading, setCalLoading] = useState(false);
+
+  // ── fetch list ────────────────────────────────────────────────────────────
   useEffect(() => {
-    getArticles()
-      .then(setArticles)
-      .catch(() => setError("載入文章失敗"))
-      .finally(() => setLoading(false));
-  }, []);
+    setListLoading(true);
+    setListError(null);
+    getArticles(listQuery)
+      .then((res: PaginatedResponse<ArticleSummary>) => {
+        setListArticles(res.data);
+        setListPagination(res.pagination);
+      })
+      .catch(() => setListError("載入文章失敗"))
+      .finally(() => setListLoading(false));
+  }, [listQuery]);
+
+  // ── fetch calendar ────────────────────────────────────────────────────────
+  useEffect(() => {
+    setCalLoading(true);
+    const { dateFrom, dateTo } = monthBounds(calYear, calMonth);
+    getArticles({ dateFrom, dateTo, pageSize: 31 })
+      .then((res: PaginatedResponse<ArticleSummary>) => setCalArticles(res.data))
+      .catch(() => {})
+      .finally(() => setCalLoading(false));
+  }, [calYear, calMonth]);
 
   function setTab(t: Tab) {
     const params = new URLSearchParams(searchParams.toString());
@@ -38,12 +77,21 @@ export default function ArticlesPage() {
     router.replace(`?${params.toString()}`);
   }
 
+  function handleListQueryChange(patch: Partial<ArticleQuery>) {
+    setListQuery((prev) => ({ ...prev, ...patch, page: "page" in patch ? patch.page! : 1 }));
+  }
+
   function handleArticlesUpdated(updated: ArticleSummary[]) {
-    setArticles((prev) => {
+    setListArticles((prev) => {
       const map = new Map(prev.map((a) => [a.id, a]));
       for (const a of updated) map.set(a.id, a);
       return Array.from(map.values());
     });
+  }
+
+  function handleCalMonthChange(year: number, month: number) {
+    setCalYear(year);
+    setCalMonth(month);
   }
 
   return (
@@ -77,26 +125,27 @@ export default function ArticlesPage() {
       </div>
 
       {/* content */}
-      {loading && (
-        <p className="text-sm text-gray-400 py-8 text-center">載入中…</p>
-      )}
-      {error && (
-        <p className="text-sm text-red-500 py-8 text-center">{error}</p>
-      )}
-      {!loading && !error && (
-        <>
-          <div className={tab === "calendar" ? "" : "hidden"}>
-            <ArticleCalendarView articles={articles} />
-          </div>
-          <div className={tab === "list" ? "" : "hidden"}>
-            <ArticleListView
-              articles={articles}
-              token={token}
-              onArticlesUpdated={handleArticlesUpdated}
-            />
-          </div>
-        </>
-      )}
+      <div className={tab === "calendar" ? "" : "hidden"}>
+        <ArticleCalendarView
+          articles={calArticles}
+          year={calYear}
+          month={calMonth}
+          loading={calLoading}
+          onMonthChange={handleCalMonthChange}
+        />
+      </div>
+      <div className={tab === "list" ? "" : "hidden"}>
+        <ArticleListView
+          articles={listArticles}
+          pagination={listPagination}
+          query={listQuery}
+          loading={listLoading}
+          error={listError}
+          token={token}
+          onQueryChange={handleListQueryChange}
+          onArticlesUpdated={handleArticlesUpdated}
+        />
+      </div>
     </div>
   );
 }
