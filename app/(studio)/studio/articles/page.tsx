@@ -23,7 +23,7 @@ export default function ArticlesPage() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-5">
+    <div className="mx-auto w-full max-w-5xl px-6 py-6 flex flex-col gap-5">
       {/* page header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">文章管理</h1>
@@ -59,11 +59,15 @@ export default function ArticlesPage() {
       {error && (
         <p className="text-sm text-red-500 py-8 text-center">{error}</p>
       )}
-      {!loading && !error && tab === "calendar" && (
-        <ArticleCalendarView articles={articles} />
-      )}
-      {!loading && !error && tab === "list" && (
-        <ArticleListView articles={articles} />
+      {!loading && !error && (
+        <>
+          <div className={tab === "calendar" ? "" : "hidden"}>
+            <ArticleCalendarView articles={articles} />
+          </div>
+          <div className={tab === "list" ? "" : "hidden"}>
+            <ArticleListView articles={articles} />
+          </div>
+        </>
       )}
     </div>
   );

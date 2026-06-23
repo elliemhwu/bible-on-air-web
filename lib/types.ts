@@ -67,6 +67,7 @@ export type ArticleSummary = {
   date: string; // "YYYY-MM-DD"
   title: string | null;
   status: "published" | "draft" | "pending_review" | "approved";
+  verseRange: string | null;
   articleTemplateId: string | null;
   coverImageUrl: string | null;
   publishedAt: string | null;

@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useMemo } from "react";
 import type { ArticleSummary } from "@/lib/types";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 
 const STATUS_LABEL: Record<ArticleSummary["status"], string> = {
   draft: "草稿",
@@ -20,6 +20,33 @@ const STATUS_COLOR: Record<ArticleSummary["status"], string> = {
 
 type SortKey = "date" | "title" | "status" | "updatedAt" | "publishedAt";
 type SortDir = "asc" | "desc";
+
+function SortTh({
+  label,
+  col,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  label: string;
+  col: SortKey;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  onSort: (col: SortKey) => void;
+}) {
+  const active = sortKey === col;
+  return (
+    <th
+      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap"
+      onClick={() => onSort(col)}
+    >
+      {label}
+      <span className="ml-1 text-gray-300">
+        {active ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+      </span>
+    </th>
+  );
+}
 
 function formatDate(iso: string | null) {
   if (!iso) return "—";
@@ -52,11 +79,22 @@ export default function ArticleListView({
     return [...filtered].sort((a, b) => {
       let av = "";
       let bv = "";
-      if (sortKey === "date") { av = a.date; bv = b.date; }
-      else if (sortKey === "title") { av = a.title ?? ""; bv = b.title ?? ""; }
-      else if (sortKey === "status") { av = a.status; bv = b.status; }
-      else if (sortKey === "updatedAt") { av = a.updatedAt; bv = b.updatedAt; }
-      else if (sortKey === "publishedAt") { av = a.publishedAt ?? ""; bv = b.publishedAt ?? ""; }
+      if (sortKey === "date") {
+        av = a.date;
+        bv = b.date;
+      } else if (sortKey === "title") {
+        av = a.title ?? "";
+        bv = b.title ?? "";
+      } else if (sortKey === "status") {
+        av = a.status;
+        bv = b.status;
+      } else if (sortKey === "updatedAt") {
+        av = a.updatedAt;
+        bv = b.updatedAt;
+      } else if (sortKey === "publishedAt") {
+        av = a.publishedAt ?? "";
+        bv = b.publishedAt ?? "";
+      }
       return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
     });
   }, [filtered, sortKey, sortDir]);
@@ -89,27 +127,6 @@ export default function ArticleListView({
   const selectedArticles = sorted.filter((a) => selected.has(a.id));
   const batchButtons = deriveBatchButtons(selectedArticles);
 
-  function SortTh({
-    label,
-    col,
-  }: {
-    label: string;
-    col: SortKey;
-  }) {
-    const active = sortKey === col;
-    return (
-      <th
-        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap"
-        onClick={() => toggleSort(col)}
-      >
-        {label}
-        <span className="ml-1 text-gray-300">
-          {active ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
-        </span>
-      </th>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-3">
       {/* toolbar */}
@@ -123,7 +140,9 @@ export default function ArticleListView({
         />
         {selected.size > 0 && (
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-sm text-gray-500">已選 {selected.size} 筆</span>
+            <span className="text-sm text-gray-500">
+              已選 {selected.size} 筆
+            </span>
             {batchButtons.map((btn) => (
               <button
                 key={btn.label}
@@ -138,89 +157,106 @@ export default function ArticleListView({
       </div>
 
       {/* table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-3 py-2 w-8">
-                <input
-                  type="checkbox"
-                  checked={sorted.length > 0 && selected.size === sorted.length}
-                  onChange={toggleAll}
-                  className="rounded"
-                />
-              </th>
-              <SortTh label="日期" col="date" />
-              <SortTh label="標題" col="title" />
-              <SortTh label="狀態" col="status" />
-              <SortTh label="更新時間" col="updatedAt" />
-              <SortTh label="發布時間" col="publishedAt" />
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
-            {sorted.length === 0 && (
+      <div className="rounded-lg border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <td colSpan={7} className="px-3 py-8 text-center text-gray-400">
-                  沒有符合的文章
-                </td>
-              </tr>
-            )}
-            {sorted.map((article) => (
-              <tr
-                key={article.id}
-                className={selected.has(article.id) ? "bg-blue-50" : "hover:bg-gray-50"}
-              >
-                <td className="px-3 py-2">
+                <th className="px-3 py-2 w-8">
                   <input
                     type="checkbox"
-                    checked={selected.has(article.id)}
-                    onChange={() => toggleOne(article.id)}
+                    checked={
+                      sorted.length > 0 && selected.size === sorted.length
+                    }
+                    onChange={toggleAll}
                     className="rounded"
                   />
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap font-mono text-gray-700">
-                  {formatDate(article.date)}
-                </td>
-                <td className="px-3 py-2 max-w-xs truncate text-gray-800">
-                  {article.title ?? <span className="text-gray-400 italic">（無標題）</span>}
-                </td>
-                <td className="px-3 py-2">
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR[article.status]}`}
-                  >
-                    {STATUS_LABEL[article.status]}
-                  </span>
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap text-gray-500 text-xs">
-                  {formatDateTime(article.updatedAt)}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap text-gray-500 text-xs">
-                  {formatDateTime(article.publishedAt)}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/studio/articles/${article.id}/edit`}
-                      className="text-blue-600 hover:underline text-xs"
-                    >
-                      編輯
-                    </Link>
-                    <Link
-                      href={`/${article.date}`}
-                      target="_blank"
-                      className="text-gray-500 hover:underline text-xs"
-                    >
-                      查看
-                    </Link>
-                  </div>
-                </td>
+                </th>
+                <SortTh label="日期" col="date" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <SortTh label="標題" col="title" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                  讀經範圍
+                </th>
+                <SortTh label="狀態" col="status" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <SortTh label="更新時間" col="updatedAt" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <SortTh label="發布時間" col="publishedAt" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  操作
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {sorted.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="px-3 py-8 text-center text-gray-400"
+                  >
+                    沒有符合的文章
+                  </td>
+                </tr>
+              )}
+              {sorted.map((article) => (
+                <tr
+                  key={article.id}
+                  className={
+                    selected.has(article.id) ? "bg-blue-50" : "hover:bg-gray-50"
+                  }
+                >
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(article.id)}
+                      onChange={() => toggleOne(article.id)}
+                      className="rounded"
+                    />
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap font-mono text-gray-700">
+                    {formatDate(article.date)}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap text-gray-600 text-xs">
+                    {article.verseRange ?? "—"}
+                  </td>
+                  <td className="px-3 py-2 max-w-xs truncate text-gray-800">
+                    {article.title ?? (
+                      <span className="text-gray-400 italic">（無標題）</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR[article.status]}`}
+                    >
+                      {STATUS_LABEL[article.status]}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap text-gray-500 text-xs">
+                    {formatDateTime(article.updatedAt)}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap text-gray-500 text-xs">
+                    {formatDateTime(article.publishedAt)}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/studio/articles/${article.id}/edit`}
+                        className="text-blue-600 hover:underline text-xs"
+                      >
+                        編輯
+                      </Link>
+                      <Link
+                        href={`/${article.date}`}
+                        target="_blank"
+                        className="text-gray-500 hover:underline text-xs"
+                      >
+                        查看
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
