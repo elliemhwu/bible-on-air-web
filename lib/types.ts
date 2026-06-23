@@ -78,6 +78,7 @@ export type ArticleQuery = {
   status?: "draft" | "pending_review" | "approved" | "published";
   dateFrom?: string;
   dateTo?: string;
+  book?: string[]; // 書卷中文縮寫陣列，e.g. ["創", "出"]
 };
 
 // ── Article & Blocks ──────────────────────────────────────────────────────

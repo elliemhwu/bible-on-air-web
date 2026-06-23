@@ -6,9 +6,10 @@ import {
   batchSubmit,
   batchUnpublish,
 } from "@/lib/api";
-import type { ArticleQuery, ArticleSummary, PaginationMeta } from "@/lib/types";
+import { getBibleBooks } from "@/lib/api";
+import type { ArticleQuery, ArticleSummary, BibleBook, PaginationMeta } from "@/lib/types";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const STATUS_LABEL: Record<ArticleSummary["status"], string> = {
   draft: "草稿",
@@ -54,6 +55,73 @@ function SortTh({
   );
 }
 
+function BookFilter({
+  books,
+  selected,
+  onChange,
+}: {
+  books: BibleBook[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function toggle(abbr: string) {
+    if (selected.includes(abbr)) onChange(selected.filter((v) => v !== abbr));
+    else onChange([...selected, abbr]);
+  }
+
+  const label =
+    selected.length === 0
+      ? "全部書卷"
+      : selected.length === 1
+      ? books.find((b) => b.abbrZh === selected[0])?.zh ?? selected[0]
+      : `${selected.length} 本書卷`;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`border rounded px-3 py-1.5 text-sm transition-colors flex items-center gap-1 ${
+          selected.length > 0
+            ? "border-blue-400 text-blue-700 bg-blue-50"
+            : "border-gray-300 text-gray-700 hover:bg-gray-50"
+        }`}
+      >
+        {label}
+        <span className="text-gray-400 text-xs ml-1">▾</span>
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 left-0 w-36 max-h-72 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg py-1">
+          {books.map((b) => (
+            <label
+              key={b.abbrZh}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(b.abbrZh)}
+                onChange={() => toggle(b.abbrZh)}
+                className="rounded"
+              />
+              {b.zh}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function formatDate(iso: string | null) {
   if (!iso) return "—";
   return iso.slice(0, 10);
@@ -91,6 +159,11 @@ export default function ArticleListView({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchLoading, setBatchLoading] = useState(false);
   const [batchError, setBatchError] = useState<string | null>(null);
+  const [books, setBooks] = useState<BibleBook[]>([]);
+
+  useEffect(() => {
+    getBibleBooks().then(setBooks).catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -125,7 +198,7 @@ export default function ArticleListView({
   function toggleOne(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   }
@@ -207,6 +280,15 @@ export default function ArticleListView({
           onChange={(e) => onQueryChange({ dateTo: e.target.value || undefined })}
           className="border border-gray-300 rounded px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
+
+        {/* book filter */}
+        {books.length > 0 && (
+          <BookFilter
+            books={books}
+            selected={query.book ?? []}
+            onChange={(values: string[]) => onQueryChange({ book: values.length ? values : undefined })}
+          />
+        )}
 
         {/* batch actions */}
         {selected.size > 0 && (
