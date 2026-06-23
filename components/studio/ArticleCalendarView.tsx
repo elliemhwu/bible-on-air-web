@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { ArticleSummary } from "@/lib/types";
+import StatusBadge from "@/components/studio/StatusBadge";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 
@@ -174,6 +175,12 @@ export default function ArticleCalendarView({
                 >
                   {day}
                 </span>
+
+                {article && (
+                  <span className="absolute top-2 right-2 select-none">
+                    <StatusBadge status={article.status} />
+                  </span>
+                )}
 
                 {article?.title && (
                   <span

@@ -10,20 +10,7 @@ import { getBibleBooks } from "@/lib/api";
 import type { ArticleQuery, ArticleSummary, BibleBook, PaginationMeta } from "@/lib/types";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-
-const STATUS_LABEL: Record<ArticleSummary["status"], string> = {
-  draft: "草稿",
-  pending_review: "待校閱",
-  approved: "待發布",
-  published: "已發布",
-};
-
-const STATUS_COLOR: Record<ArticleSummary["status"], string> = {
-  draft: "bg-gray-100 text-gray-600",
-  pending_review: "bg-yellow-100 text-yellow-700",
-  approved: "bg-blue-100 text-blue-700",
-  published: "bg-green-100 text-green-700",
-};
+import StatusBadge from "@/components/studio/StatusBadge";
 
 type SortKey = "date" | "title" | "status" | "updatedAt" | "publishedAt";
 type SortDir = "asc" | "desc";
@@ -385,11 +372,7 @@ export default function ArticleListView({
                     {article.verseRange ?? "—"}
                   </td>
                   <td className="px-3 py-2">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${STATUS_COLOR[article.status]}`}
-                    >
-                      {STATUS_LABEL[article.status]}
-                    </span>
+                    <StatusBadge status={article.status} />
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap text-gray-500 text-xs">
                     {formatDateTime(article.updatedAt)}
