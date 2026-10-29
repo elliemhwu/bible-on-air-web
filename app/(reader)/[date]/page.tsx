@@ -12,7 +12,7 @@ function formatDateTC(date: string): string {
 }
 
 export async function generateStaticParams() {
-  const articles = await getArticles();
+  const { data: articles } = await getArticles();
   return articles.map((a) => ({ date: a.date }));
 }
 

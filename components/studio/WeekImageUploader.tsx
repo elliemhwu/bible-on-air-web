@@ -38,7 +38,7 @@ export default function WeekImageUploader({ weekStart }: Props) {
 
   useEffect(() => {
     getArticles()
-      .then((articles) => {
+      .then(({ data: articles }) => {
         const map = new Map(articles.map((a) => [a.date, a]));
         setArticleMap(map);
       })
