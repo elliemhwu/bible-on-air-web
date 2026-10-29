@@ -1,10 +1,11 @@
-import { getArticles } from "@/lib/api";
+import { getArticleDates } from "@/lib/api";
 import Link from "next/link";
 import { AuthButton } from "./AuthButton";
 import { DatePickerButton } from "./DatePickerButton";
 
 export async function Header() {
-  const { data: articles } = await getArticles();
+  // The header must still render when the API is unreachable (e.g. during build)
+  const dates = await getArticleDates().catch(() => []);
 
   return (
     <header className="relative sticky top-0 z-40 border-b border-pebble-200">
@@ -17,7 +18,13 @@ export async function Header() {
           Bible On Air
         </Link>
         <nav className="flex items-center gap-5">
-          <DatePickerButton articles={articles} />
+          <DatePickerButton dates={dates} />
+          <Link
+            href="/history"
+            className="text-sm text-pebble-500 hover:text-pebble-800 transition-colors font-sans"
+          >
+            歷史
+          </Link>
           <Link
             href="/about"
             className="text-sm text-pebble-500 hover:text-pebble-800 transition-colors font-sans"

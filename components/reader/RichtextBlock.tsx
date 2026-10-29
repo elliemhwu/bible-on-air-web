@@ -8,7 +8,7 @@ export function RichtextBlock({ block }: { block: RichtextBlockType }) {
           {block.subheading}
         </p>
       )}
-      <div className="[&_p]:indent-8">
+      <div className="[&_.prose-tc>p]:indent-8">
         <div
           className="prose-tc"
           dangerouslySetInnerHTML={{ __html: block.content.html }}

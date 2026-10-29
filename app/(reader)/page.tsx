@@ -1,11 +1,20 @@
+import { getArticleDates } from "@/lib/api";
 import { redirect } from "next/navigation";
 
-export const revalidate = 86400;
+// "Today" changes every day, so never cache this redirect
+export const dynamic = "force-dynamic";
 
-export default function HomePage() {
-  const today =
-    process.env.NODE_ENV === "development"
-      ? "2026-04-21"
-      : new Date().toISOString().split("T")[0];
-  redirect(`/${today}`);
+/** Today's date in Taiwan, independent of the server's time zone. */
+function todayInTaipei(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" }).format(
+    new Date(),
+  );
+}
+
+export default async function HomePage() {
+  const today = todayInTaipei();
+  const dates = await getArticleDates().catch(() => [] as string[]);
+  // Today's devotional, or the latest one published before today
+  const target = dates.find((d) => d <= today) ?? dates[0];
+  redirect(target ? `/${target}` : "/about");
 }

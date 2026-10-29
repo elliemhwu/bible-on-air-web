@@ -50,26 +50,28 @@ export default function ArticlesPage() {
 
   // ── fetch list ────────────────────────────────────────────────────────────
   useEffect(() => {
+    if (!token) return;
     setListLoading(true);
     setListError(null);
-    getArticles(listQuery)
+    getArticles(listQuery, token)
       .then((res: PaginatedResponse<ArticleSummary>) => {
         setListArticles(res.data);
         setListPagination(res.pagination);
       })
       .catch(() => setListError("載入文章失敗"))
       .finally(() => setListLoading(false));
-  }, [listQuery]);
+  }, [listQuery, token]);
 
   // ── fetch calendar ────────────────────────────────────────────────────────
   useEffect(() => {
+    if (!token) return;
     setCalLoading(true);
     const { dateFrom, dateTo } = monthBounds(calYear, calMonth);
-    getArticles({ dateFrom, dateTo, pageSize: 31 })
+    getArticles({ dateFrom, dateTo, pageSize: 31 }, token)
       .then((res: PaginatedResponse<ArticleSummary>) => setCalArticles(res.data))
       .catch(() => {})
       .finally(() => setCalLoading(false));
-  }, [calYear, calMonth]);
+  }, [calYear, calMonth, token]);
 
   function setTab(t: Tab) {
     const params = new URLSearchParams(searchParams.toString());

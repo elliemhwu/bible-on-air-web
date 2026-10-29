@@ -1,13 +1,12 @@
 "use client";
 
 import { ChevronDown } from "@/components/icons/ChevronDown";
-import type { ArticleSummary } from "@/lib/types";
 import { toDateStr } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DatePicker, type DatePickerHandle } from "./DatePicker";
 
-export function DatePickerButton({ articles }: { articles: ArticleSummary[] }) {
+export function DatePickerButton({ dates }: { dates: string[] }) {
   const router = useRouter();
   const params = useParams();
   const currentDate =
@@ -17,7 +16,7 @@ export function DatePickerButton({ articles }: { articles: ArticleSummary[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const datePickerRef = useRef<DatePickerHandle>(null);
 
-  const articleDateSet = new Set(articles.map((a) => a.date));
+  const articleDateSet = new Set(dates);
 
   useEffect(() => {
     if (!open) return;

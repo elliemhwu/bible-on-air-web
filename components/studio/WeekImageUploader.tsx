@@ -37,13 +37,17 @@ export default function WeekImageUploader({ weekStart }: Props) {
   const days = Array.from({ length: 6 }, (_, i) => addDays(weekStart, i));
 
   useEffect(() => {
-    getArticles()
+    if (!token) return;
+    getArticles(
+      { dateFrom: weekStart, dateTo: addDays(weekStart, 6), pageSize: 7 },
+      token,
+    )
       .then(({ data: articles }) => {
         const map = new Map(articles.map((a) => [a.date, a]));
         setArticleMap(map);
       })
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [token, weekStart]);
 
   function prevWeek() {
     router.push(`/studio/images/${addDays(weekStart, -7)}`);
