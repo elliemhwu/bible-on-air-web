@@ -91,7 +91,7 @@ export type ArticleSummary = {
   title: string | null;
   status: "published" | "draft" | "pending_review" | "approved";
   verseRange: string | null;
-  articleTemplateId: string | null;
+  articleTemplateId: number | null;
   coverImageUrl: string | null;
   publishedAt: string | null;
   createdAt: string;
@@ -203,4 +203,48 @@ export type AuthUser = {
 export type LoginResponse = {
   accessToken: string;
   user: AuthUser;
+};
+
+/** One block in the PUT /articles/:date/blocks payload (no id = new block). */
+export type BlockInput = {
+  id?: string;
+  order: number;
+  type: Block["type"];
+  subheading: string | null;
+  content: Record<string, unknown>;
+};
+
+// ── Legacy Google Site sync ───────────────────────────────────────────────
+
+export type LegacyMonth = {
+  label: string; // "2026年10月"
+  month: string; // "2026-10"
+  url: string;
+};
+
+/** What the old site has that our database is missing for a day. */
+export type LegacyGap = "article" | "cover" | "title" | `block:${string}`;
+
+export type LegacySyncItem = {
+  date: string;
+  kind: "daily" | "overview";
+  title: string;
+  heading: string;
+  state: "missing" | "incomplete" | "synced";
+  gaps: LegacyGap[];
+  warnings: string[];
+  articleId: string | null;
+};
+
+export type LegacyMonthStatus = {
+  month: string;
+  url: string;
+  items: LegacySyncItem[];
+};
+
+export type LegacySyncResult = {
+  date: string;
+  action: "created" | "updated" | "unchanged" | "failed";
+  filled: LegacyGap[];
+  error?: string;
 };

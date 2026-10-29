@@ -4,7 +4,9 @@ import axios from "axios";
 // proxy handles routing so a relative path is enough (and avoids CORS).
 const BASE =
   typeof window === "undefined"
-    ? (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001")
+    ? (process.env.API_INTERNAL_URL ??
+      process.env.NEXT_PUBLIC_API_BASE_URL ??
+      "http://localhost:3001")
     : "";
 
 export const apiClient = axios.create({

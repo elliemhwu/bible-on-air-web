@@ -6,7 +6,6 @@ import Image from "next/image";
 import type { ArticleSummary } from "@/lib/types";
 import StatusBadge from "@/components/studio/StatusBadge";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
@@ -137,11 +136,7 @@ export default function ArticleCalendarView({
             const dateStr = toDateStr(year, month, day);
             const article = articleByDate.get(dateStr);
             const isToday = dateStr === todayStr;
-            const coverUrl = article?.coverImageUrl
-              ? article.coverImageUrl.startsWith("http")
-                ? article.coverImageUrl
-                : `${BASE}${article.coverImageUrl}`
-              : null;
+            const coverUrl = article?.coverImageUrl ?? null;
 
             return (
               <div

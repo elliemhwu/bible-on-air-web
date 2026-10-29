@@ -1,19 +1,29 @@
-import { BlockRenderer } from "@/components/reader/BlockRenderer";
-import { getArticle, getArticles } from "@/lib/api";
-import { VerseBlock } from "@/lib/types";
-import { formatVerseRef } from "@/lib/utils";
-import Image from "next/image";
+import { ArticleView, formatDateTC } from "@/components/reader/ArticleView";
+import { getArticle, getArticleDates } from "@/lib/api";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
-
-function formatDateTC(date: string): string {
-  const [year, month, day] = date.split("-");
-  return `${year}年${parseInt(month)}月${parseInt(day)}日`;
-}
+// Pages are rendered on first visit and refreshed in the background, so
+// published edits show up within a few minutes.
+export const revalidate = 300;
 
 export async function generateStaticParams() {
-  const { data: articles } = await getArticles();
-  return articles.map((a) => ({ date: a.date }));
+  return [];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ date: string }>;
+}): Promise<Metadata> {
+  const { date } = await params;
+  const article = await getArticle(date).catch(() => null);
+  return {
+    title: article
+      ? `${article.title ?? formatDateTC(date)}｜Bible On Air`
+      : "Bible On Air",
+  };
 }
 
 export default async function DatePage({
@@ -22,53 +32,36 @@ export default async function DatePage({
   params: Promise<{ date: string }>;
 }) {
   const { date } = await params;
-  const article = await getArticle(date);
-  const sortedBlocks = [...article.blocks].sort((a, b) => a.order - b.order);
-  const coverUrl = article.coverImageUrl
-    ? `${BASE}${article.coverImageUrl}`
-    : null;
+  const [article, dates] = await Promise.all([
+    getArticle(date),
+    getArticleDates().catch(() => [] as string[]),
+  ]);
+  if (!article) notFound();
 
-  function renderDailyVerseRange() {
-    const mainDailyVerseBlock = sortedBlocks.find(
-      (b) => b.type === "verse" && !b.subheading,
-    ) as VerseBlock;
-    return formatVerseRef(mainDailyVerseBlock.content.ranges);
-  }
+  // dates are newest first
+  const index = dates.indexOf(article.date);
+  const newer = index > 0 ? dates[index - 1] : null;
+  const older = index >= 0 && index < dates.length - 1 ? dates[index + 1] : null;
 
   return (
     <article>
       <div className="mx-auto max-w-2xl px-6 py-10">
-        <header className="mb-8">
-          <p className="text-sm sm:text-base text-primary mb-2">
-            <span className="pr-2">{formatDateTC(article.date)} </span>
-            <span>{renderDailyVerseRange()}</span>
-          </p>
-          {article.title && (
-            <h1 className="text-2xl sm:text-4xl font-bold leading-snug text-pebble-800">
-              {article.title}
-            </h1>
+        <ArticleView article={article} />
+
+        <nav className="mt-12 flex justify-between border-t border-pebble-200 pt-6 font-sans text-sm">
+          {older ? (
+            <Link href={`/${older}`} className="text-pebble-500 hover:text-pebble-800">
+              ← {formatDateTC(older)}
+            </Link>
+          ) : (
+            <span />
           )}
-          <hr className="mt-6 border-pebble-300" />
-        </header>
-
-        {coverUrl && (
-          <div className="relative max-w-[450px] aspect-square overflow-hidden mx-auto my-12">
-            <Image
-              src={coverUrl}
-              alt={article.title ?? article.date}
-              fill
-              className="object-cover"
-              priority
-              unoptimized={process.env.NODE_ENV === "development"}
-            />
-          </div>
-        )}
-
-        <div>
-          {sortedBlocks.map((block) => (
-            <BlockRenderer key={block.id} block={block} />
-          ))}
-        </div>
+          {newer && (
+            <Link href={`/${newer}`} className="text-pebble-500 hover:text-pebble-800">
+              {formatDateTC(newer)} →
+            </Link>
+          )}
+        </nav>
       </div>
     </article>
   );

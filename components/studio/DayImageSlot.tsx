@@ -5,7 +5,6 @@ import type { ArticleSummary } from "@/lib/types";
 import Image from "next/image";
 import { useRef, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 
 const ZH_WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
 
@@ -55,7 +54,7 @@ export default function DayImageSlot({ date, article, token, onUpdated }: Props)
       <div className="relative w-full aspect-square bg-pebble-50 flex items-center justify-center">
         {coverUrl ? (
           <Image
-            src={`${API_BASE}${coverUrl}`}
+            src={coverUrl}
             alt={date}
             fill
             className="object-cover"

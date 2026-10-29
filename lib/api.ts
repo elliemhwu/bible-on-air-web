@@ -6,31 +6,56 @@ import type {
   ArticleTemplate,
   AuthUser,
   BibleBook,
+  BlockInput,
   CreateArticleData,
+  LegacyMonth,
+  LegacyMonthStatus,
+  LegacySyncResult,
   LoginResponse,
   PaginatedResponse,
   UpdateArticleData,
   UpdateBlockData,
   VerseResultResponse,
 } from "@/lib/types";
+import { isAxiosError } from "axios";
 
 const PUB = "bible-on-air";
 
+function authHeaders(token?: string | null) {
+  return token ? { Authorization: `Bearer ${token}` } : undefined;
+}
+
+/** Without a token only published articles are returned. */
 export async function getArticles(
   query?: ArticleQuery,
+  token?: string | null,
 ): Promise<PaginatedResponse<ArticleSummary>> {
   const { data } = await apiClient.get<PaginatedResponse<ArticleSummary>>(
     `/magazines/${PUB}/articles`,
-    { params: query },
+    { params: query, headers: authHeaders(token) },
   );
   return data;
 }
 
-export async function getArticle(date: string): Promise<Article> {
-  const { data } = await apiClient.get<Article>(
-    `/magazines/${PUB}/articles/${date}`,
+/** Dates (YYYY-MM-DD, newest first) that have a published article. */
+export async function getArticleDates(): Promise<string[]> {
+  const { data } = await apiClient.get<string[]>(
+    `/magazines/${PUB}/articles/dates`,
   );
   return data;
+}
+
+/** Published article for a date; resolves to null when there is none. */
+export async function getArticle(date: string): Promise<Article | null> {
+  try {
+    const { data } = await apiClient.get<Article>(
+      `/magazines/${PUB}/articles/${date}`,
+    );
+    return data;
+  } catch (e) {
+    if (isAxiosError(e) && e.response?.status === 404) return null;
+    throw e;
+  }
 }
 
 export async function login(
@@ -203,4 +228,52 @@ export async function updateBlock(
     payload,
     { headers: { Authorization: `Bearer ${token}` } },
   );
+}
+
+/** Save the full block list: add, remove, reorder and rename blocks at once. */
+export async function replaceBlocks(
+  token: string,
+  date: string,
+  blocks: BlockInput[],
+): Promise<void> {
+  await apiClient.put(
+    `${PUB_ARTICLES}/${date}/blocks`,
+    { blocks },
+    { headers: authHeaders(token) },
+  );
+}
+
+// ── Legacy Google Site sync ───────────────────────────────────────────────
+
+const LEGACY = `/magazines/${PUB}/legacy-sync`;
+
+export async function getLegacyMonths(token: string): Promise<LegacyMonth[]> {
+  const { data } = await apiClient.get<LegacyMonth[]>(`${LEGACY}/months`, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function getLegacyMonthStatus(
+  token: string,
+  month: string,
+  refresh = false,
+): Promise<LegacyMonthStatus> {
+  const { data } = await apiClient.get<LegacyMonthStatus>(
+    `${LEGACY}/months/${month}`,
+    { params: refresh ? { refresh: true } : undefined, headers: authHeaders(token) },
+  );
+  return data;
+}
+
+export async function syncLegacyDates(
+  token: string,
+  dates: string[],
+): Promise<LegacySyncResult[]> {
+  const { data } = await apiClient.post<LegacySyncResult[]>(
+    LEGACY,
+    { dates },
+    { headers: authHeaders(token) },
+  );
+  return data;
 }

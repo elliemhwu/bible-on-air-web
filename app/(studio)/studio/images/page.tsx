@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 
+// Redirects to the current week, so it must not be cached at build time
+export const dynamic = "force-dynamic";
+
 function getMondayDate(): string {
   const now = new Date();
   const day = now.getDay(); // 0=Sun, 1=Mon, ...

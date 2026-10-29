@@ -20,7 +20,11 @@ import { find } from "lodash";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function CreateArticleForm() {
+export default function CreateArticleForm({
+  initialDate,
+}: {
+  initialDate?: string;
+}) {
   const router = useRouter();
   const { token } = useAuth();
   const {
@@ -37,7 +41,7 @@ export default function CreateArticleForm() {
   const { formData, setFormData, onFormChange, formError, setFormError } =
     useFormData({
       selectedTemplateId: "" as number | "",
-      date: toDateStr(new Date()),
+      date: initialDate ?? toDateStr(new Date()),
       title: "",
       verseRanges: {} as Record<number, VerseRange[]>,
       questionItems: {} as Record<number, string[]>,
@@ -91,7 +95,7 @@ export default function CreateArticleForm() {
           }))
         : [];
 
-      await createArticle(token, {
+      const created = await createArticle(token, {
         date,
         title,
         articleTemplateId:
@@ -99,16 +103,7 @@ export default function CreateArticleForm() {
         blocks,
       });
 
-      setFormData({
-        selectedTemplateId:
-          (find(templates, { isDefault: true }) || templates[0])?.id ??
-          ("" as number | ""),
-        date: toDateStr(new Date()),
-        title: "",
-        verseRanges: {},
-        questionItems: {},
-        richtextHtml: {},
-      });
+      router.push(`/studio/articles/${created.id}/edit`);
     } catch {
       setFormError("儲存失敗，請再試一次");
     } finally {
