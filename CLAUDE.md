@@ -7,7 +7,8 @@ Bible On Air（BOA）的前端網站，提供教會每日靈修內容的閱讀�
 - **框架**：Next.js App Router（TypeScript）
 - **樣式**：Tailwind CSS
 - **後端 API**：`bible-on-air-api`（NestJS，本機預設 `http://localhost:3001`）
-- **環境變數**：`NEXT_PUBLIC_API_BASE_URL`（API base URL）
+- **環境變數**：`API_INTERNAL_URL`（此 server 連到 API 的位址，build 時寫入 `/api`、`/uploads` 轉發規則；Docker 預設 `http://api:3001`），本機可沿用 `NEXT_PUBLIC_API_BASE_URL`
+- **部署**：`Dockerfile`（Next standalone），compose 檔在 `bible-on-air-api/deploy/`
 
 ---
 
@@ -224,8 +225,8 @@ export async function getArticle(date: string): Promise<Article> {
 
 ## 圖片處理
 
-- `coverImageUrl` 為相對路徑（如 `/uploads/...`），需加上 `NEXT_PUBLIC_API_BASE_URL` 前綴。
-- 在 `next.config.ts` 設定 `images.remotePatterns`，允許來自 API server 的圖片。
+- `coverImageUrl` 為相對路徑（如 `/uploads/...`），直接使用；`/uploads/*` 由 Next rewrite 轉給 API。
+- `images.unoptimized: true`，圖片不經 Next 最佳化。
 
 ---
 
@@ -249,7 +250,7 @@ export async function getArticle(date: string): Promise<Article> {
 - [x] `[2c]` Questions block 編輯（逐題輸入）
 - [x] `[2d]` Richtext block 編輯（選套件）
 - [x] `[2e]` 編輯已存在的文章
-- [ ] `[2f]` 補完編輯功能（例如鳥瞰 template 才比較會用到的 richtext 清單、subheading、鳥瞰 template 顯示）
+- [x] `[2f]` 補完編輯功能（例如鳥瞰 template 才比較會用到的 richtext 清單、subheading、鳥瞰 template 顯示）
 
 **3. 圖片上傳**
 
@@ -259,27 +260,29 @@ export async function getArticle(date: string): Promise<Article> {
 
 - [x] （主要在後端和另一個爬蟲程式）
 
+- [x] 後台「從舊網站同步」（`/studio/sync`）與編輯頁「從舊網站補齊」
+
 **5. Editor & Image Editor Dashboard**（`/studio`）
 
-- [ ] `[5a]` Editor dashboard（所有 draft / reviewed 文章列表）
-- [ ] `[5b]` Image editor dashboard（待上傳圖片日期列表）
+- [x] `[5a]` Editor dashboard（所有 draft / reviewed 文章列表）
+- [x] `[5b]` Image editor dashboard（待上傳圖片日期列表）
 
 **6. History View**
 
-- [ ] `[6b]` 前端：Monthly list view（`/history/[month]`）
+- [x] `[6b]` 前端：Monthly list view（`/history`、`/history/[month]`）
 
 **7. Review mode + Reviewer Dashboard**
 
-- [ ] `[7a]` Reviewer dashboard（待 review 文章列表）
-- [ ] `[7b]` Review mode UI（`/studio/review/[reviewTaskId]` or `/studio/review/[rangeStart]/[rangeEnd]`；批次閱讀視圖 + hover edit）
+- [x] `[7a]` Reviewer dashboard（待 review 文章列表）
+- [x] `[7b]` Review mode UI（`/studio/articles/[id]/review`；閱讀視圖 + 狀態按鈕 + 下一篇；hover edit 尚未實作）
 
 **8. Manager 發布 + Dashboard**
 
-- [ ] `[8b]` Manager dashboard（`/studio/publish`） + 發布按鈕
+- [x] `[8b]` Manager dashboard（`/studio/publish`） + 發布按鈕
 
 **9. PDF 匯出**
 
-- [ ] `[9b]` 前端下載入口
+- [x] `[9b]` 列印頁（`/studio/print?from=&to=`），瀏覽器存成 PDF
 
 ---
 
