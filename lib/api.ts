@@ -1,6 +1,19 @@
 import { apiClient } from "@/lib/axios";
 import type {
   Article,
+  ArticleComment,
+  InviteResult,
+  ManagedUser,
+  UserChanges,
+  Assignment,
+  AssignmentInput,
+  NoteInput,
+  Roster,
+  StaffUser,
+  Team,
+  WeekPlan,
+  WeekPlanInput,
+  WritingNote,
   ArticleQuery,
   ArticleSummary,
   ArticleTemplate,
@@ -12,6 +25,7 @@ import type {
   LegacyMonthStatus,
   LegacySyncResult,
   LoginResponse,
+  Publication,
   PaginatedResponse,
   UpdateArticleData,
   UpdateBlockData,
@@ -276,4 +290,205 @@ export async function syncLegacyDates(
     { headers: authHeaders(token) },
   );
   return data;
+}
+
+// ── Publication (About page) ──────────────────────────────────────────────
+
+export async function getPublication(): Promise<Publication> {
+  const { data } = await apiClient.get<Publication>(`/publications/${PUB}`);
+  return data;
+}
+
+export async function updatePublication(
+  token: string,
+  payload: { summary?: string; about?: string },
+): Promise<Publication> {
+  const { data } = await apiClient.patch<Publication>(
+    `/publications/${PUB}`,
+    payload,
+    { headers: authHeaders(token) },
+  );
+  return data;
+}
+
+// ── Planning & assignments ────────────────────────────────────────────────
+
+const MAG = `/magazines/${PUB}`;
+
+/** Week plans whose Monday falls in [from, to] */
+export async function getPlans(token: string, from: string, to: string): Promise<WeekPlan[]> {
+  const { data } = await apiClient.get<WeekPlan[]>(`${MAG}/plans`, {
+    params: { from, to },
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function savePlan(token: string, weekStart: string, plan: WeekPlanInput): Promise<WeekPlan> {
+  const { data } = await apiClient.put<WeekPlan>(`${MAG}/plans/${weekStart}`, plan, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function getStaff(token: string): Promise<StaffUser[]> {
+  const { data } = await apiClient.get<StaffUser[]>(`${MAG}/staff`, { headers: authHeaders(token) });
+  return data;
+}
+
+export async function getRosters(token: string): Promise<Roster[]> {
+  const { data } = await apiClient.get<Roster[]>(`${MAG}/rosters`, { headers: authHeaders(token) });
+  return data;
+}
+
+export async function saveRoster(token: string, team: Team, userIds: string[]): Promise<Roster> {
+  const { data } = await apiClient.put<Roster>(`${MAG}/rosters/${team}`, { userIds }, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+/** Assignments in [from, to]; pass `userId` for one person's only */
+export async function getAssignments(
+  token: string,
+  from: string,
+  to: string,
+  userId?: string,
+): Promise<Assignment[]> {
+  const { data } = await apiClient.get<Assignment[]>(`${MAG}/assignments`, {
+    params: { from, to, ...(userId && { userId }) },
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function saveAssignments(token: string, items: AssignmentInput[]): Promise<Assignment[]> {
+  const { data } = await apiClient.put<Assignment[]>(`${MAG}/assignments`, { items }, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function getNotes(token: string, date: string): Promise<WritingNote[]> {
+  const { data } = await apiClient.get<WritingNote[]>(`${MAG}/notes/${date}`, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function createNote(
+  token: string,
+  date: string,
+  note: Required<Pick<NoteInput, "tag" | "verses" | "text">>,
+): Promise<WritingNote> {
+  const { data } = await apiClient.post<WritingNote>(`${MAG}/notes/${date}`, note, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function updateNote(token: string, note: WritingNote, patch: NoteInput): Promise<WritingNote> {
+  const { data } = await apiClient.patch<WritingNote>(`${MAG}/notes/${note.date}/${note.id}`, patch, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function deleteNote(token: string, note: WritingNote): Promise<void> {
+  await apiClient.delete(`${MAG}/notes/${note.date}/${note.id}`, { headers: authHeaders(token) });
+}
+
+export async function getComments(token: string, articleId: string): Promise<ArticleComment[]> {
+  const { data } = await apiClient.get<ArticleComment[]>(`${PUB_ARTICLES}/${articleId}/comments`, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function addComment(token: string, articleId: string, text: string): Promise<ArticleComment[]> {
+  const { data } = await apiClient.post<ArticleComment[]>(
+    `${PUB_ARTICLES}/${articleId}/comments`,
+    { text },
+    { headers: authHeaders(token) },
+  );
+  return data;
+}
+
+/** Set (or with null, remove) the cover image of several days at once */
+export async function batchCoverImages(
+  token: string,
+  items: { date: string; imageUrl: string | null }[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.patch<ArticleSummary[]>(`${PUB_ARTICLES}/cover-images`, { items }, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+// ── Staff accounts (同工與權限) ───────────────────────────────────────────
+
+export async function getUsers(token: string): Promise<ManagedUser[]> {
+  const { data } = await apiClient.get<ManagedUser[]>(`${MAG}/users`, { headers: authHeaders(token) });
+  return data;
+}
+
+/** Creates an invited account and emails them the invitation */
+export async function inviteUser(
+  token: string,
+  payload: { name: string; email: string; admin: boolean; teams: UserChanges["teams"] },
+): Promise<InviteResult> {
+  const { data } = await apiClient.post<InviteResult>(`${MAG}/users`, payload, { headers: authHeaders(token) });
+  return data;
+}
+
+export async function updateUser(token: string, id: string, changes: UserChanges): Promise<ManagedUser> {
+  const { data } = await apiClient.patch<ManagedUser>(`${MAG}/users/${id}`, changes, { headers: authHeaders(token) });
+  return data;
+}
+
+/** Emails a fresh invitation to someone who has not joined yet */
+export async function reinviteUser(token: string, id: string): Promise<InviteResult> {
+  const { data } = await apiClient.post<InviteResult>(`${MAG}/users/${id}/invite`, null, { headers: authHeaders(token) });
+  return data;
+}
+
+export async function getInvite(inviteToken: string): Promise<{ name: string; email: string } | null> {
+  try {
+    const { data } = await apiClient.get<{ name: string; email: string }>(`/auth/invite/${inviteToken}`);
+    return data;
+  } catch (e) {
+    if (isAxiosError(e) && e.response?.status === 404) return null;
+    throw e;
+  }
+}
+
+export async function acceptInvite(inviteToken: string, password: string): Promise<LoginResponse> {
+  const { data } = await apiClient.post<LoginResponse>(`/auth/invite/${inviteToken}`, { password });
+  return data;
+}
+
+/** Emails a reset link if the address has an active account (the reply never says which) */
+export async function forgotPassword(email: string): Promise<void> {
+  await apiClient.post("/auth/forgot-password", { email });
+}
+
+export async function getReset(resetToken: string): Promise<{ email: string } | null> {
+  try {
+    const { data } = await apiClient.get<{ email: string }>(`/auth/reset/${resetToken}`);
+    return data;
+  } catch (e) {
+    if (isAxiosError(e) && e.response?.status === 404) return null;
+    throw e;
+  }
+}
+
+export async function resetPassword(resetToken: string, password: string): Promise<LoginResponse> {
+  const { data } = await apiClient.post<LoginResponse>(`/auth/reset/${resetToken}`, { password });
+  return data;
+}
+
+/** The API's message for a failed request, when it sent one */
+export function apiError(e: unknown, fallback: string): string {
+  const message = isAxiosError(e) ? (e.response?.data as { message?: unknown } | undefined)?.message : undefined;
+  return typeof message === "string" ? message : fallback;
 }

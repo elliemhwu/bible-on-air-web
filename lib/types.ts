@@ -99,7 +99,7 @@ export type ArticleSummary = {
 };
 
 /** Discriminated union of all block types in an article. */
-export type Block = VerseBlock | QuestionsBlock | RichtextBlock;
+export type Block = VerseBlock | QuestionsBlock | RichtextBlock | OutlineBlock;
 
 /** Block containing one or more scripture ranges with resolved verse texts. */
 export type VerseBlock = {
@@ -145,6 +145,32 @@ export type RichtextBlock = {
   updatedAt: string;
 };
 
+/** A passage inside the outline's book, e.g. 1:1 - 4:11 */
+export type OutlineRange = { chapterStart: number; verseStart: number; chapterEnd: number; verseEnd: number };
+
+export type OutlineItem = { range: OutlineRange | null; text: string };
+
+/** A numbered part of the book (一、二、… are added when displayed) */
+export type OutlineSection = { title: string; range: OutlineRange | null; items: OutlineItem[] };
+
+export type OutlineContent = {
+  /** abbrZh of the book, e.g. "太"; "" until chosen */
+  book: string;
+  sections: OutlineSection[];
+};
+
+/** 本書大綱 of a 書卷鳥瞰 day */
+export type OutlineBlock = {
+  id: string;
+  articleId: string;
+  order: number;
+  type: "outline";
+  subheading: string | null;
+  content: OutlineContent;
+  createdAt: string;
+  updatedAt: string;
+};
+
 /** Full article with all blocks, used on the reader and edit pages. */
 export type Article = ArticleSummary & {
   blocks: Block[];
@@ -153,7 +179,7 @@ export type Article = ArticleSummary & {
 /** A single block slot defined by an ArticleTemplate. */
 export type BlockDefinition = {
   order: number;
-  type: "verse" | "questions" | "richtext";
+  type: Block["type"];
   subheading: string | null;
   label: string; // display label shown in the editor UI
   required: boolean;
@@ -174,7 +200,7 @@ export type CreateArticleData = {
   date: string;
   title: string;
   articleTemplateId?: number;
-  blocks?: { order: number; type: string; subheading?: string }[];
+  blocks?: { order: number; type: string; subheading?: string; content?: Record<string, unknown> }[];
 };
 
 /** Payload for PATCH /magazines/:pub/articles/:date */
@@ -197,6 +223,8 @@ export type AuthUser = {
   email: string;
   name: string;
   roles: string[];
+  /** Missing in sessions stored before teams existed */
+  teams?: TeamRoles;
 };
 
 /** Response shape from POST /auth/login. */
@@ -247,4 +275,98 @@ export type LegacySyncResult = {
   action: "created" | "updated" | "unchanged" | "failed";
   filled: LegacyGap[];
   error?: string;
+};
+
+// ── Publication ───────────────────────────────────────────────────────────
+
+export type Publication = {
+  uid: string;
+  name: string;
+  summary: string | null;
+  /** About page as HTML */
+  about: string | null;
+  updatedAt: string;
+};
+
+// ── Planning & assignments (studio) ───────────────────────────────────────
+
+export type Team = "writer" | "reviewer" | "image";
+
+/** One weekday (Mon–Sat) of a week plan; `ref` "" = not planned yet */
+export type PlanDay = { ref: string; overview?: boolean };
+
+/** 進度安排 of one week, keyed by its Monday */
+export type WeekPlan = {
+  weekStart: string;
+  sundayTheme: string | null;
+  sundayPassage: string | null;
+  days: PlanDay[];
+  updatedAt: string;
+};
+
+export type WeekPlanInput = Pick<WeekPlan, "sundayTheme" | "sundayPassage" | "days">;
+
+export type Member = { id: string; name: string };
+
+export type StaffUser = Member & { roles: string[]; teams: TeamRoles };
+
+/** 同工 or 負責人 (a lead also schedules and manages the team) */
+export type TeamLevel = "member" | "lead";
+
+export type TeamRoles = Partial<Record<Team, TeamLevel>>;
+
+export type UserStatus = "active" | "invited" | "disabled";
+
+/** An account as the 同工與權限 page sees it */
+export type ManagedUser = {
+  id: string;
+  email: string;
+  name: string;
+  roles: string[];
+  teams: TeamRoles;
+  status: UserStatus;
+  /** 牧者 (manager) */
+  admin: boolean;
+  createdAt: string;
+};
+
+/** `inviteToken` is only returned when the email could not be sent, to share by hand */
+export type InviteResult = { user: ManagedUser; emailed: boolean; inviteToken: string | null };
+
+export type UserChanges = {
+  name?: string;
+  admin?: boolean;
+  teams?: Partial<Record<Team, TeamLevel | null>>;
+  status?: "active" | "disabled";
+};
+
+export type Roster = { team: Team; members: Member[] };
+
+/** Who serves `team` on `date` */
+export type Assignment = { date: string; team: Team; userId: string; userName: string };
+
+export type AssignmentInput = { date: string; team: Team; userId: string | null };
+
+export type NoteTag = "heading" | "question" | "fragment";
+
+/** A writer's private reading-mode note */
+export type WritingNote = {
+  id: string;
+  date: string;
+  tag: NoteTag | null;
+  verses: number[];
+  text: string;
+  order: number;
+  usedIn: string | null;
+  createdAt: string;
+};
+
+export type NoteInput = Partial<Pick<WritingNote, "tag" | "verses" | "text" | "order" | "usedIn">>;
+
+export type ArticleComment = {
+  id: string;
+  text: string;
+  createdAt: string;
+  authorId: string;
+  authorName: string;
 };

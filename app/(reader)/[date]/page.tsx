@@ -1,4 +1,5 @@
 import { ArticleView, formatDateTC } from "@/components/reader/ArticleView";
+import { StaffEditLink } from "@/components/reader/StaffEditLink";
 import { getArticle, getArticleDates } from "@/lib/api";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -46,6 +47,9 @@ export default async function DatePage({
   return (
     <article>
       <div className="mx-auto max-w-2xl px-6 py-10">
+        <div className="mb-4 flex justify-end empty:hidden">
+          <StaffEditLink href={`/studio/articles/${article.id}/edit`} label="編輯這篇" />
+        </div>
         <ArticleView article={article} />
 
         <nav className="mt-12 flex justify-between border-t border-pebble-200 pt-6 font-sans text-sm">

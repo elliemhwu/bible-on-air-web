@@ -2,6 +2,7 @@
 
 @import "./styles/colors.css";
 @import "./styles/animations.css";
+@import "./styles/studio.css";
 
 :root {
   --background: var(--color-pebble-50);

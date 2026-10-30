@@ -35,20 +35,23 @@ export default function PrintArticles({ from, to }: { from?: string; to?: string
 
   const [fromInput, setFromInput] = useState(range.from);
   const [toInput, setToInput] = useState(range.to);
-  const [articles, setArticles] = useState<Article[] | null>(null);
+  const [loaded, setLoaded] = useState<{ key: string; articles: Article[] } | null>(null);
   const [withCover, setWithCover] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  const key = `${range.from}~${range.to}`;
+  // Results and errors only count for the range they were loaded for
+  const articles = loaded?.key === key ? loaded.articles : null;
+  const error = failed === key ? "載入文章失敗" : null;
 
   useEffect(() => {
     if (!token) return;
-    setArticles(null);
-    setError(null);
+    const key = `${range.from}~${range.to}`;
     getArticles({ dateFrom: range.from, dateTo: range.to, pageSize: MAX_DAYS }, token)
       .then(({ data }) =>
         Promise.all([...data].reverse().map((a) => getArticleById(token, a.id))),
       )
-      .then(setArticles)
-      .catch(() => setError("載入文章失敗"));
+      .then((list) => setLoaded({ key, articles: list }))
+      .catch(() => setFailed(key));
   }, [token, range.from, range.to]);
 
   function apply(e: React.FormEvent) {
