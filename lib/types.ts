@@ -248,3 +248,14 @@ export type LegacySyncResult = {
   filled: LegacyGap[];
   error?: string;
 };
+
+// ── Publication ───────────────────────────────────────────────────────────
+
+export type Publication = {
+  uid: string;
+  name: string;
+  summary: string | null;
+  /** About page as HTML */
+  about: string | null;
+  updatedAt: string;
+};

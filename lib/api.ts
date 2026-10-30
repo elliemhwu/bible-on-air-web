@@ -12,6 +12,7 @@ import type {
   LegacyMonthStatus,
   LegacySyncResult,
   LoginResponse,
+  Publication,
   PaginatedResponse,
   UpdateArticleData,
   UpdateBlockData,
@@ -273,6 +274,25 @@ export async function syncLegacyDates(
   const { data } = await apiClient.post<LegacySyncResult[]>(
     LEGACY,
     { dates },
+    { headers: authHeaders(token) },
+  );
+  return data;
+}
+
+// ── Publication (About page) ──────────────────────────────────────────────
+
+export async function getPublication(): Promise<Publication> {
+  const { data } = await apiClient.get<Publication>(`/publications/${PUB}`);
+  return data;
+}
+
+export async function updatePublication(
+  token: string,
+  payload: { summary?: string; about?: string },
+): Promise<Publication> {
+  const { data } = await apiClient.patch<Publication>(
+    `/publications/${PUB}`,
+    payload,
     { headers: authHeaders(token) },
   );
   return data;

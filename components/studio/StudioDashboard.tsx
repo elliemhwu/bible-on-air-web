@@ -113,6 +113,7 @@ export default function StudioDashboard() {
     { href: "/studio/images", label: "上傳圖片", show: canUploadImages(user) },
     { href: "/studio/sync", label: "從舊網站同步", show: canEdit(user) },
     { href: "/studio/print", label: "列印 / PDF", show: true },
+    { href: "/studio/about", label: "關於頁", show: canPublish(user) },
     { href: "/", label: "前台", show: true },
   ];
 
