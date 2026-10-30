@@ -1,5 +1,6 @@
 import type { Block } from "@/lib/types";
 import { formatVerseRef } from "@/lib/utils";
+import { OutlineBlock } from "./OutlineBlock";
 import { QuestionsBlock } from "./QuestionsBlock";
 import { RichtextBlock } from "./RichtextBlock";
 import { VerseBlock } from "./VerseBlock";
@@ -33,5 +34,7 @@ export function BlockRenderer({ block }: { block: Block }) {
       return <QuestionsBlock block={block} />;
     case "richtext":
       return <RichtextBlock block={block} />;
+    case "outline":
+      return <OutlineBlock block={block} />;
   }
 }

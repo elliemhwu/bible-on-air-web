@@ -61,10 +61,11 @@ export default function MyWork() {
   const current = mine.filter((a) => mondayOf(a.date) === firstWeek);
   const later = mine.filter((a) => mondayOf(a.date) !== firstWeek);
   const plan = plans.find((p) => p.weekStart === firstWeek);
-  const passageOf = (date: string) => {
+  const planDay = (date: string) => {
     const i = (new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7;
-    return articles.get(date)?.verseRange || plans.find((p) => p.weekStart === mondayOf(date))?.days[i]?.ref || "";
+    return plans.find((p) => p.weekStart === mondayOf(date))?.days[i];
   };
+  const passageOf = (date: string) => articles.get(date)?.verseRange || planDay(date)?.ref || "";
 
   const sunday = addDays(firstWeek, 6);
   const heading = current.length
@@ -105,7 +106,12 @@ export default function MyWork() {
                     <div className={`truncate font-serif text-lg ${article?.title ? "font-semibold" : "text-st-muted"}`}>
                       {article?.title || "還沒有標題"}
                     </div>
-                    <div className="truncate text-sm text-st-muted">{passage || "這天還沒有安排經文"}</div>
+                    <div className="truncate text-sm text-st-muted">
+                      {planDay(date)?.overview && (
+                        <span className="mr-2 rounded-full bg-st-soft px-2 py-px text-xs text-st-ink-2">書卷鳥瞰</span>
+                      )}
+                      {passage || "這天還沒有安排經文"}
+                    </div>
                   </div>
                   <span className={`shrink-0 rounded-full px-3 py-1 text-sm ${c.cls}`}>{c.label}</span>
                 </Link>

@@ -1,5 +1,6 @@
 "use client";
 
+import OutlineBlockEditor from "@/components/studio/OutlineBlockEditor";
 import QuestionsBlockEditor from "@/components/studio/QuestionsBlockEditor";
 import RichtextBlockEditor from "@/components/studio/RichtextBlockEditor";
 import WriterHeader from "@/components/studio/writer/WriterHeader";
@@ -14,7 +15,7 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { stBtnPrimary, stBtnSecondary } from "@/lib/styles";
-import type { Article, ArticleComment, Block, BlockInput, WritingNote } from "@/lib/types";
+import type { Article, ArticleComment, Block, BlockInput, OutlineRange, WritingNote } from "@/lib/types";
 import { formatVerseRef } from "@/lib/utils";
 import { fullDate, localDay, md } from "@/lib/week";
 import {
@@ -42,6 +43,19 @@ function clock(): string {
 }
 
 /** Name of a writable section, as shown on the copy buttons */
+/** The span of a note's verses (chapter * 1000 + verse) as an outline range */
+function notesRange(keys: number[]): OutlineRange | null {
+  if (keys.length === 0) return null;
+  const first = Math.min(...keys);
+  const last = Math.max(...keys);
+  return {
+    chapterStart: Math.floor(first / 1000),
+    verseStart: first % 1000,
+    chapterEnd: Math.floor(last / 1000),
+    verseEnd: last % 1000,
+  };
+}
+
 function sectionName(b: Block): string {
   return b.subheading ?? (b.type === "richtext" ? "書卷介紹" : "內容");
 }
@@ -155,6 +169,19 @@ export default function ComposeMode({ date }: { date: string }) {
       setTitle(picked[0].text);
     } else if (target.type === "questions") {
       patchBlock(target.id, { items: [...target.content.items.filter((q) => q.trim()), ...picked.map(withRef)] });
+    } else if (target.type === "outline") {
+      // A 段落小標 note starts a section; other notes become its passages
+      const sections = [...target.content.sections];
+      for (const n of picked) {
+        const range = notesRange(n.verses);
+        if (n.tag === "heading" || sections.length === 0) {
+          sections.push({ title: n.tag === "heading" ? n.text : "", range: n.tag === "heading" ? range : null, items: [] });
+          if (n.tag === "heading") continue;
+        }
+        const last = sections[sections.length - 1];
+        sections[sections.length - 1] = { ...last, items: [...last.items, { range, text: n.text }] };
+      }
+      patchBlock(target.id, { ...target.content, sections });
     } else if (target.type === "richtext") {
       const html = target.content.html.replace(/<p><\/p>$/, "");
       patchBlock(target.id, { html: html + picked.map((n) => `<p>${escapeHtml(withRef(n))}</p>`).join("") });
@@ -185,7 +212,12 @@ export default function ComposeMode({ date }: { date: string }) {
   }
 
   const reading = readingBlock(article);
-  const passage = reading?.content.ranges.length ? formatVerseRef(reading.content.ranges) : "";
+  const overview = blocks.some((b) => b.type === "outline");
+  const passage = reading?.content.ranges.length
+    ? formatVerseRef(reading.content.ranges)
+    : overview
+      ? "書卷鳥瞰"
+      : "";
   const targets = blocks.filter((b) => b.type !== "verse");
   const pickedCount = checked.size;
 
@@ -230,6 +262,7 @@ export default function ComposeMode({ date }: { date: string }) {
               <span className="text-st-accent">回到讀經 ↺</span>
             </span>
             <span className="line-clamp-6 block font-serif text-[13px] leading-[1.85] text-st-ink-2">
+              {overview && !reading && "讀經模式可以逐章閱讀整卷書，邊讀邊記下大綱的段落。"}
               {reading?.content.verses?.map((v) => (
                 <span key={`${v.chapter}:${v.verse}`}>
                   <sup className="text-st-gold-ink">{v.verse}</sup>
@@ -362,6 +395,8 @@ export default function ComposeMode({ date }: { date: string }) {
                       items={b.content.items.length ? b.content.items : [""]}
                       onChange={(items) => patchBlock(b.id, { items })}
                     />
+                  ) : b.type === "outline" ? (
+                    <OutlineBlockEditor appearance="paper" content={b.content} onChange={(content) => patchBlock(b.id, content)} />
                   ) : (
                     <RichtextBlockEditor appearance="paper" html={b.content.html} onChange={(html) => patchBlock(b.id, { html })} />
                   )}

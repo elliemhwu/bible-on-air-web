@@ -1,19 +1,21 @@
 "use client";
 
 import WriterHeader from "@/components/studio/writer/WriterHeader";
-import { createNote, deleteNote, getNotes, lookupVerses, replaceBlocks } from "@/lib/api";
+import { createNote, deleteNote, getBibleBooks, getNotes, lookupVerses, replaceBlocks } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { stBtnPrimary, stBtnSecondary, stInput } from "@/lib/styles";
-import type { Article, BlockInput, NoteTag, Verse, WritingNote } from "@/lib/types";
+import type { Article, BibleBook, BlockInput, NoteTag, Verse, WritingNote } from "@/lib/types";
 import { longDate } from "@/lib/week";
 import {
   blockContent,
+  bookFromRef,
   ensureArticle,
   findArticle,
   keysToRanges,
   MEMORY_SUBHEADING,
   memoryBlock,
   NOTE_TAGS,
+  outlineBlock,
   plannedDay,
   rangeLabel,
   readingBlock,
@@ -43,23 +45,36 @@ export default function ReadingMode({ date }: { date: string }) {
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState("載入中…");
   const [error, setError] = useState<string | null>(null);
+  /** 書卷鳥瞰: the whole book is read, one chapter at a time */
+  const [overview, setOverview] = useState(false);
+  const [books, setBooks] = useState<BibleBook[]>([]);
+  const [overviewBook, setOverviewBook] = useState<BibleBook | null>(null);
+  const [chapter, setChapter] = useState(1);
 
   useEffect(() => {
     if (!token) return;
     (async () => {
-      const [a, n] = await Promise.all([findArticle(token, date), getNotes(token, date)]);
+      const [a, n, allBooks] = await Promise.all([findArticle(token, date), getNotes(token, date), getBibleBooks()]);
       setArticle(a);
       setNotes(n);
+      setBooks(allBooks);
       setMemory(keysOf(memoryBlock(a)?.content.verses));
       const reading = readingBlock(a);
-      if (reading?.content.ranges.length) {
+      const outline = outlineBlock(a);
+      const planned = outline || !reading?.content.ranges.length ? await plannedDay(token, date) : null;
+      if (outline || (planned?.overview && !a)) {
+        const b =
+          allBooks.find((x) => x.abbrZh === outline?.content.book) ?? bookFromRef(planned?.ref ?? "", allBooks);
+        setOverview(true);
+        setOverviewBook(b);
+        if (b) setRef(`${b.abbrZh}1:1-${b.chapters[0]}`);
+      } else if (reading?.content.ranges.length) {
         setRef(formatVerseRef(reading.content.ranges));
         setVerses(reading.content.verses ?? []);
         setTitle(formatVerseRef(reading.content.ranges));
       } else {
-        const planned = (await plannedDay(token, date)).ref;
-        setRef(planned);
-        setRefDraft(planned);
+        setRef(planned?.ref ?? "");
+        setRefDraft(planned?.ref ?? "");
       }
       setStatus(longDate(date));
     })().catch(() => setError("無法載入這天的資料"));
@@ -78,6 +93,13 @@ export default function ReadingMode({ date }: { date: string }) {
   }, [ref, article]);
 
   const book = verses[0]?.abbrZh;
+
+  function readChapter(b: BibleBook, n: number) {
+    const c = Math.max(1, Math.min(b.chapters.length, n));
+    setOverviewBook(b);
+    setChapter(c);
+    setRef(`${b.abbrZh}${c}:1-${b.chapters[c - 1]}`);
+  }
 
   function toggle(key: number) {
     setSelected((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
@@ -133,7 +155,44 @@ export default function ReadingMode({ date }: { date: string }) {
         <main className="flex min-w-0 flex-[999_1_560px] justify-center px-4 py-8 sm:px-8">
           <div className="w-full max-w-2xl">
             {error && <p className="text-sm text-st-danger">{error}</p>}
-            {!readingBlock(article)?.content.ranges.length && (!ref || error) && (
+            {overview && (
+              <div className="mb-5 flex flex-wrap items-center gap-2 text-sm">
+                <span className="rounded-full bg-st-soft px-2.5 py-0.5 text-xs text-st-ink-2">書卷鳥瞰</span>
+                <label className="sr-only" htmlFor="overview-book">書卷</label>
+                <select
+                  id="overview-book"
+                  value={overviewBook?.abbrZh ?? ""}
+                  onChange={(e) => {
+                    const b = books.find((x) => x.abbrZh === e.target.value);
+                    if (b) readChapter(b, 1);
+                  }}
+                  className={stInput}
+                >
+                  <option value="">選擇書卷…</option>
+                  {books.map((b) => (
+                    <option key={b.abbrZh} value={b.abbrZh}>{b.zh}</option>
+                  ))}
+                </select>
+                {overviewBook && (
+                  <>
+                    <button type="button" onClick={() => readChapter(overviewBook, chapter - 1)} disabled={chapter <= 1} aria-label="上一章" className={`${stBtnSecondary} w-9 px-0`}>‹</button>
+                    <label className="sr-only" htmlFor="overview-chapter">章</label>
+                    <select
+                      id="overview-chapter"
+                      value={chapter}
+                      onChange={(e) => readChapter(overviewBook, Number(e.target.value))}
+                      className={stInput}
+                    >
+                      {overviewBook.chapters.map((_, i) => (
+                        <option key={i} value={i + 1}>第 {i + 1} 章</option>
+                      ))}
+                    </select>
+                    <button type="button" onClick={() => readChapter(overviewBook, chapter + 1)} disabled={chapter >= overviewBook.chapters.length} aria-label="下一章" className={`${stBtnSecondary} w-9 px-0`}>›</button>
+                  </>
+                )}
+              </div>
+            )}
+            {!overview && !readingBlock(article)?.content.ranges.length && (!ref || error) && (
               <form
                 onSubmit={(e) => {
                   e.preventDefault();

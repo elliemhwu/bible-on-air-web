@@ -2,10 +2,11 @@ import {
   createArticle,
   getArticleById,
   getArticleTemplates,
+  getBibleBooks,
   getPlans,
   lookupVerses,
 } from "@/lib/api";
-import type { Article, Block, NoteTag, Verse, VerseBlock, VerseRange } from "@/lib/types";
+import type { Article, BibleBook, Block, NoteTag, OutlineBlock, Verse, VerseBlock, VerseRange } from "@/lib/types";
 import { mondayOf } from "@/lib/week";
 import { isAxiosError } from "axios";
 
@@ -69,6 +70,25 @@ export function memoryBlock(article: Article | null): VerseBlock | null {
   return (b as VerseBlock | undefined) ?? null;
 }
 
+export function outlineBlock(article: Article | null): OutlineBlock | null {
+  const b = article?.blocks.find((x) => x.type === "outline");
+  return (b as OutlineBlock | undefined) ?? null;
+}
+
+/** The book a passage or name starts with: "馬太福音", "太3:1-17" → 馬太福音 (longest name wins) */
+export function bookFromRef(ref: string, books: BibleBook[]): BibleBook | null {
+  const text = ref.trim();
+  if (!text) return null;
+  const names = books.flatMap((b) => [
+    { name: b.zh, book: b },
+    { name: b.abbrZh, book: b },
+  ]);
+  const hit = names
+    .filter(({ name }) => text.startsWith(name))
+    .sort((a, b) => b.name.length - a.name.length)[0];
+  return hit?.book ?? null;
+}
+
 /** Strip a range to the fields the API stores */
 export function storedRange(r: VerseRange) {
   const { abbrZh, chapterStart, verseStart, chapterEnd, verseEnd } = r;
@@ -126,10 +146,12 @@ export async function ensureArticle(token: string, date: string, ref?: string): 
     templates.find((t) => t.isDefault) ||
     templates[0];
   const ranges = passage ? (await lookupVerses(passage).catch(() => ({ ranges: [] }))).ranges : [];
+  // An overview names its book: the outline is about it, and the title says so
+  const book = planned.overview ? bookFromRef(planned.ref || passage, await getBibleBooks()) : null;
 
   await createArticle(token, {
     date,
-    title: "",
+    title: book ? `${book.zh}鳥瞰` : "",
     articleTemplateId: template?.id,
     blocks: (template?.blockDefinitions ?? []).map((def) => {
       const defaults = def.defaultContent ?? {};
@@ -138,7 +160,9 @@ export async function ensureArticle(token: string, date: string, ref?: string): 
           ? { ...defaults, ranges: def.subheading === null ? ranges.map(storedRange) : [] }
           : def.type === "questions"
             ? { items: [] }
-            : { html: "" };
+            : def.type === "outline"
+              ? { book: book?.abbrZh ?? "", sections: [] }
+              : { html: "" };
       return { order: def.order, type: def.type, subheading: def.subheading ?? undefined, content };
     }),
   });

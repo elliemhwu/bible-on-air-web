@@ -235,6 +235,9 @@ export async function getArticle(date: string): Promise<Article> {
 | `verse`     | `<VerseBlock>`     | 顯示 `subheading`（若有）+ `verses[].text` 逐節渲染            |
 | `questions` | `<QuestionsBlock>` | 顯示 `subheading` + `items` 清單                               |
 | `richtext`  | `<RichtextBlock>`  | 顯示 `subheading`（若有）+ `dangerouslySetInnerHTML` 渲染 HTML |
+| `outline`   | `<OutlineBlock>`   | 本書大綱：自動編號的大段（標題、範圍）與段落（範圍、說明）；編輯用 `OutlineBlockEditor`，可從文字貼上 |
+
+書卷鳥瞰日（進度安排勾選「鳥瞰」）：讀經模式改為整卷書逐章閱讀；寫作模式可把「段落小標」筆記複製成大綱的大段、其他筆記成為段落。
 
 ---
 

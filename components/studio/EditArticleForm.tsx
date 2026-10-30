@@ -2,6 +2,7 @@
 
 import ArticleStatusActions from "@/components/studio/ArticleStatusActions";
 import LegacySyncPanel from "@/components/studio/LegacySyncPanel";
+import OutlineBlockEditor from "@/components/studio/OutlineBlockEditor";
 import QuestionsBlockEditor from "@/components/studio/QuestionsBlockEditor";
 import RichtextBlockEditor from "@/components/studio/RichtextBlockEditor";
 import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
@@ -20,6 +21,7 @@ import type {
   Block,
   BlockDefinition,
   BlockInput,
+  OutlineContent,
   VerseDisplayMode,
   VerseRange,
 } from "@/lib/types";
@@ -42,12 +44,16 @@ type EditableBlock = {
   displayMode?: VerseDisplayMode;
   items: string[];
   html: string;
+  outline: OutlineContent;
 };
+
+const EMPTY_OUTLINE: OutlineContent = { book: "", sections: [] };
 
 const BLOCK_TYPE_LABEL: Record<Block["type"], string> = {
   verse: "經文",
   questions: "問題清單",
   richtext: "文章段落",
+  outline: "書卷大綱",
 };
 
 const DISPLAY_MODES: { value: VerseDisplayMode; label: string }[] = [
@@ -73,6 +79,7 @@ function toEditable(block: Block, label?: string): EditableBlock {
     displayMode: block.type === "verse" ? block.content.displayMode : undefined,
     items: block.type === "questions" ? block.content.items : [],
     html: block.type === "richtext" ? block.content.html : "",
+    outline: block.type === "outline" ? block.content : EMPTY_OUTLINE,
   };
 }
 
@@ -87,6 +94,7 @@ function fromDefinition(def: BlockDefinition): EditableBlock {
     displayMode: defaults.displayMode,
     items: [],
     html: "",
+    outline: EMPTY_OUTLINE,
   };
 }
 
@@ -96,7 +104,9 @@ function toInput(block: EditableBlock, index: number): BlockInput {
       ? { ranges: block.ranges, ...(block.displayMode && { displayMode: block.displayMode }) }
       : block.type === "questions"
         ? { items: block.items.filter((q) => q.trim()) }
-        : { html: block.html };
+        : block.type === "outline"
+          ? block.outline
+          : { html: block.html };
   return {
     ...(block.id && { id: block.id }),
     order: index + 1,
@@ -200,6 +210,7 @@ export default function EditArticleForm({ articleId }: Props) {
         displayMode: type === "verse" ? "ordered" : undefined,
         items: [],
         html: "",
+        outline: EMPTY_OUTLINE,
       };
     }
     // Template blocks go back to their template position; others go last
@@ -373,6 +384,8 @@ export default function EditArticleForm({ articleId }: Props) {
                       </select>
                     </label>
                   </div>
+                ) : block.type === "outline" ? (
+                  <OutlineBlockEditor content={block.outline} onChange={(outline) => updateBlock(block.key, { outline })} />
                 ) : (
                   <QuestionsBlockEditor items={block.items} onChange={(items) => updateBlock(block.key, { items })} />
                 )}

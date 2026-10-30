@@ -1,5 +1,7 @@
 "use client";
 
+import { OutlineBlock } from "@/components/reader/OutlineBlock";
+import OutlineBlockEditor from "@/components/studio/OutlineBlockEditor";
 import QuestionsBlockEditor from "@/components/studio/QuestionsBlockEditor";
 import RichtextBlockEditor from "@/components/studio/RichtextBlockEditor";
 import { StudioPage } from "@/components/studio/shell/StudioHeader";
@@ -279,6 +281,12 @@ function ReviewBoard({ monday, date, onPick }: { monday: string; date?: string; 
                           <ol className="m-0 pl-6 text-base leading-[1.9]">
                             {b.content.items.map((q, i) => <li key={i}>{q}</li>)}
                           </ol>
+                        )
+                      ) : b.type === "outline" ? (
+                        editable ? (
+                          <OutlineBlockEditor appearance="paper" content={b.content} onChange={(content) => patchBlock(b.id, content)} />
+                        ) : (
+                          <OutlineBlock block={{ ...b, subheading: null }} />
                         )
                       ) : editable ? (
                         <RichtextBlockEditor appearance="paper" html={b.content.html} onChange={(html) => patchBlock(b.id, { html })} />

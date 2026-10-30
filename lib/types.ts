@@ -99,7 +99,7 @@ export type ArticleSummary = {
 };
 
 /** Discriminated union of all block types in an article. */
-export type Block = VerseBlock | QuestionsBlock | RichtextBlock;
+export type Block = VerseBlock | QuestionsBlock | RichtextBlock | OutlineBlock;
 
 /** Block containing one or more scripture ranges with resolved verse texts. */
 export type VerseBlock = {
@@ -145,6 +145,32 @@ export type RichtextBlock = {
   updatedAt: string;
 };
 
+/** A passage inside the outline's book, e.g. 1:1 - 4:11 */
+export type OutlineRange = { chapterStart: number; verseStart: number; chapterEnd: number; verseEnd: number };
+
+export type OutlineItem = { range: OutlineRange | null; text: string };
+
+/** A numbered part of the book (一、二、… are added when displayed) */
+export type OutlineSection = { title: string; range: OutlineRange | null; items: OutlineItem[] };
+
+export type OutlineContent = {
+  /** abbrZh of the book, e.g. "太"; "" until chosen */
+  book: string;
+  sections: OutlineSection[];
+};
+
+/** 本書大綱 of a 書卷鳥瞰 day */
+export type OutlineBlock = {
+  id: string;
+  articleId: string;
+  order: number;
+  type: "outline";
+  subheading: string | null;
+  content: OutlineContent;
+  createdAt: string;
+  updatedAt: string;
+};
+
 /** Full article with all blocks, used on the reader and edit pages. */
 export type Article = ArticleSummary & {
   blocks: Block[];
@@ -153,7 +179,7 @@ export type Article = ArticleSummary & {
 /** A single block slot defined by an ArticleTemplate. */
 export type BlockDefinition = {
   order: number;
-  type: "verse" | "questions" | "richtext";
+  type: Block["type"];
   subheading: string | null;
   label: string; // display label shown in the editor UI
   required: boolean;
