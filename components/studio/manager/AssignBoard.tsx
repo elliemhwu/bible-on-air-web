@@ -3,6 +3,7 @@
 import { StudioPage } from "@/components/studio/shell/StudioHeader";
 import { getAssignments, getRosters, getStaff, saveAssignments, saveRoster } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { isManager, leadTeams } from "@/lib/roles";
 import { stBtnGold, stBtnPrimary, stCard, stSegment, stSegmentItem } from "@/lib/styles";
 import type { AssignmentInput, Member, StaffUser, Team } from "@/lib/types";
 import { addDays, md, mondayOf, today, weekDays, weekLabel } from "@/lib/week";
@@ -52,12 +53,15 @@ function slotPerson(slot: Slot, map: DayMap): string | null {
 
 /** 分派: deal each team's rota across the coming weeks */
 export default function AssignBoard({ from }: { from?: string }) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const start = from ?? mondayOf(today());
   const mondays = Array.from({ length: WEEKS }, (_, i) => addDays(start, i * 7));
   const end = addDays(mondays[WEEKS - 1], 5);
 
-  const [team, setTeam] = useState<Team>("writer");
+  const [picked, setTeam] = useState<Team>("writer");
+  // Managers schedule every team, a team lead only the teams they lead
+  const teams = isManager(user) ? (Object.keys(TEAMS) as Team[]) : leadTeams(user);
+  const team = teams.includes(picked) ? picked : (teams[0] ?? "writer");
   const [staff, setStaff] = useState<StaffUser[]>([]);
   const [rosters, setRosters] = useState<Record<Team, Member[]>>({ writer: [], reviewer: [], image: [] });
   const [days, setDays] = useState<Record<Team, DayMap>>({ writer: {}, reviewer: {}, image: {} });
@@ -189,7 +193,7 @@ export default function AssignBoard({ from }: { from?: string }) {
     <StudioPage>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 border-b border-st-line bg-st-surface px-4 py-3.5 sm:px-8">
         <div role="tablist" aria-label="同工組" className={stSegment}>
-          {(Object.keys(TEAMS) as Team[]).map((t) => (
+          {teams.map((t) => (
             <button
               key={t}
               type="button"

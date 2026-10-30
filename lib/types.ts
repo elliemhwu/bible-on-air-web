@@ -197,6 +197,8 @@ export type AuthUser = {
   email: string;
   name: string;
   roles: string[];
+  /** Missing in sessions stored before teams existed */
+  teams?: TeamRoles;
 };
 
 /** Response shape from POST /auth/login. */
@@ -280,7 +282,36 @@ export type WeekPlanInput = Pick<WeekPlan, "sundayTheme" | "sundayPassage" | "da
 
 export type Member = { id: string; name: string };
 
-export type StaffUser = Member & { roles: string[] };
+export type StaffUser = Member & { roles: string[]; teams: TeamRoles };
+
+/** 同工 or 負責人 (a lead also schedules and manages the team) */
+export type TeamLevel = "member" | "lead";
+
+export type TeamRoles = Partial<Record<Team, TeamLevel>>;
+
+export type UserStatus = "active" | "invited" | "disabled";
+
+/** An account as the 同工與權限 page sees it */
+export type ManagedUser = {
+  id: string;
+  email: string;
+  name: string;
+  roles: string[];
+  teams: TeamRoles;
+  status: UserStatus;
+  /** 牧者 (manager) */
+  admin: boolean;
+  createdAt: string;
+};
+
+export type InviteResult = { user: ManagedUser; inviteToken: string };
+
+export type UserChanges = {
+  name?: string;
+  admin?: boolean;
+  teams?: Partial<Record<Team, TeamLevel | null>>;
+  status?: "active" | "disabled";
+};
 
 export type Roster = { team: Team; members: Member[] };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
-import { canEdit, canPublish, isImageEditor, isManager, isReviewer, isWriter } from "@/lib/roles";
+import { canEdit, canPublish, isImageEditor, isManager, isReviewer, isWriter, leadTeams } from "@/lib/roles";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useRef } from "react";
@@ -27,6 +27,7 @@ function navFor(user: ReturnType<typeof useAuth>["user"]): { main: NavItem[]; mo
         { href: "/studio/plan", label: "進度安排" },
         { href: "/studio/assign", label: "分派" },
         { href: "/studio/review", label: "校閱" },
+        { href: "/studio/users", label: "同工" },
       ],
       more,
     };
@@ -36,6 +37,10 @@ function navFor(user: ReturnType<typeof useAuth>["user"]): { main: NavItem[]; mo
   if (isWriter(user)) own.push({ href: "/studio/my", label: "我的稿件" });
   if (isReviewer(user)) own.push({ href: "/studio/review", label: "校閱" });
   if (isImageEditor(user)) own.push({ href: "/studio/images", label: "圖片" });
+  // A team lead also schedules and manages their team
+  if (leadTeams(user).length) {
+    own.push({ href: "/studio/assign", label: "分派" }, { href: "/studio/users", label: "同工" });
+  }
   return { main: own.length > 1 ? own : [], more };
 }
 

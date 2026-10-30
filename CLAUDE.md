@@ -81,6 +81,7 @@ bible-on-air-web/
 | `/studio/write/[date]`、`/compose` | editor   | ① 讀經模式（筆記）② 寫作模式 |
 | `/studio/review`               | reviewer     | 本週校閱（直接修改、留話） |
 | `/studio/images`、`/studio/images/[weekStart]` | image_editor | 圖片首頁、本週圖片 |
+| `/studio/users`                | manager、小組負責人 | 同工與權限（小組角色、牧者開關、邀請、停用） |
 
 `/studio` 依角色顯示首頁：manager → 本週進度、editor → 我的稿件、reviewer → 校閱、image_editor → 圖片。
 後台畫面使用 `app/styles/studio.css` 的 `st-*` 色票（晴空），寫作模式可切換深色主題（`.studio-night`）。
@@ -90,6 +91,9 @@ bible-on-air-web/
 | 路由     | 說明   |
 | -------- | ------ |
 | `/login` | 登入頁 |
+| `/invite/[token]` | 從邀請連結設定密碼並登入 |
+
+小組負責人（`user.teams[team] === "lead"`）可以使用「分派」與「同工」，但只能調整自己負責的小組。後台每次載入都會用 `/auth/me` 更新登入者的角色；帳號被停用時會自動登出。
 
 ---
 

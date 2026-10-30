@@ -2,6 +2,9 @@ import { apiClient } from "@/lib/axios";
 import type {
   Article,
   ArticleComment,
+  InviteResult,
+  ManagedUser,
+  UserChanges,
   Assignment,
   AssignmentInput,
   NoteInput,
@@ -420,4 +423,52 @@ export async function batchCoverImages(
     headers: authHeaders(token),
   });
   return data;
+}
+
+// ── Staff accounts (同工與權限) ───────────────────────────────────────────
+
+export async function getUsers(token: string): Promise<ManagedUser[]> {
+  const { data } = await apiClient.get<ManagedUser[]>(`${MAG}/users`, { headers: authHeaders(token) });
+  return data;
+}
+
+/** Creates an invited account; share `/invite/<inviteToken>` with the person */
+export async function inviteUser(
+  token: string,
+  payload: { name: string; email: string; admin: boolean; teams: UserChanges["teams"] },
+): Promise<InviteResult> {
+  const { data } = await apiClient.post<InviteResult>(`${MAG}/users`, payload, { headers: authHeaders(token) });
+  return data;
+}
+
+export async function updateUser(token: string, id: string, changes: UserChanges): Promise<ManagedUser> {
+  const { data } = await apiClient.patch<ManagedUser>(`${MAG}/users/${id}`, changes, { headers: authHeaders(token) });
+  return data;
+}
+
+/** A fresh invitation link for someone who has not joined yet */
+export async function reinviteUser(token: string, id: string): Promise<InviteResult> {
+  const { data } = await apiClient.post<InviteResult>(`${MAG}/users/${id}/invite`, null, { headers: authHeaders(token) });
+  return data;
+}
+
+export async function getInvite(inviteToken: string): Promise<{ name: string; email: string } | null> {
+  try {
+    const { data } = await apiClient.get<{ name: string; email: string }>(`/auth/invite/${inviteToken}`);
+    return data;
+  } catch (e) {
+    if (isAxiosError(e) && e.response?.status === 404) return null;
+    throw e;
+  }
+}
+
+export async function acceptInvite(inviteToken: string, password: string): Promise<LoginResponse> {
+  const { data } = await apiClient.post<LoginResponse>(`/auth/invite/${inviteToken}`, { password });
+  return data;
+}
+
+/** The API's message for a failed request, when it sent one */
+export function apiError(e: unknown, fallback: string): string {
+  const message = isAxiosError(e) ? (e.response?.data as { message?: unknown } | undefined)?.message : undefined;
+  return typeof message === "string" ? message : fallback;
 }
