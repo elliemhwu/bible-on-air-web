@@ -8,7 +8,7 @@ import { stBtnGold, stBtnPrimary, stCard, stSegment, stSegmentItem } from "@/lib
 import type { AssignmentInput, Member, StaffUser, Team } from "@/lib/types";
 import { addDays, md, mondayOf, today, weekDays, weekLabel } from "@/lib/week";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const WEEKS = 8;
 
@@ -76,30 +76,32 @@ export default function AssignBoard({ from }: { from?: string }) {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+  useEffect(() => {
     if (!token) return;
-    const [people, rs, assigned] = await Promise.all([
+    let live = true;
+    Promise.all([
       getStaff(token),
       getRosters(token),
       getAssignments(token, addDays(start, -42), addDays(start, WEEKS * 7)),
-    ]);
-    setStaff(people);
-    setRosters(Object.fromEntries(rs.map((r) => [r.team, r.members])) as Record<Team, Member[]>);
-    const map: Record<Team, DayMap> = { writer: {}, reviewer: {}, image: {} };
-    const before: Record<Team, string | null> = { writer: null, reviewer: null, image: null };
-    for (const a of assigned) {
-      if (a.date < start) before[a.team] = a.userId;
-      else map[a.team][a.date] = a.userId;
-    }
-    setDays(map);
-    setLastBefore(before);
-    setDirtyTeams(new Set());
-    setDirtyRosters(new Set());
+    ]).then(([people, rs, assigned]) => {
+      if (!live) return;
+      setStaff(people);
+      setRosters(Object.fromEntries(rs.map((r) => [r.team, r.members])) as Record<Team, Member[]>);
+      const map: Record<Team, DayMap> = { writer: {}, reviewer: {}, image: {} };
+      const before: Record<Team, string | null> = { writer: null, reviewer: null, image: null };
+      for (const a of assigned) {
+        if (a.date < start) before[a.team] = a.userId;
+        else map[a.team][a.date] = a.userId;
+      }
+      setDays(map);
+      setLastBefore(before);
+      setDirtyTeams(new Set());
+      setDirtyRosters(new Set());
+    });
+    return () => {
+      live = false;
+    };
   }, [token, start]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   const meta = TEAMS[team];
   const roster = rosters[team];

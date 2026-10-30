@@ -65,6 +65,8 @@ export default function ComposeMode({ date }: { date: string }) {
 
   useEffect(() => {
     try {
+      // Stored in the browser, so it can only be read after hydration
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNight(localStorage.getItem(THEME_KEY) === "night");
     } catch {
       // storage unavailable: stay in the day theme

@@ -30,7 +30,7 @@ export default function LegacySyncView() {
   const [month, setMonth] = useState<string>("");
   const [status, setStatus] = useState<LegacyMonthStatus | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [results, setResults] = useState<Map<string, LegacySyncResult>>(new Map());
@@ -48,7 +48,7 @@ export default function LegacySyncView() {
   const loadStatus = useCallback(
     async (refresh: boolean) => {
       if (!token || !month) return;
-      setLoading(true);
+      setRefreshing(true);
       setError(null);
       try {
         const s = await getLegacyMonthStatus(token, month, refresh);
@@ -58,16 +58,33 @@ export default function LegacySyncView() {
         setError("讀取舊網站內容失敗");
         setStatus(null);
       } finally {
-        setLoading(false);
+        setRefreshing(false);
       }
     },
     [token, month],
   );
 
   useEffect(() => {
-    setResults(new Map());
-    loadStatus(false);
-  }, [loadStatus]);
+    if (!token || !month) return;
+    let live = true;
+    getLegacyMonthStatus(token, month, false)
+      .then((s) => {
+        if (!live) return;
+        setStatus(s);
+        setSelected(new Set(s.items.filter((i) => i.state !== "synced").map((i) => i.date)));
+      })
+      .catch(() => {
+        if (!live) return;
+        setError("讀取舊網站內容失敗");
+        setStatus(null);
+      });
+    return () => {
+      live = false;
+    };
+  }, [token, month]);
+
+  // A month is loading until its status (or an error) arrives
+  const loading = refreshing || (!!month && status?.month !== month && !error);
 
   const counts = useMemo(() => {
     const c = { missing: 0, incomplete: 0, synced: 0 };
@@ -122,7 +139,11 @@ export default function LegacySyncView() {
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <select
           value={month}
-          onChange={(e) => setMonth(e.target.value)}
+          onChange={(e) => {
+            setMonth(e.target.value);
+            setResults(new Map());
+            setError(null);
+          }}
           className={`${selectCls} !w-auto`}
           disabled={syncing}
           aria-label="月份"

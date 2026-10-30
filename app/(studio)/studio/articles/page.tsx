@@ -37,7 +37,7 @@ export default function ArticlesPage() {
   // ── list state ────────────────────────────────────────────────────────────
   const [listArticles, setListArticles] = useState<ArticleSummary[]>([]);
   const [listPagination, setListPagination] = useState<PaginationMeta>(EMPTY_PAGINATION);
-  const [listLoading, setListLoading] = useState(false);
+  const [listLoadedFor, setListLoadedFor] = useState<ArticleQuery | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [listQuery, setListQuery] = useState<ArticleQuery>({ page: 1, pageSize: PAGE_SIZE });
 
@@ -46,32 +46,33 @@ export default function ArticlesPage() {
   const [calYear, setCalYear] = useState(today.getFullYear());
   const [calMonth, setCalMonth] = useState(today.getMonth() + 1);
   const [calArticles, setCalArticles] = useState<ArticleSummary[]>([]);
-  const [calLoading, setCalLoading] = useState(false);
+  const [calLoadedFor, setCalLoadedFor] = useState<string | null>(null);
 
   // ── fetch list ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!token) return;
-    setListLoading(true);
-    setListError(null);
     getArticles(listQuery, token)
       .then((res: PaginatedResponse<ArticleSummary>) => {
         setListArticles(res.data);
         setListPagination(res.pagination);
+        setListError(null);
       })
       .catch(() => setListError("載入文章失敗"))
-      .finally(() => setListLoading(false));
+      .finally(() => setListLoadedFor(listQuery));
   }, [listQuery, token]);
+  const listLoading = listLoadedFor !== listQuery;
 
   // ── fetch calendar ────────────────────────────────────────────────────────
+  const calKey = `${calYear}-${calMonth}`;
   useEffect(() => {
     if (!token) return;
-    setCalLoading(true);
     const { dateFrom, dateTo } = monthBounds(calYear, calMonth);
     getArticles({ dateFrom, dateTo, pageSize: 31 }, token)
       .then((res: PaginatedResponse<ArticleSummary>) => setCalArticles(res.data))
       .catch(() => {})
-      .finally(() => setCalLoading(false));
+      .finally(() => setCalLoadedFor(`${calYear}-${calMonth}`));
   }, [calYear, calMonth, token]);
+  const calLoading = calLoadedFor !== calKey;
 
   function setTab(t: Tab) {
     const params = new URLSearchParams(searchParams.toString());

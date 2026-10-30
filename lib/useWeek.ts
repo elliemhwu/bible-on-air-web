@@ -22,40 +22,54 @@ export type WeekData = {
   reload: () => Promise<void>;
 };
 
+type Loaded = {
+  monday: string;
+  plan: WeekPlan | null;
+  articles: ArticleSummary[];
+  assignments: Assignment[];
+  error: string | null;
+};
+
+async function fetchWeek(token: string, monday: string): Promise<Loaded> {
+  const saturday = addDays(monday, 5);
+  try {
+    const [plans, page, assigned] = await Promise.all([
+      getPlans(token, monday, monday),
+      getArticles({ dateFrom: monday, dateTo: saturday, pageSize: 7 }, token),
+      getAssignments(token, monday, saturday),
+    ]);
+    return { monday, plan: plans[0] ?? null, articles: page.data, assignments: assigned, error: null };
+  } catch {
+    return { monday, plan: null, articles: [], assignments: [], error: "無法載入這週的資料" };
+  }
+}
+
 /** Articles, plan and assignments of the Mon–Sat week starting on `monday` */
 export function useWeek(monday: string): WeekData {
   const { token } = useAuth();
-  const [plan, setPlan] = useState<WeekPlan | null>(null);
-  const [articles, setArticles] = useState<ArticleSummary[]>([]);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [loadedFor, setLoadedFor] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
 
-  const reload = useCallback(async () => {
+  // Results are kept with the week they belong to, so a late answer for a
+  // week the user already left is never shown
+  useEffect(() => {
     if (!token) return;
-    const saturday = addDays(monday, 5);
-    try {
-      const [plans, page, assigned] = await Promise.all([
-        getPlans(token, monday, monday),
-        getArticles({ dateFrom: monday, dateTo: saturday, pageSize: 7 }, token),
-        getAssignments(token, monday, saturday),
-      ]);
-      setPlan(plans[0] ?? null);
-      setArticles(page.data);
-      setAssignments(assigned);
-      setError(null);
-    } catch {
-      setError("無法載入這週的資料");
-    } finally {
-      setLoadedFor(monday);
-    }
+    let live = true;
+    fetchWeek(token, monday).then((result) => live && setLoaded(result));
+    return () => {
+      live = false;
+    };
   }, [token, monday]);
 
-  useEffect(() => {
-    reload();
-  }, [reload]);
+  const reload = useCallback(async () => {
+    if (token) setLoaded(await fetchWeek(token, monday));
+  }, [token, monday]);
 
-  const isLoading = loadedFor !== monday;
+  const current = loaded?.monday === monday ? loaded : null;
+  const plan = current?.plan ?? null;
+  const articles = current?.articles ?? [];
+  const assignments = current?.assignments ?? [];
+  const error = current?.error ?? null;
+  const isLoading = !current;
 
   const days = weekDays(monday).map((date, i): DayInfo => {
     const article = articles.find((a) => a.date === date) ?? null;

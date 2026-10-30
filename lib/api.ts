@@ -432,7 +432,7 @@ export async function getUsers(token: string): Promise<ManagedUser[]> {
   return data;
 }
 
-/** Creates an invited account; share `/invite/<inviteToken>` with the person */
+/** Creates an invited account and emails them the invitation */
 export async function inviteUser(
   token: string,
   payload: { name: string; email: string; admin: boolean; teams: UserChanges["teams"] },
@@ -446,7 +446,7 @@ export async function updateUser(token: string, id: string, changes: UserChanges
   return data;
 }
 
-/** A fresh invitation link for someone who has not joined yet */
+/** Emails a fresh invitation to someone who has not joined yet */
 export async function reinviteUser(token: string, id: string): Promise<InviteResult> {
   const { data } = await apiClient.post<InviteResult>(`${MAG}/users/${id}/invite`, null, { headers: authHeaders(token) });
   return data;
@@ -464,6 +464,26 @@ export async function getInvite(inviteToken: string): Promise<{ name: string; em
 
 export async function acceptInvite(inviteToken: string, password: string): Promise<LoginResponse> {
   const { data } = await apiClient.post<LoginResponse>(`/auth/invite/${inviteToken}`, { password });
+  return data;
+}
+
+/** Emails a reset link if the address has an active account (the reply never says which) */
+export async function forgotPassword(email: string): Promise<void> {
+  await apiClient.post("/auth/forgot-password", { email });
+}
+
+export async function getReset(resetToken: string): Promise<{ email: string } | null> {
+  try {
+    const { data } = await apiClient.get<{ email: string }>(`/auth/reset/${resetToken}`);
+    return data;
+  } catch (e) {
+    if (isAxiosError(e) && e.response?.status === 404) return null;
+    throw e;
+  }
+}
+
+export async function resetPassword(resetToken: string, password: string): Promise<LoginResponse> {
+  const { data } = await apiClient.post<LoginResponse>(`/auth/reset/${resetToken}`, { password });
   return data;
 }
 

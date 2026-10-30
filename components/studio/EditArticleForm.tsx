@@ -16,6 +16,7 @@ import { btnPrimaryCls, btnSecondaryCls, inputCls } from "@/lib/styles";
 import type {
   Article,
   ArticleSummary,
+  ArticleTemplate,
   Block,
   BlockDefinition,
   BlockInput,
@@ -120,35 +121,47 @@ export default function EditArticleForm({ articleId }: Props) {
   const [formError, setFormError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
+  const fetchArticle = useCallback(
+    (token: string) =>
+      Promise.all([getArticleById(token, articleId), getArticleTemplates(token).catch(() => [])]),
+    [articleId],
+  );
+
+  const apply = useCallback(([a, templates]: [Article, ArticleTemplate[]]) => {
+    const defs = templates.find((t) => t.id === a.articleTemplateId)?.blockDefinitions ?? [];
+    const labelFor = (b: Block) =>
+      defs.find((d) => d.type === b.type && (d.subheading ?? "") === (b.subheading ?? ""))?.label;
+
+    setArticle(a);
+    setDefinitions(defs);
+    setTitle(a.title ?? "");
+    setBlocks(
+      [...a.blocks].sort((x, y) => x.order - y.order).map((b) => toEditable(b, labelFor(b))),
+    );
+    setDirty(false);
+    setReloadCount((n) => n + 1);
+  }, []);
+
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const [a, templates] = await Promise.all([
-        getArticleById(token, articleId),
-        getArticleTemplates(token).catch(() => []),
-      ]);
-      const defs = templates.find((t) => t.id === a.articleTemplateId)?.blockDefinitions ?? [];
-      const labelFor = (b: Block) =>
-        defs.find((d) => d.type === b.type && (d.subheading ?? "") === (b.subheading ?? ""))?.label;
-
-      setArticle(a);
-      setDefinitions(defs);
-      setTitle(a.title ?? "");
-      setBlocks(
-        [...a.blocks].sort((x, y) => x.order - y.order).map((b) => toEditable(b, labelFor(b))),
-      );
-      setDirty(false);
-      setReloadCount((n) => n + 1);
+      apply(await fetchArticle(token));
     } catch {
       setFormError("無法載入文章資料");
-    } finally {
-      setIsLoading(false);
     }
-  }, [token, articleId]);
+  }, [token, fetchArticle, apply]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!token) return;
+    let live = true;
+    fetchArticle(token)
+      .then((result) => live && apply(result))
+      .catch(() => live && setFormError("無法載入文章資料"))
+      .finally(() => live && setIsLoading(false));
+    return () => {
+      live = false;
+    };
+  }, [token, fetchArticle, apply]);
 
   function updateBlock(key: string, patch: Partial<EditableBlock>) {
     setBlocks((prev) => prev.map((b) => (b.key === key ? { ...b, ...patch } : b)));

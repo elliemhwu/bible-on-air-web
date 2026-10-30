@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { isManager, leadTeams } from "@/lib/roles";
 import { stBtnPrimary, stBtnSecondary, stCard, stInput } from "@/lib/styles";
 import type { ManagedUser, Team, TeamLevel, TeamRoles, UserChanges, UserStatus } from "@/lib/types";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const TEAMS: { id: Team; label: string; short: string; member: string; task: string }[] = [
   { id: "writer", label: "寫作組", short: "寫作", member: "寫作同工", task: "撰寫被分派的靈修稿" },
@@ -59,14 +59,14 @@ function Avatar({ name, large }: { name: string; large?: boolean }) {
   );
 }
 
-/** The link to show after inviting: there is no mail server yet, so it is shared by hand */
+/** Shown when the invitation email could not be sent: the link is passed on by hand */
 function InviteLink({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
   const url = `${window.location.origin}/invite/${token}`;
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-st-gold bg-st-warm p-3 text-sm">
-      <span className="font-medium">邀請連結</span>
-      <span className="text-st-ink-2">目前還不會自動寄信，請複製連結傳給對方。14 天內有效，用過一次就失效。</span>
+      <span className="font-medium">邀請信沒有寄出</span>
+      <span className="text-st-ink-2">伺服器還沒設定寄信，請複製這個連結傳給對方。14 天內有效，用過一次就失效。</span>
       <div className="flex gap-2">
         <input readOnly value={url} aria-label="邀請連結" onFocus={(e) => e.target.select()} className={`${stInput} min-w-0 flex-1 text-xs`} />
         <button
@@ -96,22 +96,16 @@ export default function UserAdmin() {
   const [mode, setMode] = useState<"view" | "new">("view");
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [query, setQuery] = useState("");
-  const [invite, setInvite] = useState<{ userId: string; token: string } | null>(null);
+  const [invite, setInvite] = useState<{ userId: string; email: string; token: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!token) return;
-    try {
-      setUsers(await getUsers(token));
-    } catch (e) {
-      setError(apiError(e, "無法載入同工名單"));
-    }
-  }, [token]);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!token) return;
+    getUsers(token)
+      .then(setUsers)
+      .catch((e) => setError(apiError(e, "無法載入同工名單")));
+  }, [token]);
 
   const manager = isManager(me);
   const led = leadTeams(me);
@@ -175,7 +169,7 @@ export default function UserAdmin() {
       const res = await inviteUser(token, { ...draft, name: draft.name.trim(), email: draft.email.trim() });
       setUsers((prev) => [...prev, res.user]);
       setSelectedId(res.user.id);
-      setInvite({ userId: res.user.id, token: res.inviteToken });
+      setInvite({ userId: res.user.id, email: res.user.email, token: res.inviteToken });
       setMode("view");
       setQuery("");
     } catch (e) {
@@ -190,7 +184,7 @@ export default function UserAdmin() {
     setBusy(true);
     try {
       const res = await reinviteUser(token, selected.id);
-      setInvite({ userId: selected.id, token: res.inviteToken });
+      setInvite({ userId: selected.id, email: selected.email, token: res.inviteToken });
     } catch (e) {
       setError(apiError(e, "無法產生新的邀請連結"));
     } finally {
@@ -293,7 +287,7 @@ export default function UserAdmin() {
                 <div className="flex flex-col gap-3">
                   <div>
                     <h2 className="m-0 text-lg font-semibold">新增同工</h2>
-                    <span className="text-sm text-st-muted">建立後會產生邀請連結，對方用連結設定密碼就能登入。</span>
+                    <span className="text-sm text-st-muted">寄出邀請後，對方點信中的連結設定密碼就能登入。</span>
                   </div>
                   <label className="flex flex-col gap-1 text-sm">
                     名字
@@ -374,7 +368,14 @@ export default function UserAdmin() {
                 {perms.length === 0 && <span className="text-sm text-st-muted">還沒有指派任何小組。</span>}
               </section>
 
-              {invite && mode === "view" && invite.userId === selected?.id && <InviteLink token={invite.token} />}
+              {invite && mode === "view" && invite.userId === selected?.id &&
+                (invite.token ? (
+                  <InviteLink token={invite.token} />
+                ) : (
+                  <p role="status" className="m-0 rounded-xl bg-st-sage-soft px-3 py-2.5 text-sm text-st-sage-ink">
+                    已寄出邀請信到 {invite.email}，14 天內有效。
+                  </p>
+                ))}
               {error && <p role="alert" className="m-0 text-sm text-st-danger">{error}</p>}
 
               {mode === "new" ? (
@@ -395,7 +396,7 @@ export default function UserAdmin() {
                     <div className="flex flex-wrap gap-2">
                       {selected.status === "invited" && !locked && (
                         <button type="button" onClick={resend} disabled={busy} className={stBtnSecondary}>
-                          {invite?.userId === selected.id ? "重新產生連結" : "取得邀請連結"}
+                          {invite?.userId === selected.id ? "已重新寄出" : "重新寄送邀請"}
                         </button>
                       )}
                       {manager && !isSelf && (

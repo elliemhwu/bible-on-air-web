@@ -304,7 +304,8 @@ export type ManagedUser = {
   createdAt: string;
 };
 
-export type InviteResult = { user: ManagedUser; inviteToken: string };
+/** `inviteToken` is only returned when the email could not be sent, to share by hand */
+export type InviteResult = { user: ManagedUser; emailed: boolean; inviteToken: string | null };
 
 export type UserChanges = {
   name?: string;

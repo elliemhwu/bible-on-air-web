@@ -1,8 +1,8 @@
-import AcceptInvite from "@/components/studio/AcceptInvite";
+import SetPasswordForm from "@/components/studio/SetPasswordForm";
 
 export const metadata = { title: "加入 Bible On Air" };
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  return <AcceptInvite inviteToken={token} />;
+  return <SetPasswordForm kind="invite" token={token} />;
 }

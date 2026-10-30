@@ -91,7 +91,9 @@ bible-on-air-web/
 | 路由     | 說明   |
 | -------- | ------ |
 | `/login` | 登入頁 |
-| `/invite/[token]` | 從邀請連結設定密碼並登入 |
+| `/invite/[token]` | 從邀請信的連結設定密碼並登入 |
+| `/forgot-password` | 寄出重設密碼的信（不透露 Email 是否有帳號） |
+| `/reset/[token]` | 從重設信的連結設定新密碼（一小時內、只能用一次） |
 
 小組負責人（`user.teams[team] === "lead"`）可以使用「分派」與「同工」，但只能調整自己負責的小組。後台每次載入都會用 `/auth/me` 更新登入者的角色；帳號被停用時會自動登出。
 
@@ -300,6 +302,8 @@ export async function getArticle(date: string): Promise<Article> {
 ---
 
 ## 開發規範
+
+- 檢查：`yarn typecheck`、`yarn lint`、`yarn test`（Vitest，`lib/**/*.test.ts`）、`yarn build`；CI 在 `.github/workflows/ci.yml`。
 
 - 使用 TypeScript，避免 `any`。
 - Server Component 優先；只有需要互動或瀏覽器 API 的元件才加 `"use client"`。

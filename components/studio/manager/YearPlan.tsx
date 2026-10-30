@@ -4,50 +4,14 @@ import { StudioPage } from "@/components/studio/shell/StudioHeader";
 import { getPlans, savePlan } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { stBtnPrimary, stBtnSecondary, stCard } from "@/lib/styles";
-import type { PlanDay, WeekPlan, WeekPlanInput } from "@/lib/types";
+import { parseSheet } from "@/lib/plan-sheet";
+import type { WeekPlan } from "@/lib/types";
 import { addDays, md, mondayOf, mondaysOfYear, today, WEEKDAYS } from "@/lib/week";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const arrow =
   "flex h-9 w-9 items-center justify-center rounded-lg text-lg text-st-ink-2 no-underline hover:bg-st-surface hover:text-st-ink";
-
-const OVERVIEW_RE = /[（(]?鳥瞰[）)]?/;
-
-/** "2026-11-02", "2026/11/2" or "11/2" (in `year`) → "2026-11-02" */
-function parseDate(cell: string, year: number): string | null {
-  const m = cell.trim().match(/^(?:(\d{4})[-/.])?(\d{1,2})[-/.](\d{1,2})$/);
-  if (!m) return null;
-  const [, y, mo, d] = m;
-  return `${y ?? year}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
-}
-
-function parseDay(cell = ""): PlanDay {
-  const overview = OVERVIEW_RE.test(cell);
-  const ref = cell.replace(OVERVIEW_RE, "").trim();
-  return overview ? { ref, overview } : { ref };
-}
-
-/**
- * Rows pasted from a spreadsheet, tab- or comma-separated:
- * 日期（那週任一天）, 主日主題, 主日經文, 一, 二, 三, 四, 五, 六
- * A header row or rows without a date are skipped. "鳥瞰" in a cell marks an overview day.
- */
-export function parseSheet(text: string, year: number): (WeekPlanInput & { weekStart: string })[] {
-  const out: (WeekPlanInput & { weekStart: string })[] = [];
-  for (const line of text.split(/\r?\n/)) {
-    const cells = line.split(line.includes("\t") ? "\t" : ",");
-    const date = parseDate(cells[0] ?? "", year);
-    if (!date) continue;
-    out.push({
-      weekStart: mondayOf(date),
-      sundayTheme: cells[1]?.trim() || null,
-      sundayPassage: cells[2]?.trim() || null,
-      days: WEEKDAYS.map((_, i) => parseDay(cells[3 + i])),
-    });
-  }
-  return out;
-}
 
 function ImportDialog({ year, onDone, onClose }: { year: number; onDone: () => void; onClose: () => void }) {
   const { token } = useAuth();
@@ -100,6 +64,12 @@ function ImportDialog({ year, onDone, onClose }: { year: number; onDone: () => v
   );
 }
 
+async function fetchYear(token: string, year: number): Promise<Map<string, WeekPlan>> {
+  const weeks = mondaysOfYear(year);
+  const list = await getPlans(token, weeks[0], weeks[weeks.length - 1]);
+  return new Map(list.map((p) => [p.weekStart, p]));
+}
+
 /** 進度安排・年度: every week of the year with its passages */
 export default function YearPlan({ year }: { year: number }) {
   const { token } = useAuth();
@@ -109,16 +79,18 @@ export default function YearPlan({ year }: { year: number }) {
   const currentRow = useRef<HTMLAnchorElement>(null);
   const mondays = mondaysOfYear(year);
 
-  const load = useCallback(async () => {
+  useEffect(() => {
     if (!token) return;
-    const weeks = mondaysOfYear(year);
-    const list = await getPlans(token, weeks[0], weeks[weeks.length - 1]);
-    setPlans(new Map(list.map((p) => [p.weekStart, p])));
+    let live = true;
+    fetchYear(token, year).then((plans) => live && setPlans(plans));
+    return () => {
+      live = false;
+    };
   }, [token, year]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const reload = async () => {
+    if (token) setPlans(await fetchYear(token, year));
+  };
 
   useEffect(() => {
     currentRow.current?.scrollIntoView({ block: "center" });
@@ -181,7 +153,7 @@ export default function YearPlan({ year }: { year: number }) {
           onClose={() => setImporting(false)}
           onDone={() => {
             setImporting(false);
-            load();
+            reload();
           }}
         />
       )}
