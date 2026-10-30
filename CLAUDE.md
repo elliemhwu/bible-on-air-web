@@ -75,6 +75,15 @@ bible-on-air-web/
 | `/studio/articles/[id]/review` | reviewer     | Review mode              |
 | `/studio/images`               | image_editor | 圖片上傳                 |
 | `/studio/publish`              | manager      | 發布頁                   |
+| `/studio/plan`、`/studio/plan/[weekStart]` | manager | 進度安排（年度、單週切段派入各天） |
+| `/studio/assign`               | manager      | 分派（寫作／校稿／圖片名單輪流） |
+| `/studio/my`                   | editor       | 我的稿件（依分派）       |
+| `/studio/write/[date]`、`/compose` | editor   | ① 讀經模式（筆記）② 寫作模式 |
+| `/studio/review`               | reviewer     | 本週校閱（直接修改、留話） |
+| `/studio/images`、`/studio/images/[weekStart]` | image_editor | 圖片首頁、本週圖片 |
+
+`/studio` 依角色顯示首頁：manager → 本週進度、editor → 我的稿件、reviewer → 校閱、image_editor → 圖片。
+後台畫面使用 `app/styles/studio.css` 的 `st-*` 色票（晴空），寫作模式可切換深色主題（`.studio-night`）。
 
 ### Auth
 

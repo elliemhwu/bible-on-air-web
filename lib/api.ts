@@ -1,6 +1,16 @@
 import { apiClient } from "@/lib/axios";
 import type {
   Article,
+  ArticleComment,
+  Assignment,
+  AssignmentInput,
+  NoteInput,
+  Roster,
+  StaffUser,
+  Team,
+  WeekPlan,
+  WeekPlanInput,
+  WritingNote,
   ArticleQuery,
   ArticleSummary,
   ArticleTemplate,
@@ -295,5 +305,119 @@ export async function updatePublication(
     payload,
     { headers: authHeaders(token) },
   );
+  return data;
+}
+
+// ── Planning & assignments ────────────────────────────────────────────────
+
+const MAG = `/magazines/${PUB}`;
+
+/** Week plans whose Monday falls in [from, to] */
+export async function getPlans(token: string, from: string, to: string): Promise<WeekPlan[]> {
+  const { data } = await apiClient.get<WeekPlan[]>(`${MAG}/plans`, {
+    params: { from, to },
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function savePlan(token: string, weekStart: string, plan: WeekPlanInput): Promise<WeekPlan> {
+  const { data } = await apiClient.put<WeekPlan>(`${MAG}/plans/${weekStart}`, plan, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function getStaff(token: string): Promise<StaffUser[]> {
+  const { data } = await apiClient.get<StaffUser[]>(`${MAG}/staff`, { headers: authHeaders(token) });
+  return data;
+}
+
+export async function getRosters(token: string): Promise<Roster[]> {
+  const { data } = await apiClient.get<Roster[]>(`${MAG}/rosters`, { headers: authHeaders(token) });
+  return data;
+}
+
+export async function saveRoster(token: string, team: Team, userIds: string[]): Promise<Roster> {
+  const { data } = await apiClient.put<Roster>(`${MAG}/rosters/${team}`, { userIds }, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+/** Assignments in [from, to]; pass `userId` for one person's only */
+export async function getAssignments(
+  token: string,
+  from: string,
+  to: string,
+  userId?: string,
+): Promise<Assignment[]> {
+  const { data } = await apiClient.get<Assignment[]>(`${MAG}/assignments`, {
+    params: { from, to, ...(userId && { userId }) },
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function saveAssignments(token: string, items: AssignmentInput[]): Promise<Assignment[]> {
+  const { data } = await apiClient.put<Assignment[]>(`${MAG}/assignments`, { items }, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function getNotes(token: string, date: string): Promise<WritingNote[]> {
+  const { data } = await apiClient.get<WritingNote[]>(`${MAG}/notes/${date}`, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function createNote(
+  token: string,
+  date: string,
+  note: Required<Pick<NoteInput, "tag" | "verses" | "text">>,
+): Promise<WritingNote> {
+  const { data } = await apiClient.post<WritingNote>(`${MAG}/notes/${date}`, note, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function updateNote(token: string, note: WritingNote, patch: NoteInput): Promise<WritingNote> {
+  const { data } = await apiClient.patch<WritingNote>(`${MAG}/notes/${note.date}/${note.id}`, patch, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function deleteNote(token: string, note: WritingNote): Promise<void> {
+  await apiClient.delete(`${MAG}/notes/${note.date}/${note.id}`, { headers: authHeaders(token) });
+}
+
+export async function getComments(token: string, articleId: string): Promise<ArticleComment[]> {
+  const { data } = await apiClient.get<ArticleComment[]>(`${PUB_ARTICLES}/${articleId}/comments`, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+export async function addComment(token: string, articleId: string, text: string): Promise<ArticleComment[]> {
+  const { data } = await apiClient.post<ArticleComment[]>(
+    `${PUB_ARTICLES}/${articleId}/comments`,
+    { text },
+    { headers: authHeaders(token) },
+  );
+  return data;
+}
+
+/** Set (or with null, remove) the cover image of several days at once */
+export async function batchCoverImages(
+  token: string,
+  items: { date: string; imageUrl: string | null }[],
+): Promise<ArticleSummary[]> {
+  const { data } = await apiClient.patch<ArticleSummary[]>(`${PUB_ARTICLES}/cover-images`, { items }, {
+    headers: authHeaders(token),
+  });
   return data;
 }

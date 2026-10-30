@@ -14,3 +14,10 @@ export const canEdit = (user: AuthUser | null) => hasRole(user, "editor", "revie
 export const canReview = (user: AuthUser | null) => hasRole(user, "reviewer");
 export const canPublish = (user: AuthUser | null) => hasRole(user);
 export const canUploadImages = (user: AuthUser | null) => hasRole(user, "image_editor");
+
+/** Exact role checks (no manager fallback), for choosing which home screen to show */
+export const isManager = (user: AuthUser | null) =>
+  !!user?.roles.some((r) => r === "manager" || r === "super_admin");
+export const isWriter = (user: AuthUser | null) => !!user?.roles.includes("editor");
+export const isReviewer = (user: AuthUser | null) => !!user?.roles.includes("reviewer");
+export const isImageEditor = (user: AuthUser | null) => !!user?.roles.includes("image_editor");

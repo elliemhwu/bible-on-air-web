@@ -5,9 +5,15 @@ import { useRef } from "react";
 type Props = {
   items: string[];
   onChange: (items: string[]) => void;
+  /** "paper": borderless inputs on the writing page */
+  appearance?: "default" | "paper";
 };
 
-export default function QuestionsBlockEditor({ items, onChange }: Props) {
+const PAPER_INPUT =
+  "flex-1 rounded-md border border-transparent bg-transparent px-1.5 py-0.5 text-base leading-[1.9] text-st-ink placeholder:text-st-placeholder outline-none hover:border-st-line focus:border-st-accent transition";
+
+export default function QuestionsBlockEditor({ items, onChange, appearance = "default" }: Props) {
+  const paper = appearance === "paper";
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   function set(idx: number, val: string) {
@@ -51,7 +57,7 @@ export default function QuestionsBlockEditor({ items, onChange }: Props) {
       <ol className="flex flex-col gap-2 list-none">
         {items.map((item, idx) => (
           <li key={idx} className="flex items-center gap-2">
-            <span className="text-xs text-pebble-400 w-5 text-right shrink-0">
+            <span className={`text-xs w-5 text-right shrink-0 ${paper ? "text-st-muted" : "text-pebble-400"}`}>
               {idx + 1}.
             </span>
             <input
@@ -63,7 +69,11 @@ export default function QuestionsBlockEditor({ items, onChange }: Props) {
               onChange={(e) => set(idx, e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, idx)}
               placeholder={`問題 ${idx + 1}`}
-              className="flex-1 rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+              className={
+                paper
+                  ? PAPER_INPUT
+                  : "flex-1 rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+              }
             />
             <div className="flex gap-0.5">
               <button
@@ -102,7 +112,7 @@ export default function QuestionsBlockEditor({ items, onChange }: Props) {
       <button
         type="button"
         onClick={add}
-        className="self-start text-xs font-medium text-iris-600 hover:text-iris-700 transition-colors"
+        className={`self-start text-xs font-medium transition-colors ${paper ? "text-st-accent hover:underline" : "text-iris-600 hover:text-iris-700"}`}
       >
         + 新增問題
       </button>

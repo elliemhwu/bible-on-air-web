@@ -174,7 +174,7 @@ export type CreateArticleData = {
   date: string;
   title: string;
   articleTemplateId?: number;
-  blocks?: { order: number; type: string; subheading?: string }[];
+  blocks?: { order: number; type: string; subheading?: string; content?: Record<string, unknown> }[];
 };
 
 /** Payload for PATCH /magazines/:pub/articles/:date */
@@ -258,4 +258,57 @@ export type Publication = {
   /** About page as HTML */
   about: string | null;
   updatedAt: string;
+};
+
+// ── Planning & assignments (studio) ───────────────────────────────────────
+
+export type Team = "writer" | "reviewer" | "image";
+
+/** One weekday (Mon–Sat) of a week plan; `ref` "" = not planned yet */
+export type PlanDay = { ref: string; overview?: boolean };
+
+/** 進度安排 of one week, keyed by its Monday */
+export type WeekPlan = {
+  weekStart: string;
+  sundayTheme: string | null;
+  sundayPassage: string | null;
+  days: PlanDay[];
+  updatedAt: string;
+};
+
+export type WeekPlanInput = Pick<WeekPlan, "sundayTheme" | "sundayPassage" | "days">;
+
+export type Member = { id: string; name: string };
+
+export type StaffUser = Member & { roles: string[] };
+
+export type Roster = { team: Team; members: Member[] };
+
+/** Who serves `team` on `date` */
+export type Assignment = { date: string; team: Team; userId: string; userName: string };
+
+export type AssignmentInput = { date: string; team: Team; userId: string | null };
+
+export type NoteTag = "heading" | "question" | "fragment";
+
+/** A writer's private reading-mode note */
+export type WritingNote = {
+  id: string;
+  date: string;
+  tag: NoteTag | null;
+  verses: number[];
+  text: string;
+  order: number;
+  usedIn: string | null;
+  createdAt: string;
+};
+
+export type NoteInput = Partial<Pick<WritingNote, "tag" | "verses" | "text" | "order" | "usedIn">>;
+
+export type ArticleComment = {
+  id: string;
+  text: string;
+  createdAt: string;
+  authorId: string;
+  authorName: string;
 };
