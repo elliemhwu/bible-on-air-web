@@ -120,7 +120,7 @@ export default function SermonPlan({ year }: { year: number }) {
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-5 sm:px-8">
         <p className="m-0 text-sm text-st-muted">
           先排好每週主日的講道主題與經文，再按「切分 ›」進到那一週，把經文分給週一到週六。離開欄位就會儲存。
-          經文可以是一章（賽61）、一段（約1:1-34）或好幾段，用「、」分開（路4:15-21、賽61）。
+          經文可以是一章（賽61）、一段（約1:1-34）或好幾段：同一卷書用「、」分開（羅3:19-24、4:1-8），不同書卷用「；」（路4:15-21；賽61）。
         </p>
 
         <section className={`${stCard} overflow-hidden`}>

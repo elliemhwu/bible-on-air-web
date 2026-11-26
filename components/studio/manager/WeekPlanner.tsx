@@ -131,7 +131,7 @@ export default function WeekPlanner({ monday }: { monday: string }) {
   const passageError =
     sundayPassage.trim() && books.length
       ? parsed.errors.length
-        ? `${parsed.errors.join("；")}。經文之間可用「、」「，」或「；」分開，例如「路4:15-21、賽61」。`
+        ? `${parsed.errors.join("；")}。同一卷書的段落用「、」分開，不同書卷用「；」，例如「路4:15-21；賽61」。`
         : passageKey
           ? lookupError
           : null
@@ -317,7 +317,7 @@ export default function WeekPlanner({ monday }: { monday: string }) {
           <input
             value={sundayPassage}
             onChange={(e) => { setSundayPassage(e.target.value); setDirty(true); }}
-            placeholder="例如 約1:1-34、賽61"
+            placeholder="例如：約1:1-34；賽61"
             aria-label="主日經文"
             className={`${stInput} w-52`}
           />
@@ -340,7 +340,7 @@ export default function WeekPlanner({ monday }: { monday: string }) {
           {!sundayPassage.trim() && (
             <p className="text-sm text-st-ink-2">
               先在上方填主日經文，就能把經文切成段落、派到每一天。可以是一章（「太24」）、一段（「約1:1-34」），
-              或好幾段，用「、」分開（「路4:15-21、賽61」）。
+              或好幾段：同一卷書用「、」分開（「羅3:19-24、4:1-8」），不同書卷用「；」（「路4:15-21；賽61」）。
             </p>
           )}
           <div className="flex flex-col gap-3">
