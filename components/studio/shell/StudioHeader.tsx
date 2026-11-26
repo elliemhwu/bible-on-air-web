@@ -53,11 +53,12 @@ export default function StudioHeader() {
   const closeMenu = () => menuRef.current?.removeAttribute("open");
 
   return (
-    <header className="flex flex-wrap items-center gap-x-7 gap-y-2 border-b border-st-line bg-st-surface px-4 py-3 sm:px-8">
-      <Link href="/" className="font-serif text-lg font-semibold text-st-ink no-underline">
+    <header className="flex flex-wrap items-center justify-between print:hidden gap-x-7 gap-y-1 border-b border-st-line bg-st-surface px-4 py-2.5 md:flex-nowrap md:justify-start sm:px-8 md:py-3">
+      <Link href="/" className="whitespace-nowrap font-serif text-lg font-semibold text-st-ink no-underline">
         Bible On Air
       </Link>
-      <nav className="flex flex-1 flex-wrap gap-1" aria-label="後台">
+      {/* Phones: the nav takes its own row under the brand and avatar */}
+      <nav className="order-last -mx-2 flex w-full flex-wrap gap-0.5 md:order-none md:mx-0 md:w-auto md:flex-1 md:gap-1" aria-label="後台">
         {[{ href: "/studio", label: "Studio" }, ...main].map((item) => {
           const active = item.href === "/studio" ? pathname === "/studio" : pathname.startsWith(item.href);
           return (
@@ -65,17 +66,17 @@ export default function StudioHeader() {
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`rounded-lg px-3 py-2 text-sm no-underline transition ${active ? "bg-st-soft font-medium text-st-ink" : "text-st-ink-2 hover:bg-st-sunken hover:text-st-ink"}`}
+              className={`whitespace-nowrap rounded-lg px-2 py-2 text-sm no-underline transition sm:px-3 ${active ? "bg-st-soft font-medium text-st-ink" : "text-st-ink-2 hover:bg-st-sunken hover:text-st-ink"}`}
             >
               {item.label}
             </Link>
           );
         })}
         <details ref={menuRef} className="relative">
-          <summary className="cursor-pointer list-none rounded-lg px-3 py-2 text-sm text-st-ink-2 hover:bg-st-sunken hover:text-st-ink [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none whitespace-nowrap rounded-lg px-2 py-2 text-sm text-st-ink-2 hover:bg-st-sunken hover:text-st-ink sm:px-3 [&::-webkit-details-marker]:hidden">
             更多 ▾
           </summary>
-          <div className="absolute left-0 z-50 mt-1 flex min-w-40 flex-col rounded-xl border border-st-line bg-st-surface py-1.5 shadow-lg">
+          <div className="absolute right-0 z-50 md:left-0 md:right-auto mt-1 flex min-w-40 flex-col rounded-xl border border-st-line bg-st-surface py-1.5 shadow-lg">
             {more.map((item) => (
               <Link
                 key={item.href}
@@ -101,7 +102,7 @@ export default function StudioHeader() {
         </details>
       </nav>
       <div className="flex items-center gap-2.5 text-sm text-st-ink-2" title={user?.email}>
-        <span>{user?.name}</span>
+        <span className="hidden whitespace-nowrap md:inline">{user?.name}</span>
         <span
           aria-hidden="true"
           className="flex h-8 w-8 items-center justify-center rounded-full bg-st-primary text-[13px] text-st-on-primary"
@@ -116,7 +117,7 @@ export default function StudioHeader() {
 /** Page frame for studio screens: palette, header, and a column for the page body */
 export function StudioPage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="studio flex min-h-screen flex-col bg-st-bg text-st-ink">
+    <div className="studio flex min-h-screen flex-col bg-st-bg text-st-ink print:bg-white">
       <StudioHeader />
       {children}
     </div>

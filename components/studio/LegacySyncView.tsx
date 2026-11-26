@@ -3,7 +3,9 @@
 import { gapLabel } from "@/components/studio/LegacySyncPanel";
 import { getLegacyMonthStatus, getLegacyMonths, syncLegacyDates } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { btnPrimaryCls, selectCls } from "@/lib/styles";
+import { StudioPage } from "@/components/studio/shell/StudioHeader";
+import { stBtnGhost, stBtnPrimary, stCard, stInput } from "@/lib/styles";
+import { weekday } from "@/lib/week";
 import type { LegacyMonth, LegacyMonthStatus, LegacySyncItem, LegacySyncResult } from "@/lib/types";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -12,9 +14,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 const CHUNK_SIZE = 5;
 
 const STATE_LABEL: Record<LegacySyncItem["state"], { text: string; cls: string }> = {
-  missing: { text: "尚未匯入", cls: "bg-amber-100 text-amber-800" },
-  incomplete: { text: "缺少部分內容", cls: "bg-sky-100 text-sky-800" },
-  synced: { text: "已同步", cls: "bg-green-100 text-green-700" },
+  missing: { text: "尚未匯入", cls: "bg-st-gold-soft text-st-gold-soft-ink" },
+  incomplete: { text: "缺少部分內容", cls: "bg-st-soft text-st-accent" },
+  synced: { text: "已同步", cls: "bg-st-sage-soft text-st-sage-ink" },
 };
 
 const ACTION_LABEL: Record<LegacySyncResult["action"], string> = {
@@ -123,20 +125,13 @@ export default function LegacySyncView() {
   }
 
   const syncing = progress !== null;
+  const pending = status?.items.filter((i) => i.state !== "synced") ?? [];
+  const allSelected = pending.length > 0 && pending.every((i) => selected.has(i.date));
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-6 py-8 font-sans">
-      <div className="mb-2 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-pebble-900">從舊網站同步</h1>
-        <Link href="/studio" className="text-sm text-pebble-500 hover:text-pebble-800">
-          回後台
-        </Link>
-      </div>
-      <p className="mb-6 text-sm text-pebble-500">
-        比對舊的 Google Site 與目前的資料。尚未匯入的日子會直接新增並發布；已存在的文章只會補上空白的部分，不會覆蓋已編輯的內容。
-      </p>
-
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+    <StudioPage>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 border-b border-st-line bg-st-surface px-4 py-3.5 sm:px-8">
+        <h1 className="m-0 text-base font-medium">從舊網站同步</h1>
         <select
           value={month}
           onChange={(e) => {
@@ -144,7 +139,7 @@ export default function LegacySyncView() {
             setResults(new Map());
             setError(null);
           }}
-          className={`${selectCls} !w-auto`}
+          className={stInput}
           disabled={syncing}
           aria-label="月份"
         >
@@ -158,135 +153,130 @@ export default function LegacySyncView() {
           type="button"
           onClick={() => loadStatus(true)}
           disabled={loading || syncing || !month}
-          className="text-sm text-iris-600 hover:text-iris-700 disabled:opacity-50"
+          className={stBtnGhost}
         >
-          重新讀取舊網站
+          ↻ 重新讀取
         </button>
         {status && (
-          <a href={status.url} target="_blank" rel="noreferrer" className="text-sm text-pebble-500 hover:text-pebble-800">
-            開啟舊網站月份頁 ↗
+          <a href={status.url} target="_blank" rel="noreferrer" className="text-sm text-st-muted no-underline hover:text-st-ink">
+            開啟舊網站 ↗
           </a>
         )}
+        <span className="flex-1" />
+        {progress && (
+          <span className="text-sm tabular-nums text-st-muted">
+            同步中 {progress.done}/{progress.total}…
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={syncSelected}
+          disabled={syncing || loading || selected.size === 0}
+          className={stBtnPrimary}
+        >
+          同步選取的 {selected.size} 天
+        </button>
       </div>
 
-      {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
+      <main className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-5 sm:px-8">
+        <p className="m-0 text-sm text-st-muted">
+          比對舊的 Google Site 與目前的資料。尚未匯入的日子會直接新增並發布；已存在的文章只會補上空白的部分，不會覆蓋已編輯的內容。
+        </p>
 
-      {status && (
-        <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-pebble-600">
-          <span>共 {status.items.length} 天</span>
-          <span>尚未匯入 {counts.missing}</span>
-          <span>缺少部分內容 {counts.incomplete}</span>
-          <span>已同步 {counts.synced}</span>
-          <div className="ml-auto flex items-center gap-3">
-            {progress && (
-              <span className="text-pebble-500">
-                同步中 {progress.done}/{progress.total}…
+        {error && <p className="m-0 text-sm text-st-danger">{error}</p>}
+
+        {status && (
+          <div className="flex flex-wrap gap-2 text-sm">
+            <span className="rounded-full border border-st-line bg-st-surface px-3 py-1 text-st-ink-2">共 {status.items.length} 天</span>
+            {(["missing", "incomplete", "synced"] as const).map((state) => (
+              <span key={state} className={`rounded-full px-3 py-1 ${STATE_LABEL[state].cls}`}>
+                {STATE_LABEL[state].text} {counts[state]}
               </span>
-            )}
-            <button
-              type="button"
-              onClick={syncSelected}
-              disabled={syncing || loading || selected.size === 0}
-              className={btnPrimaryCls}
-            >
-              同步選取的 {selected.size} 天
-            </button>
+            ))}
           </div>
-        </div>
-      )}
+        )}
 
-      {loading && !status && <p className="text-sm text-pebble-400">讀取中…</p>}
+        <div className={`${stCard} overflow-hidden`}>
+          <div className="flex items-center gap-3 border-b border-st-line bg-st-sunken px-4 py-2 text-xs text-st-muted">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                className="rounded"
+                aria-label="全選需要同步的日子"
+                checked={allSelected}
+                disabled={!pending.length || syncing}
+                onChange={(e) => setSelected(new Set(e.target.checked ? pending.map((i) => i.date) : []))}
+              />
+              全選需要同步的日子
+            </label>
+          </div>
 
-      {status && (
-        <div className="overflow-x-auto rounded-lg border border-pebble-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-pebble-50 text-left text-xs text-pebble-500">
-              <tr>
-                <th className="w-10 px-3 py-2">
-                  <input
-                    type="checkbox"
-                    aria-label="全選需要同步的日子"
-                    checked={
-                      status.items.some((i) => i.state !== "synced") &&
-                      status.items.filter((i) => i.state !== "synced").every((i) => selected.has(i.date))
-                    }
-                    onChange={(e) =>
-                      setSelected(
-                        new Set(
-                          e.target.checked
-                            ? status.items.filter((i) => i.state !== "synced").map((i) => i.date)
-                            : [],
-                        ),
-                      )
-                    }
-                  />
-                </th>
-                <th className="px-3 py-2">日期</th>
-                <th className="px-3 py-2">標題</th>
-                <th className="px-3 py-2">狀態</th>
-                <th className="px-3 py-2">結果</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-pebble-100">
+          {loading && !status && <p className="m-0 px-4 py-8 text-center text-sm text-st-muted">讀取中…</p>}
+          {!loading && !status && !error && (
+            <p className="m-0 px-4 py-8 text-center text-sm text-st-muted">選擇月份開始比對</p>
+          )}
+
+          {status && (
+            <ul className={`m-0 list-none divide-y divide-st-line p-0 ${loading ? "opacity-60" : ""}`}>
               {status.items.map((item) => {
                 const result = results.get(item.date);
+                const checkable = item.state !== "synced";
                 return (
-                  <tr key={item.date} className={loading ? "opacity-60" : ""}>
-                    <td className="px-3 py-2 align-top">
-                      <input
-                        type="checkbox"
-                        aria-label={`選取 ${item.date}`}
-                        checked={selected.has(item.date)}
-                        disabled={item.state === "synced" || syncing}
-                        onChange={() => toggle(item.date)}
-                      />
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2 align-top tabular-nums text-pebble-700">
-                      {item.date}
-                    </td>
-                    <td className="px-3 py-2 align-top">
-                      <div className="text-pebble-900">
+                  <li
+                    key={item.date}
+                    className={`flex items-start gap-3 px-4 py-3 ${selected.has(item.date) ? "bg-st-soft" : ""}`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="mt-1 rounded"
+                      aria-label={`選取 ${item.date}`}
+                      checked={selected.has(item.date)}
+                      disabled={!checkable || syncing}
+                      onChange={() => toggle(item.date)}
+                    />
+                    <div className="w-12 shrink-0 text-center">
+                      <div className="font-serif text-xl leading-tight tabular-nums text-st-ink">{Number(item.date.slice(8))}</div>
+                      <div className="text-xs text-st-muted">週{weekday(item.date)}</div>
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <div className="font-serif text-base leading-snug text-st-ink">
                         {item.articleId ? (
-                          <Link href={`/studio/articles/${item.articleId}/edit`} className="hover:text-iris-600">
+                          <Link href={`/studio/articles/${item.articleId}/edit`} className="text-st-ink no-underline hover:text-st-accent">
                             {item.title}
                           </Link>
                         ) : (
                           item.title
                         )}
                         {item.kind === "overview" && (
-                          <span className="ml-2 rounded bg-pebble-100 px-1.5 py-0.5 text-xs text-pebble-500">鳥瞰</span>
+                          <span className="ml-2 rounded-full bg-st-soft px-2 py-px align-middle font-sans text-xs text-st-ink-2">書卷鳥瞰</span>
                         )}
                       </div>
-                      <div className="text-xs text-pebble-400">{item.heading}</div>
+                      {item.heading && <div className="text-sm text-st-muted">{item.heading}</div>}
+                      {item.state === "incomplete" && (
+                        <div className="text-xs text-st-muted">缺：{item.gaps.map(gapLabel).join("、")}</div>
+                      )}
                       {item.warnings.map((w) => (
-                        <div key={w} className="text-xs text-amber-700">⚠ {w}</div>
+                        <div key={w} className="text-xs text-st-gold-ink">⚠ {w}</div>
                       ))}
-                    </td>
-                    <td className="px-3 py-2 align-top">
-                      <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs ${STATE_LABEL[item.state].cls}`}>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${STATE_LABEL[item.state].cls}`}>
                         {STATE_LABEL[item.state].text}
                       </span>
-                      {item.state === "incomplete" && (
-                        <div className="mt-1 text-xs text-pebble-500">
-                          缺：{item.gaps.map(gapLabel).join("、")}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-3 py-2 align-top text-xs">
                       {result && (
-                        <span className={result.action === "failed" ? "text-red-600" : "text-pebble-600"}>
+                        <span className={`text-xs ${result.action === "failed" ? "text-st-danger" : "text-st-muted"}`}>
                           {ACTION_LABEL[result.action]}
                           {result.error && `：${result.error}`}
                         </span>
                       )}
-                    </td>
-                  </tr>
+                    </div>
+                  </li>
                 );
               })}
-            </tbody>
-          </table>
+            </ul>
+          )}
         </div>
-      )}
-    </main>
+      </main>
+    </StudioPage>
   );
 }
