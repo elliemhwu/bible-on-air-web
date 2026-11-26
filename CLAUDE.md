@@ -75,7 +75,7 @@ bible-on-air-web/
 | `/studio/articles/[id]/review` | reviewer     | Review mode              |
 | `/studio/images`               | image_editor | 圖片上傳                 |
 | `/studio/publish`              | manager      | 發布頁                   |
-| `/studio/plan`、`/studio/plan/[weekStart]` | manager | 進度安排（年度、單週切段派入各天） |
+| `/studio/plan/sermons`、`/studio/plan`、`/studio/plan/[weekStart]` | manager | 進度安排：講道主題（一年每週的主題、經文、節期與備註）、每日經文（年度表）、單週切段派入各天 |
 | `/studio/assign`               | manager      | 分派（寫作／校稿／圖片名單輪流） |
 | `/studio/my`                   | editor       | 我的稿件（依分派）       |
 | `/studio/write/[date]`、`/compose` | editor   | ① 讀經模式（筆記）② 寫作模式 |
@@ -236,6 +236,9 @@ export async function getArticle(date: string): Promise<Article> {
 | `questions` | `<QuestionsBlock>` | 顯示 `subheading` + `items` 清單                               |
 | `richtext`  | `<RichtextBlock>`  | 顯示 `subheading`（若有）+ `dangerouslySetInnerHTML` 渲染 HTML |
 | `outline`   | `<OutlineBlock>`   | 本書大綱：自動編號的大段（標題、範圍）與段落（範圍、說明）；編輯用 `OutlineBlockEditor`，可從文字貼上 |
+
+一年的週次：每週是週一到週日（最後一天就是主日），週六落在那一年的週都算（2026 年第 1 週是 12/29 – 1/4，第 2 週是 1/5 – 1/11；`mondaysOfYear`、`yearWeekLabel`）。
+主日經文與每日經文可以有好幾段，用「、」「，」「；」分開（`lib/passage.ts`）；經文跨書卷時，閱讀端和讀經模式會在換書卷處標出書卷與章。
 
 書卷鳥瞰日（進度安排勾選「鳥瞰」）：讀經模式改為整卷書逐章閱讀；寫作模式可把「段落小標」筆記複製成大綱的大段、其他筆記成為段落。
 

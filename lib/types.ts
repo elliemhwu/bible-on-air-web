@@ -302,11 +302,14 @@ export type WeekPlan = {
   weekStart: string;
   sundayTheme: string | null;
   sundayPassage: string | null;
+  /** 節期與備註 */
+  note: string | null;
   days: PlanDay[];
   updatedAt: string;
 };
 
-export type WeekPlanInput = Pick<WeekPlan, "sundayTheme" | "sundayPassage" | "days">;
+/** A save that leaves `note` out keeps the saved one */
+export type WeekPlanInput = Pick<WeekPlan, "sundayTheme" | "sundayPassage" | "days"> & { note?: string | null };
 
 export type Member = { id: string; name: string };
 

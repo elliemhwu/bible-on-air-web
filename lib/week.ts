@@ -65,13 +65,21 @@ export function fullDate(date: string): string {
   return `${d.getUTCFullYear()} 年 ${d.getUTCMonth() + 1} 月 ${d.getUTCDate()} 日`;
 }
 
-/** Mondays of every week whose Monday falls in `year` */
+/**
+ * The devotion weeks of `year`: every week whose Saturday falls in it, so
+ * 2026 starts with 12/29/2025 – 1/3 and its last week ends on 12/26.
+ */
 export function mondaysOfYear(year: number): string[] {
   let monday = mondayOf(`${year}-01-01`);
-  if (monday < `${year}-01-01`) monday = addDays(monday, 7);
+  if (addDays(monday, 5) < `${year}-01-01`) monday = addDays(monday, 7);
   const out: string[] = [];
-  for (; monday.startsWith(String(year)); monday = addDays(monday, 7)) out.push(monday);
+  for (; addDays(monday, 5).startsWith(String(year)); monday = addDays(monday, 7)) out.push(monday);
   return out;
+}
+
+/** A week of the year as the church writes it, Monday to Sunday: "12/29 – 1/4" */
+export function yearWeekLabel(monday: string): string {
+  return `${md(monday)} – ${md(addDays(monday, 6))}`;
 }
 
 /** Group sorted dates into runs of consecutive devotion days ("12/7 – 12/9 · 3 天") */

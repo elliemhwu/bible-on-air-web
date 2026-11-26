@@ -207,11 +207,18 @@ export default function ReadingMode({ date }: { date: string }) {
             )}
             <h1 className="m-0 mb-5 font-serif text-[28px] font-semibold">{title || ref || "還沒有安排經文"}</h1>
             <ol className="m-0 flex list-none flex-col gap-1 p-0">
-              {verses.map((v) => {
+              {verses.map((v, idx) => {
                 const key = verseKey(v);
                 const on = selected.includes(key);
+                // Several books ("申6:1-5；利19:9-18"): a heading where the book changes
+                const newBook = idx > 0 && v.abbrZh !== verses[idx - 1].abbrZh;
                 return (
-                  <li key={key}>
+                  <li key={`${v.abbrZh}${key}`}>
+                    {newBook && (
+                      <h2 className="m-0 mb-1 mt-5 px-3 font-serif text-lg font-semibold text-st-ink-2">
+                        {books.find((b) => b.abbrZh === v.abbrZh)?.zh ?? v.abbrZh} {v.chapter}
+                      </h2>
+                    )}
                     <button
                       type="button"
                       onClick={() => toggle(key)}

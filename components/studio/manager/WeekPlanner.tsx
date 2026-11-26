@@ -4,75 +4,103 @@ import { StudioPage } from "@/components/studio/shell/StudioHeader";
 import { getBibleBooks, getPlans, lookupVerses, savePlan } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { stBtnPrimary, stBtnSecondary, stInput } from "@/lib/styles";
+import { parsePassages, passageRef } from "@/lib/passage";
 import type { BibleBook, Verse } from "@/lib/types";
 import { addDays, md, weekDays, weekday, WEEKDAYS } from "@/lib/week";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 
 const arrow =
   "flex h-9 w-9 items-center justify-center rounded-lg text-lg text-st-ink-2 no-underline hover:bg-st-surface hover:text-st-ink";
 
-type Chapter = { abbr: string; chapter: number; verses: Verse[] };
 type Clip = { start: number; end: number };
 
-/** "太24" or "馬太福音 24" → book + chapter; null when it names no single chapter */
-function parseChapter(input: string, books: BibleBook[]): { book: BibleBook; chapter: number } | null {
-  const m = input.trim().match(/^(.+?)\s*(\d+)$/);
+/** The verses of every Sunday passage, one after another */
+type Reading = { key: string; verses: Verse[]; starts: number[] };
+
+const sameVerse = (v: Verse, abbr: string, chapter: number, verse: number) =>
+  v.abbrZh === abbr && v.chapter === chapter && v.verse === verse;
+
+/** "加1:13-2:14" → the indexes of its first and last verse in `verses` */
+function findRef(ref: string, verses: Verse[]): Clip | null {
+  const m = ref.match(/^(.+?)(\d+):(\d+)(?:-(?:(\d+):)?(\d+))?$/);
   if (!m) return null;
-  const book = books.find((b) => b.abbrZh === m[1] || b.zh === m[1]);
-  const chapter = Number(m[2]);
-  return book && chapter >= 1 && chapter <= book.chapters.length ? { book, chapter } : null;
+  const [, abbr, c1, v1, c2, v2] = m;
+  const start = verses.findIndex((v) => sameVerse(v, abbr, Number(c1), Number(v1)));
+  const end = verses.findIndex((v) => sameVerse(v, abbr, Number(c2 ?? c1), Number(v2 ?? v1)));
+  return start >= 0 && end >= start ? { start, end } : null;
 }
 
-/** Plan state for one week: where the chapter is cut and which clip each day reads */
+/** "賽61:1-11", "加1:13-2:14" for verses[start..end] (always one book) */
+function clipRef(verses: Verse[], { start, end }: Clip): string {
+  const a = verses[start];
+  const b = verses[end];
+  const head = `${a.abbrZh}${a.chapter}:${a.verse}`;
+  if (a.chapter !== b.chapter) return `${head}-${b.chapter}:${b.verse}`;
+  return a.verse === b.verse ? head : `${head}-${b.verse}`;
+}
+
+/** Plan state for one week: where the reading is cut and which clip each day reads */
 type Layout = {
-  /** A clip ends after each of these verse numbers */
+  /** A clip ends after each of these verse indexes */
   cuts: number[];
-  /** clip start verse → day index */
+  /** clip start index → day index */
   owner: Record<number, number>;
   /** Free-text passage per day, used instead of a clip (e.g. another book) */
   override: string[];
   overview: boolean[];
 };
 
-/** Rebuild cuts and owners from saved day refs that fall in `chapter` */
-function layoutFrom(refs: { ref: string; overview?: boolean }[], chapter: Chapter | null): Layout {
+/** Rebuild cuts and owners from saved day refs that fall in the reading */
+function layoutFrom(refs: { ref: string; overview?: boolean }[], verses: Verse[]): Layout {
   const layout: Layout = { cuts: [], owner: {}, override: Array(6).fill(""), overview: Array(6).fill(false) };
-  const verseCount = chapter?.verses.length ?? 0;
   refs.forEach(({ ref, overview }, i) => {
     layout.overview[i] = !!overview;
     if (!ref) return;
-    const m = chapter && ref.match(/^(.+?)(\d+):(\d+)(?:-(\d+))?$/);
-    if (!m || m[1] !== chapter.abbr || Number(m[2]) !== chapter.chapter) {
+    const clip = findRef(ref, verses);
+    if (!clip) {
       layout.override[i] = ref;
       return;
     }
-    const from = Number(m[3]);
-    const to = Number(m[4] ?? m[3]);
-    if (from > 1) layout.cuts.push(from - 1);
-    if (to < verseCount) layout.cuts.push(to);
-    layout.owner[from] = i;
+    if (clip.start > 0) layout.cuts.push(clip.start - 1);
+    if (clip.end < verses.length - 1) layout.cuts.push(clip.end);
+    layout.owner[clip.start] = i;
   });
   layout.cuts = [...new Set(layout.cuts)].sort((a, b) => a - b);
   return layout;
 }
 
 function clipsOf(cuts: number[], last: number): Clip[] {
-  const starts = [1, ...cuts.map((c) => c + 1)];
+  const starts = [0, ...cuts.map((c) => c + 1)];
   return starts.map((start, i) => ({ start, end: i + 1 < starts.length ? starts[i + 1] - 1 : last }));
 }
 
-/** 進度安排・單週: cut the Sunday chapter into clips and deal them to Mon–Sat */
+/** Six days shared by the passages in proportion to their length, at least one each */
+function daysPerPassage(lengths: number[]): number[] {
+  if (lengths.length >= 6) return lengths.map(() => 1);
+  const total = lengths.reduce((a, b) => a + b, 0);
+  const spare = 6 - lengths.length;
+  const exact = lengths.map((l) => (l / total) * spare);
+  const days = exact.map((x) => 1 + Math.floor(x));
+  let left = 6 - days.reduce((a, b) => a + b, 0);
+  for (const i of exact.map((x, i) => i).sort((a, b) => (exact[b] % 1) - (exact[a] % 1))) {
+    if (left-- <= 0) break;
+    days[i]++;
+  }
+  return days.map((d, i) => Math.min(d, lengths[i]));
+}
+
+/** 進度安排・單週: cut the Sunday passages into clips and deal them to Mon–Sat */
 export default function WeekPlanner({ monday }: { monday: string }) {
   const { token } = useAuth();
   const [books, setBooks] = useState<BibleBook[]>([]);
   const [theme, setTheme] = useState("");
   const [sundayPassage, setSundayPassage] = useState("");
   const [savedRefs, setSavedRefs] = useState<{ ref: string; overview?: boolean }[]>([]);
-  const [layout, setLayout] = useState<Layout>(() => layoutFrom([], null));
+  const [layout, setLayout] = useState<Layout>(() => layoutFrom([], []));
   const [open, setOpen] = useState<Record<number, boolean>>({});
   const [openDay, setOpenDay] = useState<number | null>(null);
-  const [draft, setDraft] = useState({ from: "", to: "" });
+  const [draft, setDraft] = useState("");
   const [dragging, setDragging] = useState<number | null>(null);
   const [dropDay, setDropDay] = useState<number | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -94,43 +122,60 @@ export default function WeekPlanner({ monday }: { monday: string }) {
     });
   }, [token, monday]);
 
-  // Load the chapter whenever the Sunday passage names one
-  const target = useMemo(() => parseChapter(sundayPassage, books), [sundayPassage, books]);
-  const [fetched, setFetched] = useState<Chapter | null>(null);
+  // Load the verses whenever the Sunday passages change
+  const parsed = useMemo(() => parsePassages(sundayPassage, books), [sundayPassage, books]);
+  const passageKey = parsed.passages.map(passageRef).join("、");
+  const [fetched, setFetched] = useState<Reading | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
-  const chapter =
-    fetched && target && fetched.abbr === target.book.abbrZh && fetched.chapter === target.chapter ? fetched : null;
-  const chapterError =
-    !target && sundayPassage.trim() && books.length ? "主日經文請寫成一章，例如「太24」" : target ? lookupError : null;
+  const reading = fetched && passageKey && fetched.key === passageKey ? fetched : null;
+  const passageError =
+    sundayPassage.trim() && books.length
+      ? parsed.errors.length
+        ? `${parsed.errors.join("；")}。經文之間可用「、」「，」或「；」分開，例如「路4:15-21、賽61」。`
+        : passageKey
+          ? lookupError
+          : null
+      : null;
 
   useEffect(() => {
-    if (!target) return;
-    const { book, chapter: ch } = target;
+    if (!passageKey) return;
     let cancelled = false;
-    lookupVerses(`${book.abbrZh}${ch}:1-${book.chapters[ch - 1]}`)
-      .then(({ verses }) => {
+    Promise.all(passageKey.split("、").map((ref) => lookupVerses(ref)))
+      .then((results) => {
         if (cancelled) return;
-        setFetched({ abbr: book.abbrZh, chapter: ch, verses });
+        const starts: number[] = [];
+        const verses: Verse[] = [];
+        for (const r of results) {
+          starts.push(verses.length);
+          verses.push(...r.verses);
+        }
+        setFetched({ key: passageKey, verses, starts });
         setLookupError(null);
       })
       .catch(() => !cancelled && setLookupError("無法載入經文"));
     return () => {
       cancelled = true;
     };
-  }, [target]);
+  }, [passageKey]);
 
-  // Saved refs are laid out again once their chapter is known
-  const layoutKey = `${JSON.stringify(savedRefs)}|${chapter ? `${chapter.abbr}${chapter.chapter}` : ""}`;
+  const verses = reading?.verses ?? [];
+  const last = verses.length - 1;
+  // Clips never run from one passage into the next
+  const forced = useMemo(() => new Set(reading?.starts.slice(1).map((s) => s - 1) ?? []), [reading]);
+  const passageAt = new Map(reading?.starts.map((s, i) => [s, parsed.passages[i]]) ?? []);
+
+  // Saved refs are laid out again once their verses are known
+  const layoutKey = `${JSON.stringify(savedRefs)}|${reading?.key ?? ""}`;
   const [layoutFor, setLayoutFor] = useState(layoutKey);
   if (layoutFor !== layoutKey) {
     setLayoutFor(layoutKey);
-    setLayout(layoutFrom(savedRefs, chapter));
+    setLayout(layoutFrom(savedRefs, verses));
     setOpen({});
   }
 
-  const last = chapter?.verses.length ?? 0;
-  const clips = chapter ? clipsOf(layout.cuts, last) : [];
-  const label = (c: Clip) => (chapter ? `${chapter.abbr}${chapter.chapter}:${c.start === c.end ? c.start : `${c.start}-${c.end}`}` : "");
+  const allCuts = [...new Set([...layout.cuts, ...forced])].filter((c) => c < last).sort((a, b) => a - b);
+  const clips = reading ? clipsOf(allCuts, last) : [];
+  const label = (c: Clip) => (reading ? clipRef(verses, c) : "");
 
   function change(next: Partial<Layout>) {
     setLayout((prev) => ({ ...prev, ...next }));
@@ -165,11 +210,17 @@ export default function WeekPlanner({ monday }: { monday: string }) {
     change({ cuts: [...layout.cuts, after].sort((a, b) => a - b) });
   }
 
-  /** A removed clip joins the next one (which keeps its day); the last joins the previous */
-  function removeClip(clip: Clip, isLast: boolean) {
+  /** The cut a removed clip gives up: it joins the next clip (which keeps its day), or else the previous one */
+  function joinable(clip: Clip): "next" | "previous" | null {
+    if (clip.end < last && !forced.has(clip.end)) return "next";
+    if (clip.start > 0 && !forced.has(clip.start - 1)) return "previous";
+    return null;
+  }
+
+  function removeClip(clip: Clip) {
     const owner = { ...layout.owner };
     delete owner[clip.start];
-    if (isLast) {
+    if (joinable(clip) === "previous") {
       change({ cuts: layout.cuts.filter((c) => c !== clip.start - 1), owner });
       return;
     }
@@ -182,30 +233,47 @@ export default function WeekPlanner({ monday }: { monday: string }) {
   }
 
   function splitEvenly() {
-    if (!last) return;
-    const cuts = [1, 2, 3, 4, 5]
-      .map((k) => Math.round((last * k) / 6))
-      .filter((c, i, a) => c > 0 && c < last && a.indexOf(c) === i);
+    if (!reading) return;
+    const bounds = reading.starts.map((s, i) => ({ start: s, end: (reading.starts[i + 1] ?? verses.length) - 1 }));
+    const shares = daysPerPassage(bounds.map((b) => b.end - b.start + 1));
+    const cuts: number[] = [];
     const owner: Record<number, number> = {};
-    clipsOf(cuts, last).forEach((c, i) => (owner[c.start] = i));
+    let day = 0;
+    bounds.forEach((b, i) => {
+      const length = b.end - b.start + 1;
+      const pieces = [...Array(shares[i] - 1).keys()]
+        .map((k) => b.start + Math.round((length * (k + 1)) / shares[i]) - 1)
+        .filter((c, j, a) => c >= b.start && c < b.end && a.indexOf(c) === j);
+      cuts.push(...pieces);
+      for (const start of [b.start, ...pieces.map((c) => c + 1)]) {
+        if (day < 6) owner[start] = day++;
+      }
+    });
     change({ cuts, owner, override: Array(6).fill("") });
   }
 
-  function applyRange(day: number) {
-    const from = Math.max(1, Math.min(last, parseInt(draft.from, 10)));
-    const to = Math.max(from, Math.min(last, parseInt(draft.to, 10)));
-    if (!from || !to) return;
-    // Make [from, to] exactly one clip: drop cuts inside it, add cuts at its edges
-    const cuts = layout.cuts.filter((c) => c < from - 1 || c >= to);
-    if (from > 1 && !cuts.includes(from - 1)) cuts.push(from - 1);
-    if (to < last && !cuts.includes(to)) cuts.push(to);
+  /** A passage inside the reading becomes that day's clip; anything else is kept as written */
+  function applyRef(day: number) {
+    const text = draft.trim();
+    const [passage] = parsePassages(text, books).passages;
+    const clip = passage && reading ? findRef(passageRef(passage), verses) : null;
     const owner: Record<number, number> = {};
+    const override = [...layout.override];
+    if (!clip) {
+      for (const [s, d] of Object.entries(layout.owner)) if (d !== day) owner[Number(s)] = d;
+      override[day] = passage ? passageRef(passage) : text;
+      change({ owner, override });
+      return;
+    }
+    // Make the passage exactly one clip: drop cuts inside it, add cuts at its edges
+    const cuts = layout.cuts.filter((c) => c < clip.start - 1 || c >= clip.end);
+    if (clip.start > 0 && !cuts.includes(clip.start - 1)) cuts.push(clip.start - 1);
+    if (clip.end < last && !cuts.includes(clip.end)) cuts.push(clip.end);
     for (const [s, d] of Object.entries(layout.owner)) {
       const sn = Number(s);
-      if (d !== day && (sn < from || sn > to)) owner[sn] = d;
+      if (d !== day && (sn < clip.start || sn > clip.end)) owner[sn] = d;
     }
-    owner[from] = day;
-    const override = [...layout.override];
+    owner[clip.start] = day;
     override[day] = "";
     change({ cuts: cuts.sort((a, b) => a - b), owner, override });
   }
@@ -249,17 +317,17 @@ export default function WeekPlanner({ monday }: { monday: string }) {
           <input
             value={sundayPassage}
             onChange={(e) => { setSundayPassage(e.target.value); setDirty(true); }}
-            placeholder="例如 太24"
-            aria-label="主日經文（一章）"
-            className={`${stInput} w-28`}
+            placeholder="例如 約1:1-34、賽61"
+            aria-label="主日經文"
+            className={`${stInput} w-52`}
           />
         </label>
         <span className="flex-1" />
-        <button type="button" onClick={splitEvenly} disabled={!chapter} className={stBtnSecondary}>平均切成 6 段</button>
+        <button type="button" onClick={splitEvenly} disabled={!reading} className={stBtnSecondary}>平均切成 6 段</button>
         <button
           type="button"
           onClick={() => change({ cuts: [], owner: {}, override: Array(6).fill("") })}
-          disabled={!chapter}
+          disabled={!reading}
           className={stBtnSecondary}
         >
           全部重來
@@ -268,18 +336,28 @@ export default function WeekPlanner({ monday }: { monday: string }) {
 
       <div className="flex flex-1 flex-wrap items-stretch">
         <main className="min-w-0 flex-[999_1_560px] px-4 py-5 sm:px-8">
-          {chapterError && <p className="text-sm text-st-danger">{chapterError}</p>}
+          {passageError && <p className="text-sm text-st-danger">{passageError}</p>}
           {!sundayPassage.trim() && (
-            <p className="text-sm text-st-ink-2">先在上方填主日經文（例如「太24」），就能把那一章切成段落、派到每一天。</p>
+            <p className="text-sm text-st-ink-2">
+              先在上方填主日經文，就能把經文切成段落、派到每一天。可以是一章（「太24」）、一段（「約1:1-34」），
+              或好幾段，用「、」分開（「路4:15-21、賽61」）。
+            </p>
           )}
           <div className="flex flex-col gap-3">
             {clips.map((clip, ci) => {
               const isLast = ci === clips.length - 1;
               const day = layout.owner[clip.start];
               const expanded = open[clip.start] ?? isLast;
-              const verses = chapter!.verses.filter((v) => v.verse >= clip.start && v.verse <= clip.end);
+              const clipVerses = verses.slice(clip.start, clip.end + 1);
+              const spansChapters = clipVerses[0].chapter !== clipVerses[clipVerses.length - 1].chapter;
+              const passage = passageAt.get(clip.start);
+              const removable = clips.length > 1 && joinable(clip) !== null;
               return (
-                <section key={clip.start} className="overflow-hidden rounded-xl border border-st-line bg-st-surface">
+                <Fragment key={clip.start}>
+                {passage && reading!.starts.length > 1 && (
+                  <h2 className={`m-0 font-serif text-base font-semibold text-st-gold-ink ${ci > 0 ? "mt-3" : ""}`}>{passageRef(passage)}</h2>
+                )}
+                <section className="overflow-hidden rounded-xl border border-st-line bg-st-surface">
                   <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                     <span
                       draggable
@@ -301,7 +379,7 @@ export default function WeekPlanner({ monday }: { monday: string }) {
                       <span className="shrink-0 whitespace-nowrap font-medium">{label(clip)}</span>
                       {!expanded && (
                         <span className="truncate text-sm text-st-muted">
-                          {verses.map((v) => `${v.verse} ${v.text}`).join(" ")}
+                          {clipVerses.map((v) => `${v.verse} ${v.text}`).join(" ")}
                         </span>
                       )}
                     </button>
@@ -319,10 +397,10 @@ export default function WeekPlanner({ monday }: { monday: string }) {
                         </button>
                       ))}
                     </div>
-                    {clips.length > 1 && (
+                    {removable && (
                       <button
                         type="button"
-                        onClick={() => removeClip(clip, isLast)}
+                        onClick={() => removeClip(clip)}
                         aria-label={`移除 ${label(clip)}`}
                         title="移除這段（併入相鄰段落）"
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-st-muted hover:bg-st-soft hover:text-st-ink"
@@ -333,17 +411,19 @@ export default function WeekPlanner({ monday }: { monday: string }) {
                   </div>
                   {expanded && (
                     <div className="border-t border-st-line px-4 py-3 font-serif">
-                      {verses.map((v) => (
-                        <div key={v.verse}>
+                      {clipVerses.map((v, k) => (
+                        <div key={`${v.chapter}:${v.verse}`}>
                           <div className="flex gap-3 py-0.5 text-[15px] leading-[1.9]">
-                            <span className="w-6 shrink-0 text-right font-sans text-xs leading-[2.4] text-st-gold-ink">{v.verse}</span>
+                            <span className={`${spansChapters ? "w-9" : "w-6"} shrink-0 text-right font-sans text-xs leading-[2.4] text-st-gold-ink`}>
+                              {spansChapters ? `${v.chapter}:${v.verse}` : v.verse}
+                            </span>
                             <span>{v.text}</span>
                           </div>
-                          {v.verse < clip.end && (
+                          {clip.start + k < clip.end && (
                             <button
                               type="button"
-                              onClick={() => cut(v.verse)}
-                              aria-label={`在 ${v.verse} 和 ${v.verse + 1} 節之間切開`}
+                              onClick={() => cut(clip.start + k)}
+                              aria-label={`在 ${v.chapter}:${v.verse} 之後切開`}
                               className="flex h-[18px] w-full items-center gap-2 opacity-0 transition hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none"
                             >
                               <span className="flex h-[18px] w-[26px] items-center justify-center rounded-full bg-st-gold text-white">
@@ -357,6 +437,7 @@ export default function WeekPlanner({ monday }: { monday: string }) {
                     </div>
                   )}
                 </section>
+                </Fragment>
               );
             })}
           </div>
@@ -378,9 +459,8 @@ export default function WeekPlanner({ monday }: { monday: string }) {
                 <button
                   type="button"
                   onClick={() => {
-                    const clip = clipOfDay(i);
                     setOpenDay(isOpen ? null : i);
-                    setDraft({ from: clip ? String(clip.start) : "", to: clip ? String(clip.end) : "" });
+                    setDraft(dayRef(i));
                   }}
                   aria-expanded={isOpen}
                   className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
@@ -396,29 +476,22 @@ export default function WeekPlanner({ monday }: { monday: string }) {
                 </button>
                 {isOpen && (
                   <div className="flex flex-col gap-2 border-t border-st-line px-3 py-3 text-sm">
-                    {chapter && (
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span>{chapter.abbr}{chapter.chapter}:</span>
-                        <input type="number" min={1} max={last} aria-label="起始節" value={draft.from} onChange={(e) => setDraft({ ...draft, from: e.target.value })} className={`${stInput} w-16`} />
-                        <span>–</span>
-                        <input type="number" min={1} max={last} aria-label="結束節" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} className={`${stInput} w-16`} />
-                        <button type="button" onClick={() => applyRange(i)} className={stBtnSecondary}>套用</button>
-                      </div>
-                    )}
-                    <label className="flex items-center gap-2">
-                      <span className="shrink-0 text-st-muted">其他經文</span>
+                    <div className="flex items-center gap-2">
+                      <label htmlFor={`day-ref-${i}`} className="shrink-0 text-st-muted">經文</label>
                       <input
+                        id={`day-ref-${i}`}
                         type="text"
-                        value={layout.override[i]}
-                        onChange={(e) => {
-                          const override = [...layout.override];
-                          override[i] = e.target.value;
-                          change({ override });
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.nativeEvent.isComposing) applyRef(i);
                         }}
-                        placeholder="例如 帖前5:1-11"
+                        placeholder={reading ? clipRef(verses, { start: 0, end: Math.min(4, last) }) : "例如 帖前5:1-11"}
                         className={`${stInput} min-w-0 flex-1`}
                       />
-                    </label>
+                      <button type="button" onClick={() => applyRef(i)} className={stBtnSecondary}>套用</button>
+                    </div>
+                    <p className="m-0 text-xs text-st-muted">主日經文裡的段落會切出來派給這天；其他經文照寫的保留。</p>
                     <label className="flex items-center gap-2 text-st-ink-2">
                       <input
                         type="checkbox"

@@ -21,6 +21,7 @@ export function BlockRenderer({ block }: { block: Block }) {
             {block.content.verses?.length ? (
               <VerseBlock
                 verses={block.content.verses}
+                ranges={block.content.ranges}
                 displayMode={block.content.displayMode}
                 className="text-iris-600 italic"
               />

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, dateRuns, localDay, md, mondayOf, mondaysOfYear, weekDays, weekLabel } from "./week";
+import { addDays, dateRuns, localDay, md, mondayOf, mondaysOfYear, weekDays, weekLabel, yearWeekLabel } from "./week";
 
 describe("week helpers", () => {
   it("treats Sunday as the end of the week before", () => {
@@ -21,11 +21,14 @@ describe("week helpers", () => {
     expect(md("2026-01-05")).toBe("1/5");
   });
 
-  it("lists the Mondays that fall in a year", () => {
+  it("lists the weeks whose Saturday falls in a year", () => {
     const mondays = mondaysOfYear(2026);
-    expect(mondays[0]).toBe("2026-01-05");
-    expect(mondays.at(-1)).toBe("2026-12-28");
+    expect(mondays[0]).toBe("2025-12-29");
+    expect(mondays.at(-1)).toBe("2026-12-21");
     expect(mondays).toHaveLength(52);
+    expect(mondaysOfYear(2027)[0]).toBe("2026-12-28");
+    expect(yearWeekLabel(mondays[0])).toBe("12/29 – 1/4");
+    expect(yearWeekLabel(mondays[1])).toBe("1/5 – 1/11");
   });
 
   it("reads timestamps as Taipei calendar days", () => {
