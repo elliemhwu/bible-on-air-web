@@ -8,6 +8,8 @@ import { useAuth } from "@/lib/auth-context";
 import type { ArticleSummary, ArticleQuery, PaginatedResponse, PaginationMeta } from "@/lib/types";
 import ArticleListView from "@/components/studio/ArticleListView";
 import ArticleCalendarView from "@/components/studio/ArticleCalendarView";
+import { StudioPage } from "@/components/studio/shell/StudioHeader";
+import { stBtnPrimary, stSegment, stSegmentItem } from "@/lib/styles";
 
 type Tab = "calendar" | "list";
 
@@ -98,35 +100,30 @@ export default function ArticlesPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-6 flex flex-col gap-5">
-      {/* page header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">文章管理</h1>
-        <Link
-          href="/studio/articles/new"
-          className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-        >
-          + 新增文章
+    <StudioPage>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 border-b border-st-line bg-st-surface px-4 py-3.5 sm:px-8">
+        <h1 className="m-0 text-base font-medium">文章管理</h1>
+        <div role="tablist" aria-label="檢視方式" className={stSegment}>
+          {(["calendar", "list"] as Tab[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={tab === t}
+              onClick={() => setTab(t)}
+              className={stSegmentItem(tab === t)}
+            >
+              {t === "calendar" ? "月曆" : "列表"}
+            </button>
+          ))}
+        </div>
+        <span className="flex-1" />
+        <Link href="/studio/articles/new" className={`${stBtnPrimary} no-underline`}>
+          ＋ 新增文章
         </Link>
       </div>
 
-      {/* tabs */}
-      <div className="flex gap-1 border-b border-gray-200">
-        {(["calendar", "list"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              tab === t
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {t === "calendar" ? "月曆" : "列表"}
-          </button>
-        ))}
-      </div>
-
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-8">
       {/* content */}
       <div className={tab === "calendar" ? "" : "hidden"}>
         <ArticleCalendarView
@@ -149,6 +146,7 @@ export default function ArticlesPage() {
           onArticlesUpdated={handleArticlesUpdated}
         />
       </div>
-    </div>
+      </main>
+    </StudioPage>
   );
 }

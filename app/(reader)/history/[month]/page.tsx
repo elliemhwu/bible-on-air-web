@@ -1,5 +1,6 @@
 import { formatDateTC } from "@/components/reader/ArticleView";
 import { getArticles } from "@/lib/api";
+import { today } from "@/lib/week";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,8 +46,17 @@ export default async function MonthPage({
     pageSize: 31,
   }).catch(() => ({ data: [] }));
 
+  const byDate = new Map(articles.map((a) => [a.date, a]));
+  // Sunday-first grid: blanks before the 1st, then every day, padded to full weeks.
+  // Sundays have no devotion (a link to the Lord's Day sermon may go there later).
+  const lead = new Date(`${month}-01T00:00:00`).getDay();
+  const cells: (string | null)[] = Array(lead).fill(null);
+  for (let d = 1; d <= lastDay; d++) cells.push(`${month}-${String(d).padStart(2, "0")}`);
+  while (cells.length % 7) cells.push(null);
+  const todayStr = today();
+
   return (
-    <main className="mx-auto w-full max-w-2xl px-6 py-10">
+    <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
       <nav className="mb-6 flex items-center justify-between font-sans text-sm">
         <Link href={`/history/${shiftMonth(month, -1)}`} className="text-pebble-500 hover:text-pebble-800">
           ← 上個月
@@ -59,33 +69,60 @@ export default async function MonthPage({
         </Link>
       </nav>
 
-      <h1 className="text-2xl font-bold text-pebble-800 mb-8">{monthLabel(month)}</h1>
+      <h1 className="text-2xl font-bold text-pebble-800 mb-6">{monthLabel(month)}</h1>
 
       {articles.length === 0 ? (
         <p className="text-sm text-pebble-500 font-sans">這個月沒有靈修內容。</p>
       ) : (
-        <ul className="divide-y divide-pebble-200 border-y border-pebble-200">
-          {articles.map((a) => (
-            <li key={a.id}>
-              <Link href={`/${a.date}`} className="flex gap-4 py-4 hover:bg-pebble-100/60 transition-colors">
-                <div className="w-14 shrink-0 text-center font-sans">
-                  <div className="text-xl text-pebble-800">{parseInt(a.date.slice(8))}</div>
-                  <div className="text-xs text-pebble-400">
-                    週{WEEKDAYS[new Date(`${a.date}T00:00:00`).getDay()]}
+        <div className="font-sans">
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-3 pb-2">
+            {WEEKDAYS.map((w) => (
+              <div key={w} className="text-center text-xs text-pebble-400">{w}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
+            {cells.map((date, i) => {
+              if (!date) return <div key={i} />;
+              const a = byDate.get(date);
+              const day = parseInt(date.slice(8));
+              const isToday = date === todayStr;
+              const dayBadge = (
+                <span
+                  className={`absolute left-1 top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] leading-none sm:left-1.5 sm:top-1.5 ${
+                    isToday ? "bg-primary text-white" : a?.coverImageUrl ? "bg-white/85 text-pebble-700" : "text-pebble-500"
+                  }`}
+                >
+                  {day}
+                </span>
+              );
+              if (!a) {
+                return (
+                  <div key={date} className="relative aspect-square rounded-lg bg-pebble-100/60">
+                    {dayBadge}
                   </div>
-                </div>
-                <div className="min-w-0">
-                  <div className="text-base text-pebble-800 leading-snug">
-                    {a.title ?? formatDateTC(a.date)}
+                );
+              }
+              return (
+                <Link key={date} href={`/${date}`} title={a.title ?? formatDateTC(date)} className="group flex min-w-0 flex-col gap-1 no-underline">
+                  <div className="relative aspect-square overflow-hidden rounded-lg border border-pebble-200 bg-white transition group-hover:border-iris-300 group-hover:shadow-sm">
+                    {a.coverImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={a.coverImageUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center p-1 text-center text-[11px] leading-tight text-primary">
+                        {a.verseRange ?? ""}
+                      </div>
+                    )}
+                    {dayBadge}
                   </div>
-                  {a.verseRange && (
-                    <div className="text-sm text-primary font-sans">{a.verseRange}</div>
-                  )}
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  <span className="hidden text-xs leading-snug text-pebble-700 line-clamp-2 group-hover:text-pebble-900 sm:block">
+                    {a.title ?? formatDateTC(date)}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       )}
     </main>
   );
