@@ -18,11 +18,15 @@ export function BlockRenderer({ block }: { block: Block }) {
 
           <div className="relative pl-5 pt-2 py-2">
             <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-iris-300" />
-            <VerseBlock
-              verses={block.content.verses}
-              displayMode={block.content.displayMode}
-              className="text-iris-600 italic"
-            />
+            {block.content.verses?.length ? (
+              <VerseBlock
+                verses={block.content.verses}
+                displayMode={block.content.displayMode}
+                className="text-iris-600 italic"
+              />
+            ) : (
+              <p className="text-sm text-pebble-500">經文暫時無法載入，請稍後再試。</p>
+            )}
           </div>
 
           <p className={`text-right text-sm text-primary mt-2`}>

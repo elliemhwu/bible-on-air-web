@@ -8,7 +8,7 @@ import { stBtnGold, stBtnPrimary, stCard, stSegment, stSegmentItem } from "@/lib
 import type { AssignmentInput, Member, StaffUser, Team } from "@/lib/types";
 import { addDays, md, mondayOf, today, weekDays, weekLabel } from "@/lib/week";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SelectHTMLAttributes } from "react";
 
 const WEEKS = 8;
 
@@ -18,8 +18,22 @@ const TEAMS: Record<Team, { label: string; name: string; unit: string; role: str
   image: { label: "圖片", name: "圖片同工", unit: "每人一週", role: "image_editor", split: false },
 };
 
-const chipSelect =
-  "appearance-none border-none bg-transparent bg-[length:4px_4px,4px_4px] bg-no-repeat pr-5 text-inherit outline-none [background-image:linear-gradient(45deg,transparent_50%,currentColor_50%),linear-gradient(135deg,currentColor_50%,transparent_50%)] [background-position:calc(100%-7px)_55%,calc(100%-3px)_55%] cursor-pointer";
+/** Borderless select with a drawn chevron (the native arrow is hidden) */
+function ChipSelect({ className = "", ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <span className="relative inline-flex items-center">
+      <select
+        {...props}
+        className={`cursor-pointer appearance-none border-none bg-transparent pr-5 text-inherit outline-none ${className}`}
+      />
+      <svg aria-hidden="true" viewBox="0 0 12 12" className="pointer-events-none absolute right-0.5 h-3 w-3 opacity-60">
+        <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
+
+const MIXED = "__mixed";
 
 type Slot = { key: string; label: string; dates: string[] };
 /** date → userId (null = nobody), per team */
@@ -32,10 +46,11 @@ function span(from: string, to: string): string {
 
 function slotsOf(team: Team, monday: string): Slot[] {
   const days = weekDays(monday);
-  if (!TEAMS[team].split) return [{ key: monday, label: "整週", dates: days }];
+  // A whole-week slot needs no label: the row already shows the week
+  if (!TEAMS[team].split) return [{ key: monday, label: "", dates: days }];
   return [
-    { key: `${monday}-a`, label: `一至三 ${span(days[0], days[2])}`, dates: days.slice(0, 3) },
-    { key: `${monday}-b`, label: `四至六 ${span(days[3], days[5])}`, dates: days.slice(3) },
+    { key: `${monday}-a`, label: span(days[0], days[2]), dates: days.slice(0, 3) },
+    { key: `${monday}-b`, label: span(days[3], days[5]), dates: days.slice(3) },
   ];
 }
 
@@ -72,6 +87,8 @@ export default function AssignBoard({ from }: { from?: string }) {
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const [dragging, setDragging] = useState<string | null>(null);
   const [dropOn, setDropOn] = useState<string | null>(null);
+  const [draggingMember, setDraggingMember] = useState<number | null>(null);
+  const [memberDropOn, setMemberDropOn] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -107,7 +124,7 @@ export default function AssignBoard({ from }: { from?: string }) {
   const roster = rosters[team];
   const map = days[team];
   const nameOf = (id: string | null) =>
-    id ? (staff.find((s) => s.id === id)?.name ?? roster.find((m) => m.id === id)?.name ?? "?") : "（未指派）";
+    id ? (staff.find((s) => s.id === id)?.name ?? roster.find((m) => m.id === id)?.name ?? "?") : "未指派";
 
   function setTeamDays(next: DayMap) {
     setDays((prev) => ({ ...prev, [team]: next }));
@@ -119,19 +136,19 @@ export default function AssignBoard({ from }: { from?: string }) {
     setDirtyRosters((prev) => new Set(prev).add(team));
   }
 
-  function moveMember(i: number, dir: -1 | 1) {
-    const j = i + dir;
-    if (j < 0 || j >= roster.length) return;
+  /** Drop the dragged roster member at position `to` */
+  function moveMember(from: number, to: number) {
+    if (from === to) return;
     const next = [...roster];
-    [next[i], next[j]] = [next[j], next[i]];
+    const [m] = next.splice(from, 1);
+    next.splice(to, 0, m);
     setRoster(next);
   }
 
-  /** Changing a slot moves every day that followed the slot's person; exceptions stay */
+  /** Picking a person for the slot puts them on every day of it, single-day changes included */
   function setSlot(slot: Slot, userId: string | null) {
-    const current = slotPerson(slot, map);
     const next = { ...map };
-    for (const d of slot.dates) if (map[d] === current || !map[d]) next[d] = userId;
+    for (const d of slot.dates) next[d] = userId;
     setTeamDays(next);
   }
 
@@ -228,12 +245,24 @@ export default function AssignBoard({ from }: { from?: string }) {
             <span className="whitespace-nowrap text-xs text-st-muted">{roster.length} 人 · 輪流順序</span>
           </div>
           {roster.map((m, i) => (
-            <div key={m.id} className="flex items-center gap-1.5 rounded-[10px] border border-st-line bg-st-surface py-1.5 pl-2.5 pr-1.5">
-              <span className="w-5 text-xs tabular-nums text-st-muted">{i + 1}</span>
-              <span className="min-w-0 flex-1 truncate">{m.name}</span>
-              <button type="button" onClick={() => moveMember(i, -1)} aria-label={`${m.name} 往前`} className="h-7 w-7 rounded text-st-muted hover:bg-st-soft">↑</button>
-              <button type="button" onClick={() => moveMember(i, 1)} aria-label={`${m.name} 往後`} className="h-7 w-7 rounded text-st-muted hover:bg-st-soft">↓</button>
-              <button type="button" onClick={() => setRoster(roster.filter((x) => x.id !== m.id))} aria-label={`從名單移除 ${m.name}`} className="h-7 w-7 rounded text-st-muted hover:bg-st-soft">×</button>
+            <div
+              key={m.id}
+              draggable
+              onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDraggingMember(i); }}
+              onDragOver={(e) => { e.preventDefault(); if (memberDropOn !== i) setMemberDropOn(i); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (draggingMember !== null) moveMember(draggingMember, i);
+                setDraggingMember(null);
+                setMemberDropOn(null);
+              }}
+              onDragEnd={() => { setDraggingMember(null); setMemberDropOn(null); }}
+              className={`flex cursor-grab items-center gap-1.5 rounded-[10px] border bg-st-surface py-1.5 pl-1.5 pr-1.5 ${draggingMember === i ? "opacity-50" : ""} ${memberDropOn === i && draggingMember !== null && draggingMember !== i ? "border-st-gold" : "border-st-line"}`}
+            >
+              <span aria-hidden="true" className="text-xs text-st-faint">⠿</span>
+              <span className="w-4 text-xs tabular-nums text-st-muted">{i + 1}</span>
+              <span className="min-w-0 flex-1 truncate text-sm">{m.name}</span>
+              <button type="button" onClick={() => setRoster(roster.filter((x) => x.id !== m.id))} aria-label={`從名單移除 ${m.name}`} className="h-5 w-5 rounded text-xs leading-none text-st-muted hover:bg-st-soft">×</button>
             </div>
           ))}
           {adding ? (
@@ -284,11 +313,15 @@ export default function AssignBoard({ from }: { from?: string }) {
                   {slotsOf(team, monday).map((slot) => {
                     const person = slotPerson(slot, map);
                     const exceptions = slot.dates.filter((d) => map[d] && map[d] !== person);
+                    // Everyone on the slot's days, in date order (single-day changes make it more than one)
+                    const people = [...new Set(slot.dates.map((d) => map[d] ?? null))];
+                    const mixed = people.length > 1;
                     const open = openDays.has(slot.key);
                     const target = dropOn === slot.key && dragging !== null && dragging !== slot.key;
                     return (
                       <div
                         key={slot.key}
+                        id={`slot-${slot.key}`}
                         onDragOver={(e) => { e.preventDefault(); if (dropOn !== slot.key) setDropOn(slot.key); }}
                         onDrop={(e) => {
                           e.preventDefault();
@@ -297,28 +330,44 @@ export default function AssignBoard({ from }: { from?: string }) {
                           setDragging(null);
                           setDropOn(null);
                         }}
-                        className={`min-w-0 flex-[1_1_220px] rounded-[10px] px-2.5 py-2 ${target ? "border-2 border-dashed border-st-gold bg-st-warm" : "border border-st-line bg-st-sunken"}`}
+                        className={`min-w-0 flex-[1_1_220px] rounded-[10px] py-2 pl-1.5 pr-2.5 ${dragging === slot.key ? "opacity-50" : ""} ${target ? "border-2 border-dashed border-st-gold bg-st-warm" : "border border-st-line bg-st-sunken"}`}
                       >
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="min-w-16 whitespace-nowrap text-xs text-st-muted">{slot.label}</span>
-                          <div
+                          <span
                             draggable
-                            onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDragging(slot.key); }}
+                            onDragStart={(e) => {
+                              e.dataTransfer.effectAllowed = "move";
+                              const block = document.getElementById(`slot-${slot.key}`);
+                              if (block) e.dataTransfer.setDragImage(block, 12, 12);
+                              setDragging(slot.key);
+                            }}
                             onDragEnd={() => { setDragging(null); setDropOn(null); }}
-                            className={`inline-flex h-8 cursor-grab items-center gap-1.5 rounded-full bg-st-soft px-2.5 ${dragging === slot.key ? "opacity-50" : ""}`}
+                            title="拖曳到其他時段即可對調"
+                            aria-hidden="true"
+                            className="cursor-grab px-0.5 text-xs text-st-faint"
                           >
-                            <span aria-hidden="true" className="text-st-faint">⠿</span>
-                            <select
+                            ⠿
+                          </span>
+                          {slot.label && <span className="min-w-16 whitespace-nowrap text-xs text-st-muted">{slot.label}</span>}
+                          <div
+                            className={`inline-flex h-8 items-center rounded-full px-2.5 ${person || mixed ? "bg-st-soft" : "border border-dashed border-st-line-strong"}`}
+                          >
+                            <ChipSelect
                               aria-label={`${md(slot.dates[0])} 起的${meta.name}`}
-                              value={person ?? ""}
+                              value={mixed ? MIXED : (person ?? "")}
                               onChange={(e) => setSlot(slot, e.target.value || null)}
-                              className={`${chipSelect} text-sm ${person ? "" : "text-st-muted"}`}
+                              className={`text-sm ${person || mixed ? "" : "text-st-muted"}`}
                             >
-                              <option value="">（未指派）</option>
+                              {mixed && (
+                                <option value={MIXED} disabled hidden>
+                                  {people.map(nameOf).join("、")}
+                                </option>
+                              )}
+                              <option value="">未指派</option>
                               {options(person).map((m) => (
                                 <option key={m.id} value={m.id}>{m.name}</option>
                               ))}
-                            </select>
+                            </ChipSelect>
                           </div>
                           {meta.split && (
                             <button
@@ -346,17 +395,16 @@ export default function AssignBoard({ from }: { from?: string }) {
                                   className={`inline-flex h-[30px] items-center gap-1.5 rounded-lg border px-2.5 text-[13px] ${changed ? "border-st-gold bg-st-warm" : "border-st-line bg-st-surface"}`}
                                 >
                                   <span>{md(d)}</span>
-                                  <select
+                                  <ChipSelect
                                     aria-label={`${md(d)} 的${meta.name}`}
                                     value={map[d] ?? ""}
                                     onChange={(e) => setTeamDays({ ...map, [d]: e.target.value || null })}
-                                    className={chipSelect}
                                   >
-                                    <option value="">（未指派）</option>
+                                    <option value="">未指派</option>
                                     {options(map[d] ?? null).map((m) => (
                                       <option key={m.id} value={m.id}>{m.name}</option>
                                     ))}
-                                  </select>
+                                  </ChipSelect>
                                 </label>
                               );
                             })}

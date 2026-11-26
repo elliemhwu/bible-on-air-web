@@ -21,7 +21,7 @@ import type { Article, ArticleComment, Block, BlockInput } from "@/lib/types";
 import { isReviewed, useWeek, writingState, type DayInfo } from "@/lib/useWeek";
 import { formatVerseRef } from "@/lib/utils";
 import { addDays, fullDate, localDay, md, mondayOf, today, weekLabel } from "@/lib/week";
-import { blockContent, readingBlock } from "@/lib/writing";
+import { blockContent } from "@/lib/writing";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -163,8 +163,6 @@ function ReviewBoard({ monday, date, onPick }: { monday: string; date?: string; 
   }
 
   const writer = selected?.assignees.writer?.userName;
-  const reading = readingBlock(article);
-  const passage = reading?.content.ranges.length ? formatVerseRef(reading.content.ranges) : selected?.passage;
   const highlight = (id: string) => (changed.has(id) ? "rounded-md bg-st-highlight -mx-2 px-2" : "");
 
   return (
@@ -246,7 +244,7 @@ function ReviewBoard({ monday, date, onPick }: { monday: string; date?: string; 
 
           {article && (
             <article className="flex w-full max-w-[680px] flex-col gap-6 rounded-md bg-st-surface px-6 pb-14 pt-10 sm:px-13">
-              <div className="text-xs tracking-[.06em] text-st-gold-ink">{fullDate(article.date)}{passage ? ` · ${passage}` : ""}</div>
+              <div className="text-xs tracking-[.06em] text-st-gold-ink">{fullDate(article.date)}</div>
               {editable ? (
                 <input
                   aria-label="標題"
@@ -259,7 +257,26 @@ function ReviewBoard({ monday, date, onPick }: { monday: string; date?: string; 
               )}
               {blocks.map((b) => {
                 if (b.type === "verse") {
-                  if (b.subheading === null) return null;
+                  // The day's reading: the reference as its label, the passage below
+                  if (b.subheading === null) {
+                    return (
+                      <div key={b.id} className="flex flex-col gap-2">
+                        <div className={sectionLabel}>{formatVerseRef(b.content.ranges) || "經文"}</div>
+                        {b.content.verses?.length ? (
+                          <ol className="m-0 list-none pl-0 font-serif text-[17px] leading-[1.9] text-st-accent">
+                            {b.content.verses.map((v) => (
+                              <li key={`${v.chapter}:${v.verse}`} className="flex gap-2">
+                                <span className="shrink-0 text-xs tabular-nums leading-[2.6] text-st-muted">{v.verse}</span>
+                                <span>{v.text}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        ) : (
+                          <p className="m-0 text-sm text-st-muted">經文暫時無法載入</p>
+                        )}
+                      </div>
+                    );
+                  }
                   return (
                     <div key={b.id} className="flex flex-col gap-2">
                       <div className={sectionLabel}>{b.subheading}</div>
@@ -278,7 +295,7 @@ function ReviewBoard({ monday, date, onPick }: { monday: string; date?: string; 
                         editable ? (
                           <QuestionsBlockEditor appearance="paper" items={b.content.items} onChange={(items) => patchBlock(b.id, { items })} />
                         ) : (
-                          <ol className="m-0 pl-6 text-base leading-[1.9]">
+                          <ol className="m-0 list-decimal pl-6 text-base leading-[1.9] marker:text-st-muted">
                             {b.content.items.map((q, i) => <li key={i}>{q}</li>)}
                           </ol>
                         )

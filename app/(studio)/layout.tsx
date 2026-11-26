@@ -40,5 +40,6 @@ export default function StudioLayout({
 
   if (!token) return null;
 
-  return <>{children}</>;
+  // Studio screens default to the sans face (the reader stays serif)
+  return <div className="font-sans">{children}</div>;
 }

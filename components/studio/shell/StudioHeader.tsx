@@ -19,7 +19,6 @@ function navFor(user: ReturnType<typeof useAuth>["user"]): { main: NavItem[]; mo
   if (canEdit(user)) more.push({ href: "/studio/sync", label: "從舊網站同步" });
   more.push({ href: "/studio/print", label: "列印 / PDF" });
   if (canPublish(user)) more.push({ href: "/studio/about", label: "關於頁" });
-  more.push({ href: "/", label: "前台" });
 
   if (isManager(user)) {
     return {
@@ -55,12 +54,12 @@ export default function StudioHeader() {
 
   return (
     <header className="flex flex-wrap items-center gap-x-7 gap-y-2 border-b border-st-line bg-st-surface px-4 py-3 sm:px-8">
-      <Link href="/studio" className="font-serif text-lg font-semibold text-st-ink no-underline">
+      <Link href="/" className="font-serif text-lg font-semibold text-st-ink no-underline">
         Bible On Air
       </Link>
       <nav className="flex flex-1 flex-wrap gap-1" aria-label="後台">
-        {main.map((item) => {
-          const active = pathname.startsWith(item.href);
+        {[{ href: "/studio", label: "Studio" }, ...main].map((item) => {
+          const active = item.href === "/studio" ? pathname === "/studio" : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}

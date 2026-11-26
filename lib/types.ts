@@ -112,6 +112,8 @@ export type VerseBlock = {
     ranges: VerseRange[];
     verses: Verse[];
     displayMode?: VerseDisplayMode;
+    /** Set by the API when the Bible lookup failed; `verses` is then empty. */
+    versesUnavailable?: boolean;
   };
   createdAt: string;
   updatedAt: string;
