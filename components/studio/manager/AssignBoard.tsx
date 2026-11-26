@@ -6,16 +6,19 @@ import { useAuth } from "@/lib/auth-context";
 import { isManager, leadTeams } from "@/lib/roles";
 import { stBtnGold, stBtnPrimary, stCard, stSegment, stSegmentItem } from "@/lib/styles";
 import type { AssignmentInput, Member, StaffUser, Team } from "@/lib/types";
-import { addDays, md, mondayOf, today, weekDays, weekLabel } from "@/lib/week";
+import { addDays, md, mondayOf, mondaysOfYear, today, weekDays, yearWeekLabel } from "@/lib/week";
 import Link from "next/link";
 import { useEffect, useState, type SelectHTMLAttributes } from "react";
 
-const WEEKS = 8;
+const arrow =
+  "flex h-8 w-8 items-center justify-center rounded-lg text-lg text-st-ink-2 no-underline hover:bg-st-sunken hover:text-st-ink";
 
-const TEAMS: Record<Team, { label: string; name: string; unit: string; role: string; split: boolean }> = {
-  writer: { label: "寫作", name: "寫作同工", unit: "每人 3 天（一至三、四至六）", role: "editor", split: true },
-  reviewer: { label: "校稿", name: "校稿同工", unit: "每人一週", role: "reviewer", split: false },
-  image: { label: "圖片", name: "圖片同工", unit: "每人一週", role: "image_editor", split: false },
+const EMPTY = (): Record<Team, DayMap> => ({ writer: {}, reviewer: {}, image: {} });
+
+const TEAMS: Record<Team, { label: string; name: string; role: string; split: boolean }> = {
+  writer: { label: "寫作", name: "寫作同工", role: "editor", split: true },
+  reviewer: { label: "校稿", name: "校稿同工", role: "reviewer", split: false },
+  image: { label: "圖片", name: "圖片同工", role: "image_editor", split: false },
 };
 
 /** Borderless select with a drawn chevron (the native arrow is hidden) */
@@ -66,12 +69,16 @@ function slotPerson(slot: Slot, map: DayMap): string | null {
   return best;
 }
 
-/** 分派: deal each team's rota across the coming weeks */
-export default function AssignBoard({ from }: { from?: string }) {
+/** 分派: deal each team's rota across the weeks of a year */
+export default function AssignBoard({ year }: { year: number }) {
   const { token, user } = useAuth();
-  const start = from ?? mondayOf(today());
-  const mondays = Array.from({ length: WEEKS }, (_, i) => addDays(start, i * 7));
-  const end = addDays(mondays[WEEKS - 1], 5);
+  const mondays = mondaysOfYear(year);
+  const start = mondays[0];
+  const end = addDays(mondays[mondays.length - 1], 5);
+  const thisWeek = mondayOf(today());
+  // 自動填入 deals from this week on, leaving the weeks already served alone
+  const fillFrom = thisWeek > start ? thisWeek : start;
+  const canFill = fillFrom <= end;
 
   const [picked, setTeam] = useState<Team>("writer");
   // Managers schedule every team, a team lead only the teams they lead
@@ -79,9 +86,10 @@ export default function AssignBoard({ from }: { from?: string }) {
   const team = teams.includes(picked) ? picked : (teams[0] ?? "writer");
   const [staff, setStaff] = useState<StaffUser[]>([]);
   const [rosters, setRosters] = useState<Record<Team, Member[]>>({ writer: [], reviewer: [], image: [] });
-  const [days, setDays] = useState<Record<Team, DayMap>>({ writer: {}, reviewer: {}, image: {} });
-  /** Who served last before this range, so the rota continues from them */
-  const [lastBefore, setLastBefore] = useState<Record<Team, string | null>>({ writer: null, reviewer: null, image: null });
+  const [days, setDays] = useState<Record<Team, DayMap>>(EMPTY);
+  /** As loaded or last saved, so saving sends only the days that changed */
+  const [savedDays, setSavedDays] = useState<Record<Team, DayMap>>(EMPTY);
+  const [loaded, setLoaded] = useState(false);
   const [dirtyTeams, setDirtyTeams] = useState<Set<Team>>(new Set());
   const [dirtyRosters, setDirtyRosters] = useState<Set<Team>>(new Set());
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
@@ -99,26 +107,28 @@ export default function AssignBoard({ from }: { from?: string }) {
     Promise.all([
       getStaff(token),
       getRosters(token),
-      getAssignments(token, addDays(start, -42), addDays(start, WEEKS * 7)),
+      getAssignments(token, addDays(start, -42), end),
     ]).then(([people, rs, assigned]) => {
       if (!live) return;
       setStaff(people);
       setRosters(Object.fromEntries(rs.map((r) => [r.team, r.members])) as Record<Team, Member[]>);
-      const map: Record<Team, DayMap> = { writer: {}, reviewer: {}, image: {} };
-      const before: Record<Team, string | null> = { writer: null, reviewer: null, image: null };
-      for (const a of assigned) {
-        if (a.date < start) before[a.team] = a.userId;
-        else map[a.team][a.date] = a.userId;
-      }
+      const map = EMPTY();
+      for (const a of assigned) map[a.team][a.date] = a.userId;
       setDays(map);
-      setLastBefore(before);
+      setSavedDays(map);
       setDirtyTeams(new Set());
       setDirtyRosters(new Set());
+      setLoaded(true);
     });
     return () => {
       live = false;
     };
-  }, [token, start]);
+  }, [token, start, end]);
+
+  // Open at this week once the year has loaded
+  useEffect(() => {
+    if (loaded) document.getElementById("this-week")?.scrollIntoView({ block: "center" });
+  }, [loaded, year]);
 
   const meta = TEAMS[team];
   const roster = rosters[team];
@@ -162,11 +172,13 @@ export default function AssignBoard({ from }: { from?: string }) {
   }
 
   function autofill() {
-    if (roster.length === 0) return;
-    const last = roster.findIndex((m) => m.id === lastBefore[team]);
-    let k = last + 1;
-    const next: DayMap = {};
-    for (const monday of mondays) {
+    if (roster.length === 0 || !canFill) return;
+    // Continue the rota from whoever served last before this week
+    const before = Object.keys(map).filter((d) => d < fillFrom && map[d]).sort();
+    const lastId = before.length ? map[before[before.length - 1]] : null;
+    let k = roster.findIndex((m) => m.id === lastId) + 1;
+    const next: DayMap = Object.fromEntries(Object.entries(map).filter(([d]) => d < fillFrom));
+    for (const monday of mondays.filter((m) => m >= fillFrom)) {
       for (const slot of slotsOf(team, monday)) {
         const id = roster[k % roster.length].id;
         for (const d of slot.dates) next[d] = id;
@@ -186,10 +198,14 @@ export default function AssignBoard({ from }: { from?: string }) {
       const items: AssignmentInput[] = [];
       for (const t of dirtyTeams) {
         for (const monday of mondays) {
-          for (const date of weekDays(monday)) items.push({ date, team: t, userId: days[t][date] ?? null });
+          for (const date of weekDays(monday)) {
+            const userId = days[t][date] ?? null;
+            if (userId !== (savedDays[t][date] ?? null)) items.push({ date, team: t, userId });
+          }
         }
       }
       if (items.length) await saveAssignments(token, items);
+      setSavedDays(days);
       setDirtyTeams(new Set());
       setDirtyRosters(new Set());
       setStatus("已儲存");
@@ -225,21 +241,30 @@ export default function AssignBoard({ from }: { from?: string }) {
             </button>
           ))}
         </div>
-        <span className="flex items-center gap-1 text-sm text-st-ink-2">
-          <Link href={`/studio/assign?from=${addDays(start, -28)}`} aria-label="往前四週" className="rounded px-1.5 no-underline hover:bg-st-soft">‹</Link>
-          {md(start)} – {md(end)} · {meta.unit}
-          <Link href={`/studio/assign?from=${addDays(start, 28)}`} aria-label="往後四週" className="rounded px-1.5 no-underline hover:bg-st-soft">›</Link>
-        </span>
+        <div className="flex items-center">
+          <Link href={`/studio/assign?year=${year - 1}`} aria-label="上一年" className={arrow}>‹</Link>
+          <span className="px-1 font-serif text-lg font-semibold tabular-nums">{year} 年</span>
+          <Link href={`/studio/assign?year=${year + 1}`} aria-label="下一年" className={arrow}>›</Link>
+        </div>
         <span className="flex-1" />
         {status && <span className="text-sm text-st-muted" aria-live="polite">{status}</span>}
-        <button type="button" onClick={autofill} disabled={roster.length === 0} className={stBtnGold}>依名單自動填入</button>
+        <button
+          type="button"
+          onClick={autofill}
+          disabled={roster.length === 0 || !canFill}
+          title={fillFrom > start ? "本週以前的分派不會變動" : undefined}
+          className={stBtnGold}
+        >
+          {fillFrom > start ? "從本週起自動填入" : "依名單自動填入"}
+        </button>
         <button type="button" onClick={save} disabled={saving || !dirty} className={stBtnPrimary}>
           {saving ? "儲存中…" : "儲存"}
         </button>
       </div>
 
       <div className="flex flex-1 flex-wrap items-stretch">
-        <aside className="flex min-w-0 flex-[1_1_220px] flex-col gap-1.5 border-r border-st-line bg-st-sunken px-3.5 py-4 lg:max-w-[260px]">
+        <aside className="min-w-0 flex-[1_1_220px] border-r border-st-line bg-st-sunken px-3.5 py-4 lg:max-w-[260px]">
+          <div className="flex flex-col gap-1.5 lg:sticky lg:top-4">
           <div className="flex flex-wrap items-baseline justify-between gap-x-2 px-1.5 pb-1.5">
             <span className="whitespace-nowrap font-medium">{meta.name}</span>
             <span className="whitespace-nowrap text-xs text-st-muted">{roster.length} 人 · 輪流順序</span>
@@ -300,14 +325,23 @@ export default function AssignBoard({ from }: { from?: string }) {
           {roster.length === 0 && (
             <p className="px-1.5 text-xs text-st-muted">先把同工加進名單，就能依序自動填入。</p>
           )}
+          </div>
         </aside>
 
         <main className="min-w-0 flex-[999_1_560px] px-4 py-5 sm:px-8">
           <section className={`${stCard} overflow-hidden`}>
-            {mondays.map((monday) => (
-              <div key={monday} className="grid grid-cols-[120px_minmax(0,1fr)] border-b border-st-bg last:border-0 sm:grid-cols-[140px_minmax(0,1fr)]">
+            {!loaded && <p className="m-0 px-4 py-8 text-center text-sm text-st-muted">載入中…</p>}
+            {loaded && mondays.map((monday, w) => (
+              <div
+                key={monday}
+                id={monday === thisWeek ? "this-week" : undefined}
+                className={`grid grid-cols-[120px_minmax(0,1fr)] border-b border-st-bg last:border-0 sm:grid-cols-[140px_minmax(0,1fr)] ${monday === thisWeek ? "bg-st-warm" : ""}`}
+              >
                 <div className="flex flex-col gap-0.5 px-4 py-3.5">
-                  <span className="whitespace-nowrap font-medium tabular-nums">{weekLabel(monday)}</span>
+                  <span className="text-xs text-st-muted">
+                    第 {w + 1} 週{monday === thisWeek && <span className="ml-1 text-st-gold-ink">本週</span>}
+                  </span>
+                  <span className="whitespace-nowrap font-medium tabular-nums">{yearWeekLabel(monday)}</span>
                 </div>
                 <div className="flex flex-wrap gap-2.5 px-3 py-2.5">
                   {slotsOf(team, monday).map((slot) => {

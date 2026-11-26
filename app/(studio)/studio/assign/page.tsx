@@ -1,9 +1,9 @@
 import AssignBoard from "@/components/studio/manager/AssignBoard";
-import { mondayOf } from "@/lib/week";
+import { today } from "@/lib/week";
 
 export const metadata = { title: "分派｜Bible On Air" };
 
-export default async function AssignPage({ searchParams }: { searchParams: Promise<{ from?: string }> }) {
-  const { from } = await searchParams;
-  return <AssignBoard from={from ? mondayOf(from) : undefined} />;
+export default async function AssignPage({ searchParams }: { searchParams: Promise<{ year?: string }> }) {
+  const { year } = await searchParams;
+  return <AssignBoard year={Number(year) || Number(today().slice(0, 4))} />;
 }

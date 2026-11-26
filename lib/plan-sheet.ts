@@ -20,7 +20,8 @@ function iso([y, m, d]: readonly [number, number, number]): string {
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-function parseDay(cell = ""): PlanDay {
+/** "加拉太書鳥瞰" → { ref: "加拉太書", overview: true } */
+export function parseDay(cell = ""): PlanDay {
   const overview = OVERVIEW_RE.test(cell);
   const ref = cell.replace(OVERVIEW_RE, "").trim();
   return overview ? { ref, overview } : { ref };

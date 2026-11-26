@@ -5,7 +5,7 @@ import { fetchYear } from "@/components/studio/manager/YearPlan";
 import { StudioPage } from "@/components/studio/shell/StudioHeader";
 import { getBibleBooks, savePlan } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { stCard } from "@/lib/styles";
+import { stCard, stCellInput } from "@/lib/styles";
 import { parsePassages } from "@/lib/passage";
 import type { BibleBook, WeekPlan } from "@/lib/types";
 import { addDays, md, mondayOf, mondaysOfYear, today, WEEKDAYS, yearWeekLabel } from "@/lib/week";
@@ -15,9 +15,6 @@ import { useEffect, useRef, useState } from "react";
 type Field = "sundayTheme" | "sundayPassage" | "note";
 type Draft = Partial<Record<Field, string>>;
 type RowState = "saving" | "saved" | "error";
-
-const cell =
-  "w-full min-w-0 rounded-lg border border-transparent bg-transparent px-2.5 py-1.5 text-sm text-st-ink placeholder:text-st-placeholder outline-none transition hover:border-st-line focus:border-st-accent focus:bg-st-surface focus:ring-2 focus:ring-st-accent/20";
 
 const ROW_STATE: Record<RowState, { text: string; cls: string }> = {
   saving: { text: "儲存中…", cls: "text-st-muted" },
@@ -118,11 +115,6 @@ export default function SermonPlan({ year }: { year: number }) {
       </PlanToolbar>
 
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-5 sm:px-8">
-        <p className="m-0 text-sm text-st-muted">
-          先排好每週主日的講道主題與經文，再按「切分 ›」進到那一週，把經文分給週一到週六。離開欄位就會儲存。
-          經文可以是一章（賽61）、一段（約1:1-34）或好幾段：同一卷書用「、」分開（羅3:19-24、4:1-8），不同書卷用「；」（路4:15-21；賽61）。
-        </p>
-
         <section className={`${stCard} overflow-hidden`}>
           <div className="hidden grid-cols-[3.5rem_6.5rem_minmax(0,1fr)_11rem_9rem_5.5rem] gap-2 border-b border-st-line bg-st-sunken px-4 py-2 text-xs text-st-muted sm:grid">
             <span>週次</span>
@@ -176,7 +168,7 @@ export default function SermonPlan({ year }: { year: number }) {
                           data-field="sundayTheme"
                           maxLength={200}
                           aria-label={`${md(sunday)} 講道主題`}
-                          className={`${cell} font-medium`}
+                          className={`${stCellInput} font-medium`}
                         />
                       </span>
                       <span className="col-span-2 row-start-3 flex flex-col sm:col-span-1 sm:row-start-auto">
@@ -187,10 +179,9 @@ export default function SermonPlan({ year }: { year: number }) {
                           data-row={i}
                           data-field="sundayPassage"
                           maxLength={100}
-                          placeholder="經文"
                           aria-label={`${md(sunday)} 主日經文`}
                           aria-invalid={passageErrors.length > 0}
-                          className={`${cell} ${passageErrors.length ? "!border-st-danger" : ""}`}
+                          className={`${stCellInput} ${passageErrors.length ? "!border-st-danger" : ""}`}
                         />
                         {passageErrors.length > 0 && (
                           <span className="px-2.5 text-xs text-st-danger">{passageErrors.join("；")}</span>
@@ -205,7 +196,7 @@ export default function SermonPlan({ year }: { year: number }) {
                           data-field="note"
                           maxLength={200}
                           aria-label={`${md(sunday)} 節期與備註`}
-                          className={`${cell} text-st-ink-2`}
+                          className={`${stCellInput} text-st-ink-2`}
                         />
                       </span>
                       <span className="col-start-3 row-start-1 flex flex-col items-end text-xs sm:col-start-auto sm:row-start-auto">

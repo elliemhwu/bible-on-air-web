@@ -4,12 +4,12 @@ import PlanToolbar from "@/components/studio/manager/PlanToolbar";
 import { StudioPage } from "@/components/studio/shell/StudioHeader";
 import { getPlans, savePlan } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { stBtnPrimary, stBtnSecondary, stCard } from "@/lib/styles";
-import { parseSheet } from "@/lib/plan-sheet";
+import { stBtnPrimary, stBtnSecondary, stCard, stCellInput } from "@/lib/styles";
+import { parseDay, parseSheet } from "@/lib/plan-sheet";
 import type { WeekPlan } from "@/lib/types";
 import { addDays, md, mondayOf, mondaysOfYear, today, WEEKDAYS, yearWeekLabel } from "@/lib/week";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 function ImportDialog({ year, onDone, onClose }: { year: number; onDone: () => void; onClose: () => void }) {
   const { token } = useAuth();
@@ -71,13 +71,142 @@ export async function fetchYear(token: string, year: number): Promise<Map<string
   return new Map(list.map((p) => [p.weekStart, p]));
 }
 
-/** 進度安排・年度: every week of the year with its passages */
+type Draft = { days?: string[]; sundayPassage?: string };
+type RowState = "saving" | "saved" | "error";
+
+const ROW_STATE: Record<RowState, { text: string; cls: string }> = {
+  saving: { text: "儲存中…", cls: "text-st-muted" },
+  saved: { text: "已儲存", cls: "text-st-sage-ink" },
+  error: { text: "儲存失敗", cls: "text-st-danger" },
+};
+
+const GRID = "grid min-w-[1040px] grid-cols-[10rem_minmax(8rem,1.2fr)_repeat(6,minmax(6.5rem,1fr))_4.5rem] items-start";
+
+// Enter moves down to the same column of the next week, like a spreadsheet
+function nextWeek(e: React.KeyboardEvent<HTMLInputElement>, week: number, field: string) {
+  if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+  e.preventDefault();
+  document.querySelector<HTMLInputElement>(`[data-week="${week + 1}"][data-field="${field}"]`)?.focus();
+}
+
+/** One week: the Sunday passage, Mon–Sat passages, and the way into 切分 */
+function WeekRow({
+  monday,
+  index,
+  plan,
+  current,
+  onSaved,
+}: {
+  monday: string;
+  index: number;
+  plan: WeekPlan | undefined;
+  current: boolean;
+  onSaved: (plan: WeekPlan) => void;
+}) {
+  const { token } = useAuth();
+  const [draft, setDraft] = useState<Draft>({});
+  const [state, setState] = useState<RowState | null>(null);
+
+  const dayText = (i: number) => draft.days?.[i] ?? plan?.days[i]?.ref ?? "";
+  const passage = draft.sundayPassage ?? plan?.sundayPassage ?? "";
+  const split = plan?.days.filter((d) => d.ref).length ?? 0;
+  // 「聖誕主日-馬槽的嬰孩」: the season or note, then the Sunday theme, whichever are there
+  const heading = [plan?.note, plan?.sundayTheme].filter(Boolean).join("-");
+
+  function setDay(i: number, text: string) {
+    const days = WEEKDAYS.map((_, k) => dayText(k));
+    days[i] = text;
+    setDraft((d) => ({ ...d, days }));
+  }
+
+  async function save() {
+    if (!token || (draft.days === undefined && draft.sundayPassage === undefined)) return;
+    // "加拉太書鳥瞰" marks an overview day; otherwise a day keeps its 鳥瞰 mark
+    const days = WEEKDAYS.map((_, i) => {
+      const typed = parseDay(dayText(i));
+      return typed.overview || !plan?.days[i]?.overview || !typed.ref ? typed : { ...typed, overview: true };
+    });
+    const next = { sundayTheme: plan?.sundayTheme ?? null, sundayPassage: passage.trim() || null, days };
+    const unchanged =
+      next.sundayPassage === (plan?.sundayPassage ?? null) &&
+      days.every((d, i) => d.ref === (plan?.days[i]?.ref ?? "") && !!d.overview === !!plan?.days[i]?.overview);
+    if (unchanged) {
+      setDraft({});
+      return;
+    }
+    setState("saving");
+    try {
+      onSaved(await savePlan(token, monday, next));
+      setDraft({});
+      setState("saved");
+    } catch {
+      setState("error");
+    }
+  }
+
+  return (
+    <div
+      id={current ? "this-week" : undefined}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) save();
+      }}
+      className={`${GRID} border-b border-st-line/70 text-sm last:border-0 ${current ? "bg-st-warm" : ""}`}
+    >
+      <div className={`sticky left-0 z-10 flex flex-col gap-0.5 self-stretch py-2.5 pl-4 pr-1 ${current ? "bg-st-warm" : "bg-st-surface"}`}>
+        <span className="text-xs text-st-muted">
+          第 {index + 1} 週{current && <span className="ml-1 text-st-gold-ink">本週</span>}
+        </span>
+        <span className="whitespace-nowrap font-medium tabular-nums">{yearWeekLabel(monday)}</span>
+        {heading && <span className="text-xs leading-snug text-st-ink-2">{heading}</span>}
+        {state && <span className={`text-xs ${ROW_STATE[state].cls}`}>{ROW_STATE[state].text}</span>}
+      </div>
+
+      <div className="px-1.5 pt-1.5">
+        <input
+          value={passage}
+          onChange={(e) => setDraft((d) => ({ ...d, sundayPassage: e.target.value }))}
+          onKeyDown={(e) => nextWeek(e, index, "sundayPassage")}
+          data-week={index}
+          data-field="sundayPassage"
+          maxLength={100}
+          aria-label={`第 ${index + 1} 週主日經文`}
+          className={`${stCellInput} text-st-gold-ink`}
+        />
+      </div>
+
+      {WEEKDAYS.map((d, i) => (
+        <div key={d} className="flex flex-col px-1.5 pt-1.5">
+          <input
+            value={dayText(i)}
+            onChange={(e) => setDay(i, e.target.value)}
+            onKeyDown={(e) => nextWeek(e, index, `day${i}`)}
+            data-week={index}
+            data-field={`day${i}`}
+            maxLength={100}
+            aria-label={`${md(addDays(monday, i))} 週${d}經文`}
+            className={stCellInput}
+          />
+          {plan?.days[i]?.overview && draft.days === undefined && (
+            <span className="ml-2 self-start rounded-full bg-st-soft px-2 text-xs text-st-ink-2">鳥瞰</span>
+          )}
+        </div>
+      ))}
+
+      <div className="px-3 pt-3">
+        <Link href={`/studio/plan/${monday}`} className="whitespace-nowrap text-xs text-st-accent no-underline hover:underline">
+          {split === 6 ? "已切分 ›" : split ? `${split}/6 ›` : "切分 ›"}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/** 進度安排・每日經文: every week of the year, its days and Sunday edited in place */
 export default function YearPlan({ year }: { year: number }) {
   const { token } = useAuth();
-  const [plans, setPlans] = useState<Map<string, WeekPlan>>(new Map());
+  const [plans, setPlans] = useState<Map<string, WeekPlan> | null>(null);
   const [importing, setImporting] = useState(false);
   const thisWeek = mondayOf(today());
-  const currentRow = useRef<HTMLAnchorElement>(null);
   const mondays = mondaysOfYear(year);
 
   useEffect(() => {
@@ -93,55 +222,39 @@ export default function YearPlan({ year }: { year: number }) {
     if (token) setPlans(await fetchYear(token, year));
   };
 
+  // Open at this week once the year has loaded, not after every save
+  const loaded = plans !== null;
   useEffect(() => {
-    currentRow.current?.scrollIntoView({ block: "center" });
-  }, [plans]);
+    if (loaded) document.getElementById("this-week")?.scrollIntoView({ block: "center" });
+  }, [loaded, year]);
 
   return (
     <StudioPage>
       <PlanToolbar view="days" year={year}>
         <button type="button" onClick={() => setImporting(true)} className={stBtnSecondary}>匯入試算表</button>
       </PlanToolbar>
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-8">
-
+      <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-5 px-4 py-5 sm:px-8">
         <section className={`${stCard} overflow-x-auto`}>
-          <div className="grid min-w-[890px] grid-cols-[180px_repeat(6,minmax(0,1fr))] border-b border-st-line text-xs text-st-muted">
-            <div className="px-4 py-3">週次</div>
+          <div className={`${GRID} border-b border-st-line text-xs text-st-muted`}>
+            <div className="sticky left-0 z-10 bg-st-surface py-3 pl-4">週次</div>
+            <div className="px-3.5 py-3">主日經文</div>
             {WEEKDAYS.map((d) => (
-              <div key={d} className="px-3 py-3">{d}</div>
+              <div key={d} className="px-3.5 py-3">週{d}</div>
             ))}
+            <div className="px-3 py-3">切分</div>
           </div>
-          {mondays.map((monday, i) => {
-            const plan = plans.get(monday);
-            const current = monday === thisWeek;
-            return (
-              <Link
+          {!plans && <p className="m-0 px-4 py-8 text-center text-sm text-st-muted">載入中…</p>}
+          {plans &&
+            mondays.map((monday, i) => (
+              <WeekRow
                 key={monday}
-                ref={current ? currentRow : undefined}
-                href={`/studio/plan/${monday}`}
-                className={`grid min-w-[890px] grid-cols-[180px_repeat(6,minmax(0,1fr))] border-b border-st-line/70 text-sm text-st-ink no-underline last:border-0 hover:bg-st-sunken ${current ? "bg-st-warm" : ""}`}
-              >
-                <div className="flex flex-col gap-0.5 px-4 py-3">
-                  <span className="text-xs text-st-muted">第 {i + 1} 週</span>
-                  <span className="whitespace-nowrap font-medium tabular-nums">{yearWeekLabel(monday)}</span>
-                  {plan?.sundayTheme && <span className="text-xs text-st-ink-2">{plan.sundayTheme}</span>}
-                  {plan?.sundayPassage && <span className="text-xs text-st-gold-ink">{plan.sundayPassage}</span>}
-                  {plan?.note && <span className="text-xs text-st-muted">{plan.note}</span>}
-                </div>
-                {WEEKDAYS.map((_, i) => {
-                  const day = plan?.days[i];
-                  return (
-                    <div key={i} className="flex flex-col gap-1 px-3 py-3">
-                      {day?.ref && <span>{day.ref}</span>}
-                      {day?.overview && (
-                        <span className="self-start rounded-full bg-st-soft px-2 text-xs text-st-ink-2">鳥瞰</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </Link>
-            );
-          })}
+                monday={monday}
+                index={i}
+                plan={plans.get(monday)}
+                current={monday === thisWeek}
+                onSaved={(saved) => setPlans((p) => new Map(p).set(monday, saved))}
+              />
+            ))}
         </section>
       </main>
       {importing && (
