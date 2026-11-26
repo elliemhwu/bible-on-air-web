@@ -94,6 +94,22 @@ export async function getMe(token: string): Promise<AuthUser> {
   return data;
 }
 
+/** Change one's own name or picture (null removes it) */
+export async function updateMe(
+  token: string,
+  changes: { name?: string; avatarUrl?: string | null },
+): Promise<AuthUser> {
+  const { data } = await apiClient.patch<AuthUser>("/auth/me", changes, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
+/** Rejects with 400 when the current password is wrong */
+export async function changePassword(token: string, currentPassword: string, password: string): Promise<void> {
+  await apiClient.post("/auth/me/password", { currentPassword, password }, { headers: authHeaders(token) });
+}
+
 export async function getArticleTemplates(
   token: string,
 ): Promise<ArticleTemplate[]> {

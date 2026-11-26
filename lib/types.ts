@@ -224,6 +224,8 @@ export type AuthUser = {
   id: string;
   email: string;
   name: string;
+  /** Profile picture (/uploads/...); missing in older sessions */
+  avatarUrl?: string | null;
   roles: string[];
   /** Missing in sessions stored before teams existed */
   teams?: TeamRoles;

@@ -1,10 +1,11 @@
 "use client";
 
+import Avatar from "@/components/studio/shell/Avatar";
 import { useAuth } from "@/lib/auth-context";
 import { canEdit, canPublish, isImageEditor, isManager, isReviewer, isWriter, leadTeams } from "@/lib/roles";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 type NavItem = { href: string; label: string };
 
@@ -49,8 +50,26 @@ export default function StudioHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const menuRef = useRef<HTMLDetailsElement>(null);
+  const accountRef = useRef<HTMLDetailsElement>(null);
   const { main, more } = navFor(user);
   const closeMenu = () => menuRef.current?.removeAttribute("open");
+  const closeAccount = () => accountRef.current?.removeAttribute("open");
+
+  // Either menu closes on a click outside it or on Escape
+  useEffect(() => {
+    function close(e: Event) {
+      for (const menu of [menuRef.current, accountRef.current]) {
+        if (!menu?.open) continue;
+        if (e instanceof KeyboardEvent ? e.key === "Escape" : !menu.contains(e.target as Node)) menu.removeAttribute("open");
+      }
+    }
+    document.addEventListener("click", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("click", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, []);
 
   return (
     <header className="flex flex-wrap items-center justify-between print:hidden gap-x-7 gap-y-1 border-b border-st-line bg-st-surface px-4 py-2.5 md:flex-nowrap md:justify-start sm:px-8 md:py-3">
@@ -87,29 +106,41 @@ export default function StudioHeader() {
                 {item.label}
               </Link>
             ))}
-            <button
-              type="button"
-              onClick={() => {
-                closeMenu();
-                clearAuth();
-                router.replace("/login");
-              }}
-              className="px-4 py-2 text-left text-sm text-st-muted hover:bg-st-sunken"
-            >
-              登出
-            </button>
           </div>
         </details>
       </nav>
-      <div className="flex items-center gap-2.5 text-sm text-st-ink-2" title={user?.email}>
-        <span className="hidden whitespace-nowrap md:inline">{user?.name}</span>
-        <span
-          aria-hidden="true"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-st-primary text-[13px] text-st-on-primary"
+      <details ref={accountRef} className="relative">
+        <summary
+          aria-label="帳號選單"
+          className="flex cursor-pointer list-none items-center gap-2.5 rounded-full text-sm text-st-ink-2 hover:text-st-ink [&::-webkit-details-marker]:hidden"
         >
-          {user?.name.slice(0, 1)}
-        </span>
-      </div>
+          <span className="hidden whitespace-nowrap md:inline">{user?.name}</span>
+          <Avatar user={user} />
+        </summary>
+        <div className="absolute right-0 z-50 mt-2 flex min-w-52 flex-col rounded-xl border border-st-line bg-st-surface py-1.5 shadow-lg">
+          <div className="flex items-center gap-2.5 border-b border-st-line px-4 pb-2.5 pt-1.5">
+            <Avatar user={user} />
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-medium text-st-ink">{user?.name}</span>
+              <span className="truncate text-xs text-st-muted">{user?.email}</span>
+            </div>
+          </div>
+          <Link href="/studio/profile" onClick={closeAccount} className="mt-1 px-4 py-2 text-sm text-st-ink no-underline hover:bg-st-sunken">
+            個人資料
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              closeAccount();
+              clearAuth();
+              router.replace("/login");
+            }}
+            className="px-4 py-2 text-left text-sm text-st-muted hover:bg-st-sunken"
+          >
+            登出
+          </button>
+        </div>
+      </details>
     </header>
   );
 }
