@@ -3,15 +3,11 @@
 import { acceptInvite, apiError, getInvite, getReset, resetPassword } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { LoginResponse } from "@/lib/types";
-import Link from "next/link";
+import { Button } from "@/components/ui/Button";
+import { Field, Input } from "@/components/ui/Input";
+import { TextLink } from "@/components/ui/TextLink";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-export const authInputCls =
-  "w-full rounded-lg border border-pebble-200 bg-white px-3.5 py-2.5 text-sm text-pebble-900 font-sans outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition";
-
-export const authButtonCls =
-  "mt-2 rounded-lg bg-iris-500 px-4 py-2.5 text-sm font-semibold text-white font-sans hover:bg-iris-600 disabled:opacity-50 transition-colors";
 
 type Kind = "invite" | "reset";
 
@@ -71,7 +67,7 @@ export default function SetPasswordForm({ kind, token }: { kind: Kind; token: st
         <div className="w-full max-w-sm text-center font-sans">
           <h1 className="text-xl font-semibold text-pebble-800 mb-3">{copy.invalid}</h1>
           <p className="text-sm text-pebble-500">
-            {copy.invalidHint}已經設定過密碼的話，可以直接<Link href="/login" className="text-iris-600">登入</Link>。
+            {copy.invalidHint}已經設定過密碼的話，可以直接<TextLink href="/login">登入</TextLink>。
           </p>
         </div>
       </main>
@@ -88,20 +84,16 @@ export default function SetPasswordForm({ kind, token }: { kind: Kind; token: st
           {kind === "invite" ? `設定密碼後，就能用 ${info.email} 登入後台。` : `帳號：${info.email}`}
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-sm text-pebble-600 font-sans">
-              {kind === "invite" ? "密碼" : "新密碼"}（至少 8 個字元）
-            </label>
-            <input id="password" type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={authInputCls} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="confirmation" className="text-sm text-pebble-600 font-sans">再輸入一次</label>
-            <input id="confirmation" type="password" autoComplete="new-password" required value={confirmation} onChange={(e) => setConfirmation(e.target.value)} className={authInputCls} />
-          </div>
+          <Field label={`${kind === "invite" ? "密碼" : "新密碼"}（至少 8 個字元）`} htmlFor="password">
+            <Input id="password" type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          </Field>
+          <Field label="再輸入一次" htmlFor="confirmation">
+            <Input id="confirmation" type="password" autoComplete="new-password" required value={confirmation} onChange={(e) => setConfirmation(e.target.value)} />
+          </Field>
           {error && <p className="text-sm text-danger font-sans">{error}</p>}
-          <button type="submit" disabled={isLoading} className={authButtonCls}>
+          <Button type="submit" disabled={isLoading} className="mt-2">
             {isLoading ? "設定中…" : copy.submit}
-          </button>
+          </Button>
         </form>
       </div>
     </main>

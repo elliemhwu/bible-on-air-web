@@ -18,9 +18,19 @@
   --font-sans: var(--font-noto-sans-tc);
 
   --color-primary: var(--color-iris-500);
+  /* Light primary for decoration: the verse rule, hover borders on cards */
+  --color-primary-soft: var(--color-iris-300);
   /* Status colours shared by reader and studio forms */
   --color-danger: var(--color-crimson-700);
   --color-warning: var(--color-gold-700);
+
+  /* Floating action button (Google-Sites-like pencil) */
+  --shadow-fab:
+    0 2px 6px color-mix(in srgb, var(--color-black) 20%, transparent),
+    0 6px 16px color-mix(in srgb, var(--color-black) 18%, transparent);
+  --shadow-fab-hover:
+    0 4px 10px color-mix(in srgb, var(--color-black) 22%, transparent),
+    0 10px 24px color-mix(in srgb, var(--color-black) 20%, transparent);
 }
 
 @layer base {
@@ -104,13 +114,13 @@ body {
 }
 
 .prose-tc a {
-  color: var(--color-pebble-600);
+  color: var(--color-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .prose-tc a:hover {
-  color: var(--color-pebble-800);
+  text-decoration-thickness: 2px;
 }
 
 .prose-tc blockquote {

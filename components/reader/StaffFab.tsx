@@ -89,7 +89,7 @@ function StaffFab({ target }: { target: EditTarget | null }) {
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-[0_2px_6px_rgba(0,0,0,0.2),0_6px_16px_rgba(0,0,0,0.18)] transition hover:shadow-[0_4px_10px_rgba(0,0,0,0.22),0_10px_24px_rgba(0,0,0,0.2)] active:scale-95"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-fab transition hover:shadow-fab-hover active:scale-95"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
           <path

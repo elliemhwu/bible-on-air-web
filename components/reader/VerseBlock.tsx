@@ -50,7 +50,7 @@ export function VerseBlock({
             <span key={`${verse.abbrEn}${verse.chapter}_${verse.verse}`}>
               {idx > 0 && " "}
               {startsPlace(idx) && <span className="font-semibold">（{verse.abbrZh}{verse.chapter}）</span>}
-              <sup className="text-iris-400">{verse.verse}</sup>
+              <sup className="text-primary/60">{verse.verse}</sup>
               {verse.text}
             </span>
           ))}
