@@ -20,6 +20,8 @@
   --color-primary: var(--color-iris-500);
   /* Light primary for decoration: the verse rule, hover borders on cards */
   --color-primary-soft: var(--color-iris-300);
+  /* One step deeper, for long runs of primary text: verse text */
+  --color-primary-hard: var(--color-iris-600);
   /* Status colours shared by reader and studio forms */
   --color-danger: var(--color-crimson-700);
   --color-warning: var(--color-gold-700);

@@ -23,7 +23,7 @@ components / pages            只用上面兩層的 class 或 var(--color-*)
 
 1. **色碼只能寫在 `app/styles/colors.css`。** 其他檔案不能出現 `#xxxxxx`、`rgb()`、`hsl()`、`oklch()`，也不能用 `bg-[#...]` 這種任意值。
 2. **不用 Tailwind 內建色階**（`gray-*`、`red-*`、`blue-*`、`amber-*`…）。需要的顏色先加進 `colors.css`，或用語意 token。
-3. **前台元件**用 `pebble-*`（中性色）、`primary`、`primary-soft`、`danger`、`warning`。紫色只有兩種：文字、按鈕、連結一律 `primary`；裝飾性的淺紫（經文左側直線、卡片 hover 邊框）用 `primary-soft`。不直接寫 `iris-*` 的深淺（`lint:styles` 會擋）。
+3. **前台元件**用 `pebble-*`（中性色）、`primary`、`primary-soft`、`primary-hard`、`danger`、`warning`。紫色只有三種：文字、按鈕、連結一律 `primary`；經文內文這種大段的紫色字用深一階的 `primary-hard`；裝飾性的淺紫（經文左側直線、卡片 hover 邊框）用 `primary-soft`。不直接寫 `iris-*` 的深淺（`lint:styles` 會擋）。
    - 連結用 `TextLink`：邀請讀者去做的事用 `primary`，「回到…」這種退路用 `muted`。文章內文（`.prose-tc`）的連結也是 `primary` 加底線。
    - 勾選框、日期選擇器等原生控制項的顏色由 `accent-color` 統一設定（前台 `primary`、後台 `st-accent`），元件不用再各自加 `accent-*`。
 4. **後台元件只用 `st-*`**（`lint:styles` 會檢查 `components/studio`、`app/(studio)`）（`bg-st-surface`、`text-st-muted`、`border-st-line`…），這樣深色寫作主題（墨夜）才會跟著切換。錯誤用 `st-danger`、提醒用 `st-gold-ink`，不用前台的 `danger`、`warning`：墨夜主題裡深紅字看不清楚。
@@ -41,7 +41,7 @@ components / pages            只用上面兩層的 class 或 var(--color-*)
 | 色階 | 用在 |
 | --- | --- |
 | `pebble` | 前台中性色：背景、內文、分隔線。帶一點紫的冷灰，和 iris 同一個色系 |
-| `iris` | 前台主色：`primary` = iris-500（日期、小標、經文、按鈕、連結），`primary-soft` = iris-300（裝飾） |
+| `iris` | 前台主色：`primary` = iris-500（日期、小標、經文、按鈕、連結），`primary-soft` = iris-300（裝飾），`primary-hard` = iris-600（經文內文） |
 | `navy` | 後台晴空主題的中性色、文字與強調色 |
 | `gold` | 後台的提醒、標記，以及墨夜主題的主色 |
 | `sage` | 成功、已發布 |

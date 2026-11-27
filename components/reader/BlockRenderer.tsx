@@ -23,7 +23,7 @@ export function BlockRenderer({ block }: { block: Block }) {
                 verses={block.content.verses}
                 ranges={block.content.ranges}
                 displayMode={block.content.displayMode}
-                className="text-primary"
+                className="text-primary-hard"
               />
             ) : (
               <p className="text-sm text-pebble-500">經文暫時無法載入，請稍後再試。</p>

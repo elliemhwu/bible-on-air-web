@@ -37,7 +37,7 @@ const RULES = [
     only: (file) => STUDIO_PATHS.some((p) => file.startsWith(p)),
   },
   {
-    name: "iris shade in a reader component (use primary or primary-soft)",
+    name: "iris shade in a reader component (use primary, primary-soft or primary-hard)",
     re: /(?<![\w-])[a-z:-]*-iris-\d{2,3}\b/g,
     only: (file) => file.endsWith(".tsx") && !STUDIO_PATHS.some((p) => file.startsWith(p)),
   },
