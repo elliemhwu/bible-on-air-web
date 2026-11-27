@@ -27,7 +27,7 @@ export function VerseBlock({
           {verses.map((verse, idx) => (
             <li key={`${verse.abbrEn}${verse.chapter}_${verse.verse}`}>
               {startsPlace(idx) && (
-                <p className={`not-italic font-sans text-xs font-semibold tracking-wide ${idx > 0 ? "mt-4" : ""} mb-1`}>
+                <p className={`font-sans text-xs font-semibold tracking-wide ${idx > 0 ? "mt-4" : ""} mb-1`}>
                   {bookName(verse)} {verse.chapter}
                 </p>
               )}
@@ -49,8 +49,8 @@ export function VerseBlock({
           {verses.map((verse, idx) => (
             <span key={`${verse.abbrEn}${verse.chapter}_${verse.verse}`}>
               {idx > 0 && " "}
-              {startsPlace(idx) && <span className="not-italic font-semibold">（{verse.abbrZh}{verse.chapter}）</span>}
-              <sup className="not-italic text-iris-400">{verse.verse}</sup>
+              {startsPlace(idx) && <span className="font-semibold">（{verse.abbrZh}{verse.chapter}）</span>}
+              <sup className="text-iris-400">{verse.verse}</sup>
               {verse.text}
             </span>
           ))}
