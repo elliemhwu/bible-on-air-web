@@ -11,35 +11,41 @@ export function BlockRenderer({
   afterHeading,
 }: {
   block: Block;
-  /** Shown between a verse block's heading and its text (the cover, in 背誦經文 on phones) */
+  /** Shown between a verse block's heading and its text (the cover, in the 背誦經文 card on phones) */
   afterHeading?: React.ReactNode;
 }) {
   switch (block.type) {
     case "verse":
       return (
         <div>
-          {block.subheading && (
+          {block.subheading ? (
             <SectionHeading className="mb-6">{block.subheading}</SectionHeading>
+          ) : (
+            // The reading passage is headed by its reference, in the verse's own serif
+            <h2 className="mb-4 font-serif text-base font-semibold text-primary">
+              {formatVerseRef(block.content.ranges)}
+            </h2>
           )}
           {afterHeading}
 
-          <div className="relative pl-5 pt-2 py-2">
-            <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-primary-soft" />
+          <div className="py-2">
             {block.content.verses?.length ? (
               <VerseBlock
                 verses={block.content.verses}
                 ranges={block.content.ranges}
                 displayMode={block.content.displayMode}
-                className="text-primary-hard"
+                className="text-primary"
               />
             ) : (
               <p className="text-sm text-pebble-500">經文暫時無法載入，請稍後再試。</p>
             )}
           </div>
 
-          <p className={`text-right text-sm text-primary mt-2`}>
-            ── {formatVerseRef(block.content.ranges)}
-          </p>
+          {block.subheading && (
+            <p className="text-right text-sm text-primary mt-2">
+              ── {formatVerseRef(block.content.ranges)}
+            </p>
+          )}
         </div>
       );
     case "questions":
