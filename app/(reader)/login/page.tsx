@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -73,6 +74,9 @@ export default function LoginPage() {
           >
             {isLoading ? "登入中…" : "登入"}
           </button>
+          <Link href="/forgot-password" className="text-center text-sm text-pebble-500 font-sans hover:text-pebble-800">
+            忘記密碼？
+          </Link>
         </form>
       </div>
     </main>

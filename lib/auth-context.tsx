@@ -31,6 +31,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
+        // The session lives in the browser, so it can only be read after hydration
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setToken(parsed.token);
         setUser(parsed.user);
       } catch {

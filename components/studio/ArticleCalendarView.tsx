@@ -81,40 +81,40 @@ export default function ArticleCalendarView({
       <div className="flex items-center gap-3">
         <button
           onClick={prevMonth}
-          className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 text-sm transition-colors"
+          className="px-3 py-1.5 rounded border border-st-line-strong hover:bg-st-soft text-sm transition-colors"
         >
           ←
         </button>
         <button
           onClick={nextMonth}
-          className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 text-sm transition-colors"
+          className="px-3 py-1.5 rounded border border-st-line-strong hover:bg-st-soft text-sm transition-colors"
         >
           →
         </button>
-        <span className="text-base font-semibold text-gray-800">
+        <span className="text-base font-semibold text-st-ink">
           {year} 年 {month} 月
         </span>
         {!isCurrentMonth && (
           <button
             onClick={() => onMonthChange(today.getFullYear(), today.getMonth() + 1)}
-            className="ml-1 px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 text-sm text-gray-500 transition-colors"
+            className="ml-1 px-3 py-1.5 rounded border border-st-line-strong hover:bg-st-soft text-sm text-st-muted transition-colors"
           >
             回到今天
           </button>
         )}
         {loading && (
-          <span className="text-xs text-gray-400 ml-2">載入中…</span>
+          <span className="text-xs text-st-muted ml-2">載入中…</span>
         )}
       </div>
 
       {/* calendar grid */}
-      <div className="rounded-lg border border-gray-200 overflow-hidden w-full">
+      <div className="rounded-[14px] border border-st-line bg-st-surface overflow-hidden w-full">
         {/* weekday header */}
-        <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+        <div className="grid grid-cols-7 bg-st-sunken border-b border-st-line">
           {WEEKDAYS.map((w) => (
             <div
               key={w}
-              className="py-3 text-center text-xs font-medium text-gray-500"
+              className="py-3 text-center text-xs font-medium text-st-muted"
             >
               {w}
             </div>
@@ -128,7 +128,7 @@ export default function ArticleCalendarView({
               return (
                 <div
                   key={i}
-                  className="h-32 bg-gray-50 border-t border-l border-gray-100"
+                  className="h-32 bg-st-sunken border-t border-l border-st-line"
                 />
               );
             }
@@ -142,7 +142,7 @@ export default function ArticleCalendarView({
               <div
                 key={dateStr}
                 onClick={() => handleDayClick(day)}
-                className="relative h-32 cursor-pointer group overflow-hidden border-t border-l border-gray-100"
+                className="relative h-32 cursor-pointer group overflow-hidden border-t border-l border-st-line"
               >
                 {coverUrl ? (
                   <Image
@@ -154,7 +154,7 @@ export default function ArticleCalendarView({
                     unoptimized
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-white" />
+                  <div className="absolute inset-0 bg-st-surface" />
                 )}
 
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
@@ -162,10 +162,10 @@ export default function ArticleCalendarView({
                 <span
                   className={`absolute top-2 left-2.5 text-xs font-semibold leading-none select-none ${
                     isToday
-                      ? "bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                      ? "bg-st-primary text-st-on-primary rounded-full w-5 h-5 flex items-center justify-center"
                       : coverUrl
                       ? "text-white drop-shadow"
-                      : "text-gray-500"
+                      : "text-st-muted"
                   }`}
                 >
                   {day}
@@ -180,7 +180,7 @@ export default function ArticleCalendarView({
                 {article?.title && (
                   <span
                     className={`absolute bottom-2 left-2 right-2 text-[11px] leading-tight line-clamp-2 select-none ${
-                      coverUrl ? "text-white drop-shadow" : "text-gray-600"
+                      coverUrl ? "text-white drop-shadow" : "text-st-ink-2"
                     }`}
                   >
                     {article.title}
@@ -189,7 +189,7 @@ export default function ArticleCalendarView({
 
                 {!article && (
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-2xl text-gray-400 leading-none">+</span>
+                    <span className="text-2xl text-st-muted leading-none">+</span>
                   </div>
                 )}
               </div>

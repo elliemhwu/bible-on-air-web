@@ -2,6 +2,7 @@
 
 import ArticleStatusActions from "@/components/studio/ArticleStatusActions";
 import LegacySyncPanel from "@/components/studio/LegacySyncPanel";
+import OutlineBlockEditor from "@/components/studio/OutlineBlockEditor";
 import QuestionsBlockEditor from "@/components/studio/QuestionsBlockEditor";
 import RichtextBlockEditor from "@/components/studio/RichtextBlockEditor";
 import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
@@ -16,9 +17,11 @@ import { btnPrimaryCls, btnSecondaryCls, inputCls } from "@/lib/styles";
 import type {
   Article,
   ArticleSummary,
+  ArticleTemplate,
   Block,
   BlockDefinition,
   BlockInput,
+  OutlineContent,
   VerseDisplayMode,
   VerseRange,
 } from "@/lib/types";
@@ -41,12 +44,16 @@ type EditableBlock = {
   displayMode?: VerseDisplayMode;
   items: string[];
   html: string;
+  outline: OutlineContent;
 };
+
+const EMPTY_OUTLINE: OutlineContent = { book: "", sections: [] };
 
 const BLOCK_TYPE_LABEL: Record<Block["type"], string> = {
   verse: "經文",
   questions: "問題清單",
   richtext: "文章段落",
+  outline: "書卷大綱",
 };
 
 const DISPLAY_MODES: { value: VerseDisplayMode; label: string }[] = [
@@ -72,6 +79,7 @@ function toEditable(block: Block, label?: string): EditableBlock {
     displayMode: block.type === "verse" ? block.content.displayMode : undefined,
     items: block.type === "questions" ? block.content.items : [],
     html: block.type === "richtext" ? block.content.html : "",
+    outline: block.type === "outline" ? block.content : EMPTY_OUTLINE,
   };
 }
 
@@ -86,6 +94,7 @@ function fromDefinition(def: BlockDefinition): EditableBlock {
     displayMode: defaults.displayMode,
     items: [],
     html: "",
+    outline: EMPTY_OUTLINE,
   };
 }
 
@@ -95,7 +104,9 @@ function toInput(block: EditableBlock, index: number): BlockInput {
       ? { ranges: block.ranges, ...(block.displayMode && { displayMode: block.displayMode }) }
       : block.type === "questions"
         ? { items: block.items.filter((q) => q.trim()) }
-        : { html: block.html };
+        : block.type === "outline"
+          ? block.outline
+          : { html: block.html };
   return {
     ...(block.id && { id: block.id }),
     order: index + 1,
@@ -120,35 +131,47 @@ export default function EditArticleForm({ articleId }: Props) {
   const [formError, setFormError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
+  const fetchArticle = useCallback(
+    (token: string) =>
+      Promise.all([getArticleById(token, articleId), getArticleTemplates(token).catch(() => [])]),
+    [articleId],
+  );
+
+  const apply = useCallback(([a, templates]: [Article, ArticleTemplate[]]) => {
+    const defs = templates.find((t) => t.id === a.articleTemplateId)?.blockDefinitions ?? [];
+    const labelFor = (b: Block) =>
+      defs.find((d) => d.type === b.type && (d.subheading ?? "") === (b.subheading ?? ""))?.label;
+
+    setArticle(a);
+    setDefinitions(defs);
+    setTitle(a.title ?? "");
+    setBlocks(
+      [...a.blocks].sort((x, y) => x.order - y.order).map((b) => toEditable(b, labelFor(b))),
+    );
+    setDirty(false);
+    setReloadCount((n) => n + 1);
+  }, []);
+
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const [a, templates] = await Promise.all([
-        getArticleById(token, articleId),
-        getArticleTemplates(token).catch(() => []),
-      ]);
-      const defs = templates.find((t) => t.id === a.articleTemplateId)?.blockDefinitions ?? [];
-      const labelFor = (b: Block) =>
-        defs.find((d) => d.type === b.type && (d.subheading ?? "") === (b.subheading ?? ""))?.label;
-
-      setArticle(a);
-      setDefinitions(defs);
-      setTitle(a.title ?? "");
-      setBlocks(
-        [...a.blocks].sort((x, y) => x.order - y.order).map((b) => toEditable(b, labelFor(b))),
-      );
-      setDirty(false);
-      setReloadCount((n) => n + 1);
+      apply(await fetchArticle(token));
     } catch {
       setFormError("無法載入文章資料");
-    } finally {
-      setIsLoading(false);
     }
-  }, [token, articleId]);
+  }, [token, fetchArticle, apply]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!token) return;
+    let live = true;
+    fetchArticle(token)
+      .then((result) => live && apply(result))
+      .catch(() => live && setFormError("無法載入文章資料"))
+      .finally(() => live && setIsLoading(false));
+    return () => {
+      live = false;
+    };
+  }, [token, fetchArticle, apply]);
 
   function updateBlock(key: string, patch: Partial<EditableBlock>) {
     setBlocks((prev) => prev.map((b) => (b.key === key ? { ...b, ...patch } : b)));
@@ -187,6 +210,7 @@ export default function EditArticleForm({ articleId }: Props) {
         displayMode: type === "verse" ? "ordered" : undefined,
         items: [],
         html: "",
+        outline: EMPTY_OUTLINE,
       };
     }
     // Template blocks go back to their template position; others go last
@@ -360,6 +384,8 @@ export default function EditArticleForm({ articleId }: Props) {
                       </select>
                     </label>
                   </div>
+                ) : block.type === "outline" ? (
+                  <OutlineBlockEditor content={block.outline} onChange={(outline) => updateBlock(block.key, { outline })} />
                 ) : (
                   <QuestionsBlockEditor items={block.items} onChange={(items) => updateBlock(block.key, { items })} />
                 )}

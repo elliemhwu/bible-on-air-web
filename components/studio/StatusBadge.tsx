@@ -8,10 +8,10 @@ const STATUS_LABEL: Record<ArticleSummary["status"], string> = {
 };
 
 const STATUS_COLOR: Record<ArticleSummary["status"], string> = {
-  draft: "bg-gray-100 text-gray-600",
-  pending_review: "bg-yellow-100 text-yellow-700",
-  approved: "bg-blue-100 text-blue-700",
-  published: "bg-green-100 text-green-700",
+  draft: "bg-st-sunken text-st-muted",
+  pending_review: "bg-st-gold-soft text-st-gold-soft-ink",
+  approved: "bg-st-soft text-st-accent",
+  published: "bg-st-sage-soft text-st-sage-ink",
 };
 
 export default function StatusBadge({

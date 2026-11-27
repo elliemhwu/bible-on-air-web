@@ -10,13 +10,24 @@ export function AuthButton() {
 
   if (user) {
     return (
-      <button
-        onClick={clearAuth}
-        className="text-sm text-pebble-500 hover:text-pebble-800 transition-colors font-sans"
-        title={user.email}
-      >
-        登出
-      </button>
+      <>
+        {/* Staff roles only; future reader accounts will have none */}
+        {user.roles.length > 0 && (
+          <Link
+            href="/studio"
+            className="text-sm text-iris-600 hover:text-iris-700 transition-colors font-sans"
+          >
+            後台
+          </Link>
+        )}
+        <button
+          onClick={clearAuth}
+          className="text-sm text-pebble-500 hover:text-pebble-800 transition-colors font-sans"
+          title={user.email}
+        >
+          登出
+        </button>
+      </>
     );
   }
 

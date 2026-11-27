@@ -1,5 +1,6 @@
 import { BlockRenderer } from "@/components/reader/BlockRenderer";
 import type { Article, Block } from "@/lib/types";
+import { isEmptyOutline } from "@/lib/outline";
 import { formatVerseRef } from "@/lib/utils";
 import Image from "next/image";
 
@@ -8,7 +9,7 @@ export function formatDateTC(date: string): string {
   return `${year}年${parseInt(month)}月${parseInt(day)}日`;
 }
 
-function isEmptyBlock(block: Block): boolean {
+export function isEmptyBlock(block: Block): boolean {
   switch (block.type) {
     case "verse":
       return !block.content.ranges?.length;
@@ -16,6 +17,8 @@ function isEmptyBlock(block: Block): boolean {
       return !block.content.items?.some((q) => q.trim());
     case "richtext":
       return !block.content.html?.replace(/<[^>]*>/g, "").trim();
+    case "outline":
+      return isEmptyOutline(block.content);
   }
 }
 

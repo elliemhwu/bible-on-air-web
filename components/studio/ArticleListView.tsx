@@ -15,7 +15,17 @@ import StatusBadge from "@/components/studio/StatusBadge";
 type SortKey = "date" | "title" | "status" | "updatedAt" | "publishedAt";
 type SortDir = "asc" | "desc";
 
-function SortTh({
+const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
+
+const SORTS: [SortKey, string][] = [
+  ["date", "日期"],
+  ["title", "標題"],
+  ["status", "狀態"],
+  ["updatedAt", "更新"],
+  ["publishedAt", "發布"],
+];
+
+function SortBtn({
   label,
   col,
   sortKey,
@@ -30,15 +40,14 @@ function SortTh({
 }) {
   const active = sortKey === col;
   return (
-    <th
-      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide cursor-pointer select-none whitespace-nowrap"
+    <button
+      type="button"
       onClick={() => onSort(col)}
+      className={`rounded px-1.5 py-0.5 ${active ? "bg-st-surface font-medium text-st-ink shadow-sm" : "hover:text-st-ink"}`}
     >
       {label}
-      <span className="ml-1 text-gray-300">
-        {active ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
-      </span>
-    </th>
+      {active && <span className="ml-0.5">{sortDir === "asc" ? "↑" : "↓"}</span>}
+    </button>
   );
 }
 
@@ -78,21 +87,21 @@ function BookFilter({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`border rounded px-3 py-1.5 text-sm transition-colors flex items-center gap-1 ${
+        className={`border rounded-lg px-3 py-1.5 text-sm transition-colors flex items-center gap-1 ${
           selected.length > 0
-            ? "border-blue-400 text-blue-700 bg-blue-50"
-            : "border-gray-300 text-gray-700 hover:bg-gray-50"
+            ? "border-st-accent text-st-accent bg-st-soft"
+            : "border-st-line-strong text-st-ink-2 hover:bg-st-soft"
         }`}
       >
         {label}
-        <span className="text-gray-400 text-xs ml-1">▾</span>
+        <span className="text-st-muted text-xs ml-1">▾</span>
       </button>
       {open && (
-        <div className="absolute z-20 mt-1 left-0 w-36 max-h-72 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg py-1">
+        <div className="absolute z-20 mt-1 left-0 w-36 max-h-72 overflow-y-auto rounded-lg border border-st-line bg-st-surface shadow-lg py-1">
           {books.map((b) => (
             <label
               key={b.abbrZh}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-st-ink-2 hover:bg-st-soft cursor-pointer"
             >
               <input
                 type="checkbox"
@@ -107,11 +116,6 @@ function BookFilter({
       )}
     </div>
   );
-}
-
-function formatDate(iso: string | null) {
-  if (!iso) return "—";
-  return iso.slice(0, 10);
 }
 
 function formatDateTime(iso: string | null) {
@@ -233,7 +237,7 @@ export default function ArticleListView({
           placeholder="搜尋標題…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="border border-st-line-strong rounded-lg px-3 py-1.5 text-sm w-44 outline-none focus:border-st-accent focus:ring-2 focus:ring-st-accent/20"
         />
 
         {/* status filter */}
@@ -244,7 +248,7 @@ export default function ArticleListView({
               status: (e.target.value as ArticleQuery["status"]) || undefined,
             })
           }
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="border border-st-line-strong rounded-lg px-3 py-1.5 text-sm text-st-ink-2 outline-none focus:border-st-accent focus:ring-2 focus:ring-st-accent/20"
         >
           <option value="">全部狀態</option>
           <option value="draft">草稿</option>
@@ -258,14 +262,14 @@ export default function ArticleListView({
           type="date"
           value={query.dateFrom ?? ""}
           onChange={(e) => onQueryChange({ dateFrom: e.target.value || undefined })}
-          className="border border-gray-300 rounded px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="border border-st-line-strong rounded-lg px-2 py-1.5 text-sm text-st-ink-2 outline-none focus:border-st-accent focus:ring-2 focus:ring-st-accent/20"
         />
-        <span className="text-gray-400 text-sm">—</span>
+        <span className="text-st-muted text-sm">—</span>
         <input
           type="date"
           value={query.dateTo ?? ""}
           onChange={(e) => onQueryChange({ dateTo: e.target.value || undefined })}
-          className="border border-gray-300 rounded px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="border border-st-line-strong rounded-lg px-2 py-1.5 text-sm text-st-ink-2 outline-none focus:border-st-accent focus:ring-2 focus:ring-st-accent/20"
         />
 
         {/* book filter */}
@@ -280,16 +284,16 @@ export default function ArticleListView({
         {/* batch actions */}
         {selected.size > 0 && (
           <div className="flex items-center gap-2 ml-auto flex-wrap">
-            <span className="text-sm text-gray-500">已選 {selected.size} 筆</span>
+            <span className="text-sm text-st-muted">已選 {selected.size} 筆</span>
             {batchError && (
-              <span className="text-sm text-red-500">{batchError}</span>
+              <span className="text-sm text-st-danger">{batchError}</span>
             )}
             {batchButtons.map((btn) => (
               <button
                 key={btn.label}
                 onClick={() => btn.onClick()}
                 disabled={batchLoading}
-                className="px-3 py-1.5 text-sm rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-sm rounded border border-st-line-strong hover:bg-st-soft disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {batchLoading ? "處理中…" : btn.label}
               </button>
@@ -298,121 +302,81 @@ export default function ArticleListView({
         )}
       </div>
 
-      {/* table */}
-      <div className="rounded-lg border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-3 py-2 w-8">
-                  <input
-                    type="checkbox"
-                    checked={sorted.length > 0 && selected.size === sorted.length}
-                    onChange={toggleAll}
-                    className="rounded"
-                  />
-                </th>
-                <SortTh label="日期" col="date" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                <SortTh label="標題" col="title" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide whitespace-nowrap">
-                  讀經範圍
-                </th>
-                <SortTh label="狀態" col="status" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                <SortTh label="更新時間" col="updatedAt" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                <SortTh label="發布時間" col="publishedAt" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
-              {loading && (
-                <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center text-gray-400">
-                    載入中…
-                  </td>
-                </tr>
-              )}
-              {!loading && error && (
-                <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center text-red-400">
-                    {error}
-                  </td>
-                </tr>
-              )}
-              {!loading && !error && sorted.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center text-gray-400">
-                    沒有符合的文章
-                  </td>
-                </tr>
-              )}
-              {!loading && !error && sorted.map((article) => (
-                <tr
-                  key={article.id}
-                  className={selected.has(article.id) ? "bg-blue-50" : "hover:bg-gray-50"}
-                >
-                  <td className="px-3 py-2">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(article.id)}
-                      onChange={() => toggleOne(article.id)}
-                      className="rounded"
-                    />
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap font-mono text-gray-700">
-                    {formatDate(article.date)}
-                  </td>
-                  <td className="px-3 py-2 max-w-xs truncate text-gray-800">
-                    {article.title ?? (
-                      <span className="text-gray-400 italic">（無標題）</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-gray-600 text-xs">
-                    {article.verseRange ?? "—"}
-                  </td>
-                  <td className="px-3 py-2">
-                    <StatusBadge status={article.status} />
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-gray-500 text-xs">
-                    {formatDateTime(article.updatedAt)}
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-gray-500 text-xs">
-                    {formatDateTime(article.publishedAt)}
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/studio/articles/${article.id}/edit`}
-                        className="text-blue-600 hover:underline text-xs"
-                      >
-                        編輯
-                      </Link>
-                      <Link
-                        href={`/${article.date}`}
-                        target="_blank"
-                        className="text-gray-500 hover:underline text-xs"
-                      >
-                        查看
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* list: reads like the reader's history, with status and batch selection */}
+      <div className="rounded-[14px] border border-st-line bg-st-surface overflow-hidden">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-st-line bg-st-sunken px-4 py-2 text-xs text-st-muted">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={sorted.length > 0 && selected.size === sorted.length}
+              onChange={toggleAll}
+              className="rounded"
+            />
+            全選
+          </label>
+          <span className="flex-1" />
+          <span>排序</span>
+          {SORTS.map(([col, label]) => (
+            <SortBtn key={col} label={label} col={col} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+          ))}
         </div>
+        {loading && <p className="m-0 px-4 py-8 text-center text-sm text-st-muted">載入中…</p>}
+        {!loading && error && <p className="m-0 px-4 py-8 text-center text-sm text-st-danger">{error}</p>}
+        {!loading && !error && sorted.length === 0 && (
+          <p className="m-0 px-4 py-8 text-center text-sm text-st-muted">沒有符合的文章</p>
+        )}
+        {!loading && !error && sorted.length > 0 && (
+          <ul className="m-0 list-none divide-y divide-st-line p-0">
+            {sorted.map((article) => (
+              <li
+                key={article.id}
+                title={`更新 ${formatDateTime(article.updatedAt)}${article.publishedAt ? ` · 發布 ${formatDateTime(article.publishedAt)}` : ""}`}
+                className={`group flex items-center gap-3 px-4 py-3 ${selected.has(article.id) ? "bg-st-soft" : "hover:bg-st-soft/60"}`}
+              >
+                <input
+                  type="checkbox"
+                  aria-label={`選取 ${article.date}`}
+                  checked={selected.has(article.id)}
+                  onChange={() => toggleOne(article.id)}
+                  className="rounded"
+                />
+                <div className="w-14 shrink-0 text-center">
+                  <div className="text-xs tabular-nums text-st-muted">{article.date.slice(0, 7).replace("-", "/")}</div>
+                  <div className="font-serif text-xl leading-tight tabular-nums text-st-ink">{parseInt(article.date.slice(8))}</div>
+                  <div className="text-xs text-st-muted">週{WEEKDAYS[new Date(`${article.date}T00:00:00`).getDay()]}</div>
+                </div>
+                <Link
+                  href={`/studio/articles/${article.id}/edit`}
+                  className="min-w-0 flex-1 no-underline"
+                >
+                  <div className="truncate font-serif text-base leading-snug text-st-ink group-hover:text-st-accent">
+                    {article.title ?? <span className="italic text-st-muted">無標題</span>}
+                  </div>
+                  <div className="text-sm text-st-accent">{article.verseRange ?? "—"}</div>
+                </Link>
+                <StatusBadge status={article.status} />
+                <Link
+                  href={`/${article.date}`}
+                  target="_blank"
+                  className="shrink-0 text-xs text-st-muted hover:text-st-ink hover:underline"
+                >
+                  查看
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* pagination */}
       {!loading && !error && totalPages > 0 && (
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center justify-between text-sm text-st-muted">
           <span>共 {total} 筆</span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => onQueryChange({ page: page - 1 })}
               disabled={page <= 1}
-              className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 rounded border border-st-line-strong hover:bg-st-soft disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               上一頁
             </button>
@@ -422,7 +386,7 @@ export default function ArticleListView({
             <button
               onClick={() => onQueryChange({ page: page + 1 })}
               disabled={page >= totalPages}
-              className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 rounded border border-st-line-strong hover:bg-st-soft disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               下一頁
             </button>

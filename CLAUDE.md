@@ -75,12 +75,28 @@ bible-on-air-web/
 | `/studio/articles/[id]/review` | reviewer     | Review mode              |
 | `/studio/images`               | image_editor | 圖片上傳                 |
 | `/studio/publish`              | manager      | 發布頁                   |
+| `/studio/plan/sermons`、`/studio/plan`、`/studio/plan/[weekStart]` | manager | 進度安排：講道主題（一年每週的主題、經文、節期與備註）、每日經文（年度表）、單週切段派入各天 |
+| `/studio/assign`               | manager      | 分派（寫作／校稿／圖片名單輪流） |
+| `/studio/my`                   | editor       | 我的稿件（依分派）       |
+| `/studio/write/[date]`、`/compose` | editor   | ① 讀經模式（筆記）② 寫作模式 |
+| `/studio/review`               | reviewer     | 本週校閱（直接修改、留話） |
+| `/studio/images`、`/studio/images/[weekStart]` | image_editor | 圖片首頁、本週圖片 |
+| `/studio/users`                | manager、小組負責人 | 同工與權限（小組角色、牧者開關、邀請、停用） |
+
+`/studio` 依角色顯示首頁：manager → 本週進度、editor → 我的稿件、reviewer → 校閱、image_editor → 圖片。
+後台畫面使用 `app/styles/studio.css` 的 `st-*` 色票（晴空），寫作模式可切換深色主題（`.studio-night`）。
 
 ### Auth
 
 | 路由     | 說明   |
 | -------- | ------ |
 | `/login` | 登入頁 |
+| `/invite/[token]` | 從邀請信的連結設定密碼並登入 |
+| `/forgot-password` | 寄出重設密碼的信（不透露 Email 是否有帳號） |
+| `/reset/[token]` | 從重設信的連結設定新密碼（一小時內、只能用一次） |
+| `/studio/profile` | 個人資料：改名字、上傳頭像、修改密碼（右上角頭像選單，登出也在這裡） |
+
+小組負責人（`user.teams[team] === "lead"`）可以使用「分派」與「同工」，但只能調整自己負責的小組。後台每次載入都會用 `/auth/me` 更新登入者的角色；帳號被停用時會自動登出。
 
 ---
 
@@ -220,6 +236,12 @@ export async function getArticle(date: string): Promise<Article> {
 | `verse`     | `<VerseBlock>`     | 顯示 `subheading`（若有）+ `verses[].text` 逐節渲染            |
 | `questions` | `<QuestionsBlock>` | 顯示 `subheading` + `items` 清單                               |
 | `richtext`  | `<RichtextBlock>`  | 顯示 `subheading`（若有）+ `dangerouslySetInnerHTML` 渲染 HTML |
+| `outline`   | `<OutlineBlock>`   | 本書大綱：自動編號的大段（標題、範圍）與段落（範圍、說明）；編輯用 `OutlineBlockEditor`，可從文字貼上 |
+
+一年的週次：每週是週一到週日（最後一天就是主日），週六落在那一年的週都算（2026 年第 1 週是 12/29 – 1/4，第 2 週是 1/5 – 1/11；`mondaysOfYear`、`yearWeekLabel`）。
+主日經文與每日經文可以有好幾段：慣例是同一卷書用「、」、不同書卷用「；」（`路4:15-21；賽61`），「，」「,」「;」也都接受（`lib/passage.ts`）；經文跨書卷時，閱讀端和讀經模式會在換書卷處標出書卷與章。
+
+書卷鳥瞰日（進度安排勾選「鳥瞰」）：讀經模式改為整卷書逐章閱讀；寫作模式可把「段落小標」筆記複製成大綱的大段、其他筆記成為段落。
 
 ---
 
@@ -287,6 +309,8 @@ export async function getArticle(date: string): Promise<Article> {
 ---
 
 ## 開發規範
+
+- 檢查：`yarn typecheck`、`yarn lint`、`yarn test`（Vitest，`lib/**/*.test.ts`）、`yarn build`；CI 在 `.github/workflows/ci.yml`。
 
 - 使用 TypeScript，避免 `any`。
 - Server Component 優先；只有需要互動或瀏覽器 API 的元件才加 `"use client"`。

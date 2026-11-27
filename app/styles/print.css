@@ -1,0 +1,140 @@
+/*
+ * 列印 / PDF: one day per A4 sheet. Printers are greyscale, so hierarchy comes
+ * from rules, boxes and bold labels; everything is in black ink at 13pt.
+ * On screen each day is drawn as a sheet, so the preview matches the paper.
+ */
+.print-sheet {
+  --ps-ink: #111;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 14mm 16mm;
+  background: #fff;
+  color: var(--ps-ink);
+  border: 1px solid #d9dde3;
+  font-family: var(--font-noto-serif-tc), "Noto Serif TC", serif;
+  font-size: 13pt;
+  line-height: 1.65;
+  letter-spacing: 0.02em;
+}
+
+.print-sheet :where(p, ol, ul, li, blockquote, h1, h2) {
+  margin: 0;
+}
+
+/* Day header: date and passage, the title, then a heavy rule */
+.ps-head {
+  padding-bottom: 6pt;
+  border-bottom: 2pt solid var(--ps-ink);
+}
+.ps-meta {
+  font-family: var(--font-noto-sans-tc), "Noto Sans TC", sans-serif;
+  font-size: 11pt;
+}
+.ps-title {
+  margin-top: 2pt !important;
+  font-size: 19pt;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* Sections: a thin rule above, a bold label in body size */
+.ps-section {
+  margin-top: 10pt;
+  padding-top: 6pt;
+  border-top: 0.75pt solid var(--ps-ink);
+}
+.ps-head + .ps-section {
+  margin-top: 2pt;
+  border-top: 0;
+}
+.ps-label {
+  margin-bottom: 4pt !important;
+  font-family: var(--font-noto-sans-tc), "Noto Sans TC", sans-serif;
+  font-size: 13pt;
+  font-weight: 700;
+  break-after: avoid;
+}
+
+/* Passages upright and in ink; one verse or question never splits */
+.print-sheet blockquote,
+.print-sheet blockquote * {
+  color: var(--ps-ink);
+  font-style: normal;
+}
+.print-sheet blockquote li,
+.ps-questions li {
+  break-inside: avoid;
+}
+.print-sheet blockquote :is(ul, p) {
+  line-height: 1.65;
+}
+.print-sheet blockquote ul > li + li {
+  margin-top: 1pt;
+}
+.ps-ref {
+  margin-top: 4pt !important;
+  text-align: right;
+  font-size: 11pt;
+}
+.ps-questions {
+  padding-left: 1.6em;
+  list-style: decimal;
+  display: grid;
+  gap: 3pt;
+}
+.ps-prose p {
+  text-indent: 2em;
+  margin-bottom: 0.3em;
+  orphans: 2;
+  widows: 2;
+}
+.ps-outline,
+.ps-outline * {
+  color: var(--ps-ink) !important;
+}
+.ps-outline > div {
+  margin: 0;
+}
+
+/* 背誦經文: a framed box, with the picture beside it when printed */
+.ps-memory {
+  padding: 8pt 10pt;
+  border: 1pt solid var(--ps-ink);
+  display: flow-root;
+  break-inside: avoid;
+}
+.ps-cover {
+  display: block;
+  width: 70mm;
+  max-width: 100%;
+  height: auto;
+}
+.ps-memory .ps-cover {
+  float: right;
+  width: 55mm;
+  margin: 0 0 4pt 10pt;
+}
+
+@media print {
+  .print-sheet {
+    max-width: none;
+    padding: 0;
+    border: 0;
+    break-after: page;
+  }
+  .print-sheet:last-child {
+    break-after: avoid;
+  }
+}
+
+/* Page numbers in the bottom margin of every printed page */
+@page {
+  @bottom-center {
+    content: "Bible On Air ・ 第 " counter(page) " 頁";
+    font-family: "Noto Sans TC", sans-serif;
+    font-size: 9pt;
+    color: #333;
+  }
+}

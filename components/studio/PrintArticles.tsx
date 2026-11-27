@@ -1,9 +1,10 @@
 "use client";
 
-import { ArticleView } from "@/components/reader/ArticleView";
 import { getArticleById, getArticles } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { btnPrimaryCls, inputCls } from "@/lib/styles";
+import { PrintArticle } from "@/components/studio/PrintArticle";
+import { StudioPage } from "@/components/studio/shell/StudioHeader";
+import { stBtnPrimary, stBtnSecondary, stInput } from "@/lib/styles";
 import type { Article } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -35,20 +36,23 @@ export default function PrintArticles({ from, to }: { from?: string; to?: string
 
   const [fromInput, setFromInput] = useState(range.from);
   const [toInput, setToInput] = useState(range.to);
-  const [articles, setArticles] = useState<Article[] | null>(null);
+  const [loaded, setLoaded] = useState<{ key: string; articles: Article[] } | null>(null);
   const [withCover, setWithCover] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  const key = `${range.from}~${range.to}`;
+  // Results and errors only count for the range they were loaded for
+  const articles = loaded?.key === key ? loaded.articles : null;
+  const error = failed === key ? "載入文章失敗" : null;
 
   useEffect(() => {
     if (!token) return;
-    setArticles(null);
-    setError(null);
+    const key = `${range.from}~${range.to}`;
     getArticles({ dateFrom: range.from, dateTo: range.to, pageSize: MAX_DAYS }, token)
       .then(({ data }) =>
         Promise.all([...data].reverse().map((a) => getArticleById(token, a.id))),
       )
-      .then(setArticles)
-      .catch(() => setError("載入文章失敗"));
+      .then((list) => setLoaded({ key, articles: list }))
+      .catch(() => setFailed(key));
   }, [token, range.from, range.to]);
 
   function apply(e: React.FormEvent) {
@@ -57,46 +61,42 @@ export default function PrintArticles({ from, to }: { from?: string; to?: string
   }
 
   return (
-    <div>
+    <StudioPage>
       <form
         onSubmit={apply}
-        className="print:hidden sticky top-0 z-30 flex flex-wrap items-end gap-3 border-b border-pebble-200 bg-pebble-50/95 px-6 py-3 font-sans text-sm backdrop-blur"
+        className="sticky top-0 z-30 flex flex-wrap items-center gap-x-4 gap-y-2.5 border-b border-st-line bg-st-surface px-4 py-3.5 print:hidden sm:px-8"
       >
-        <label className="flex flex-col gap-1 text-pebble-500">
+        <h1 className="m-0 text-base font-medium">列印 / PDF</h1>
+        <label className="flex items-center gap-2 text-sm text-st-muted">
           從
-          <input type="date" value={fromInput} onChange={(e) => setFromInput(e.target.value)} className={`${inputCls} !w-auto !py-1.5`} />
+          <input type="date" value={fromInput} onChange={(e) => setFromInput(e.target.value)} className={stInput} />
         </label>
-        <label className="flex flex-col gap-1 text-pebble-500">
+        <label className="flex items-center gap-2 text-sm text-st-muted">
           到
-          <input type="date" value={toInput} onChange={(e) => setToInput(e.target.value)} className={`${inputCls} !w-auto !py-1.5`} />
+          <input type="date" value={toInput} onChange={(e) => setToInput(e.target.value)} className={stInput} />
         </label>
-        <button type="submit" className="rounded-lg border border-pebble-200 bg-white px-4 py-2 text-pebble-700 hover:border-iris-300">
+        <button type="submit" className={stBtnSecondary}>
           套用
         </button>
-        <label className="flex items-center gap-2 py-2 text-pebble-600">
-          <input type="checkbox" checked={withCover} onChange={(e) => setWithCover(e.target.checked)} />
+        <label className="flex items-center gap-2 text-sm text-st-ink-2">
+          <input type="checkbox" className="rounded" checked={withCover} onChange={(e) => setWithCover(e.target.checked)} />
           包含圖片
         </label>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          disabled={!articles?.length}
-          className={`${btnPrimaryCls} ml-auto`}
-        >
+        <span className="flex-1" />
+        <span className="text-xs text-st-muted">列印時請在「更多設定」取消勾選「頁首和頁尾」</span>
+        <button type="button" onClick={() => window.print()} disabled={!articles?.length} className={stBtnPrimary}>
           列印 / 存成 PDF
         </button>
       </form>
 
-      <div className="mx-auto max-w-2xl px-6 py-8 print:max-w-none print:p-0">
-        {error && <p className="text-sm text-red-500 font-sans">{error}</p>}
-        {!articles && !error && <p className="text-sm text-pebble-400 font-sans">載入中…</p>}
-        {articles?.length === 0 && <p className="text-sm text-pebble-500 font-sans">這段期間沒有文章。</p>}
+      <main className="mx-auto flex w-full max-w-[calc(210mm+4rem)] flex-col gap-5 px-4 py-5 sm:px-8 print:max-w-none print:gap-0 print:p-0">
+        {error && <p className="m-0 text-sm text-st-danger print:hidden">{error}</p>}
+        {!articles && !error && <p className="m-0 text-sm text-st-muted print:hidden">載入中…</p>}
+        {articles?.length === 0 && <p className="m-0 text-sm text-st-muted print:hidden">這段期間沒有文章。</p>}
         {articles?.map((article) => (
-          <article key={article.id} className="mb-16 break-after-page print:mb-0">
-            <ArticleView article={article} showCover={withCover} />
-          </article>
+          <PrintArticle key={article.id} article={article} withCover={withCover} />
         ))}
-      </div>
-    </div>
+      </main>
+    </StudioPage>
   );
 }

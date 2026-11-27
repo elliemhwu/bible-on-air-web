@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
+import { getMe } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
 export default function StudioLayout({
@@ -9,7 +11,7 @@ export default function StudioLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { token, isLoading } = useAuth();
+  const { token, isLoading, setAuth, clearAuth } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -17,6 +19,16 @@ export default function StudioLayout({
       router.replace("/login");
     }
   }, [isLoading, token, router]);
+
+  // Roles and teams can change while signed in; a disabled account is signed out
+  useEffect(() => {
+    if (!token) return;
+    getMe(token)
+      .then((me) => setAuth(token, me))
+      .catch((e) => {
+        if (isAxiosError(e) && e.response?.status === 401) clearAuth();
+      });
+  }, [token, setAuth, clearAuth]);
 
   if (isLoading) {
     return (
@@ -28,5 +40,6 @@ export default function StudioLayout({
 
   if (!token) return null;
 
-  return <>{children}</>;
+  // Studio screens default to the sans face (the reader stays serif)
+  return <div className="font-sans">{children}</div>;
 }
