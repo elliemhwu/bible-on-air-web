@@ -16,9 +16,9 @@ const STYLES = {
   default: {
     input:
       "rounded-md border border-st-line bg-st-surface px-2.5 py-1.5 text-sm text-st-ink placeholder:text-st-placeholder outline-none focus:border-st-accent focus:ring-2 focus:ring-st-accent/20",
-    invalid: "border-danger",
+    invalid: "border-st-danger",
     muted: "text-st-faint",
-    error: "text-danger",
+    error: "text-st-danger",
     card: "rounded-lg border border-st-line bg-st-sunken/60 p-3",
     link: "text-st-accent hover:text-st-ink",
     icon: "text-st-faint hover:text-st-ink-2 disabled:opacity-20",

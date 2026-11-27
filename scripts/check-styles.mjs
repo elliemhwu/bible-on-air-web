@@ -32,7 +32,7 @@ const RULES = [
   },
   {
     name: "reader colour in a Studio file (use st-* so the night theme follows)",
-    re: /(?<![\w-])[a-z-]*-(?:pebble|iris)-\d{2,3}\b|(?<![\w-])[a-z]+-primary(?![\w-])/g,
+    re: /(?<![\w-])[a-z-]*-(?:pebble|iris)-\d{2,3}\b|(?<![\w-])[a-z]+-(?:primary|danger|warning)(?![\w-])/g,
     only: (file) => STUDIO_PATHS.some((p) => file.startsWith(p)),
   },
 ];

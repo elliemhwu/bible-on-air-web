@@ -32,7 +32,7 @@ export default function ReviewArticle({ articleId }: { articleId: string }) {
       .catch(() => setQueue([]));
   }, [token, queueStatus]);
 
-  if (error) return <p className="px-6 py-12 text-sm text-danger font-sans">{error}</p>;
+  if (error) return <p className="px-6 py-12 text-sm text-st-danger font-sans">{error}</p>;
   if (!article) return <p className="px-6 py-12 text-sm text-st-faint font-sans">載入中…</p>;
 
   const next = queue.filter((a) => a.id !== article.id).sort((a, b) => a.date.localeCompare(b.date))[0];

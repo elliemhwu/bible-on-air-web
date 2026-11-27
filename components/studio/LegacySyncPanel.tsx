@@ -104,7 +104,7 @@ export default function LegacySyncPanel({ token, date, disabled, onSynced }: Pro
       )}
 
       {item?.warnings.map((w) => (
-        <p key={w} className="mt-1 text-xs text-warning">⚠ {w}</p>
+        <p key={w} className="mt-1 text-xs text-st-gold-ink">⚠ {w}</p>
       ))}
       {message && <p className="mt-2 text-st-ink-2">{message}</p>}
     </div>

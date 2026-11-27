@@ -298,7 +298,7 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
           )}
         </div>
 
-        {addError && <p className="mt-3 text-xs text-danger">{addError}</p>}
+        {addError && <p className="mt-3 text-xs text-st-danger">{addError}</p>}
 
         <div className="mt-5 flex gap-2">
           <button

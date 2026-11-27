@@ -58,7 +58,7 @@ export default function ArticleStatusActions({ article, onChanged }: Props) {
           取消發布
         </button>
       )}
-      {error && <span className="text-sm text-danger">{error}</span>}
+      {error && <span className="text-sm text-st-danger">{error}</span>}
     </div>
   );
 }

@@ -24,7 +24,7 @@ components / pages            只用上面兩層的 class 或 var(--color-*)
 1. **色碼只能寫在 `app/styles/colors.css`。** 其他檔案不能出現 `#xxxxxx`、`rgb()`、`hsl()`、`oklch()`，也不能用 `bg-[#...]` 這種任意值。
 2. **不用 Tailwind 內建色階**（`gray-*`、`red-*`、`blue-*`、`amber-*`…）。需要的顏色先加進 `colors.css`，或用語意 token。
 3. **前台元件**用 `pebble-*`（中性色）、`iris-*`、`primary`、`danger`、`warning`。
-4. **後台元件只用 `st-*`**（`lint:styles` 會檢查 `components/studio`、`app/(studio)`）（`bg-st-surface`、`text-st-muted`、`border-st-line`…），這樣深色寫作主題（墨夜）才會跟著切換。`danger`、`warning` 在後台也可以用，但會跟著主題切換的地方請用 `st-danger`。
+4. **後台元件只用 `st-*`**（`lint:styles` 會檢查 `components/studio`、`app/(studio)`）（`bg-st-surface`、`text-st-muted`、`border-st-line`…），這樣深色寫作主題（墨夜）才會跟著切換。錯誤用 `st-danger`、提醒用 `st-gold-ink`，不用前台的 `danger`、`warning`：墨夜主題裡深紅字看不清楚。
 5. `white`、`black` 也定義在 `colors.css`，可以直接用：例如封面圖上的白字、`bg-black/30` 的遮罩。
 6. 狀態用語意 token，不用直接選色：錯誤訊息用 `text-danger`，提醒用 `text-warning`，已發布等狀態用 `StatusBadge`。
 

@@ -1,9 +1,14 @@
 .date-picker-popover {
+  background-color: var(--color-white);
+  font-family: var(--font-noto-sans-tc);
+}
+
+/* react-day-picker declares its --rdp-* variables on .rdp-root, so the
+   overrides must sit on that element (or deeper), not on the popover */
+.date-picker-popover .rdp-root {
   --rdp-accent-color: var(--color-primary);
   --rdp-accent-background-color: var(--color-iris-50);
   --rdp-today-color: var(--color-primary);
-  background-color: var(--color-white);
-  font-family: var(--font-noto-sans-tc);
 }
 
 .date-picker-popover .rdp-day_button {

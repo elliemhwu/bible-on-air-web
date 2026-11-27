@@ -183,7 +183,7 @@ export default function CreateArticleForm({
           />
         </div>
 
-        {formError && <p className="text-sm text-danger">{formError}</p>}
+        {formError && <p className="text-sm text-st-danger">{formError}</p>}
 
         {/* Blocks */}
         {selectedTemplate

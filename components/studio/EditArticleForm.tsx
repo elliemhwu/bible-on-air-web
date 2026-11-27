@@ -264,7 +264,7 @@ export default function EditArticleForm({ articleId }: Props) {
   if (!article) {
     return (
       <main className="mx-auto w-full max-w-3xl px-4 py-9 sm:px-8">
-        <p className="text-sm text-danger">{formError ?? "找不到這篇文章"}</p>
+        <p className="text-sm text-st-danger">{formError ?? "找不到這篇文章"}</p>
       </main>
     );
   }
@@ -351,7 +351,7 @@ export default function EditArticleForm({ articleId }: Props) {
                 >
                   ↓
                 </button>
-                <button type="button" onClick={() => removeBlock(block)} className={`${smallBtn} hover:!text-danger`}>
+                <button type="button" onClick={() => removeBlock(block)} className={`${smallBtn} hover:!text-st-danger`}>
                   刪除
                 </button>
               </div>
@@ -421,7 +421,7 @@ export default function EditArticleForm({ articleId }: Props) {
           </select>
         </div>
 
-        {formError && <p className="text-sm text-danger">{formError}</p>}
+        {formError && <p className="text-sm text-st-danger">{formError}</p>}
 
         <div className="sticky bottom-0 -mx-2 flex items-center gap-3 border-t border-st-line bg-st-bg/95 px-2 py-3 backdrop-blur">
           <button type="submit" disabled={isSubmitting || !dirty} className={stBtnPrimary}>
