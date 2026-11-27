@@ -6,7 +6,14 @@ import { RichtextBlock } from "./RichtextBlock";
 import { SectionHeading } from "./SectionHeading";
 import { VerseBlock } from "./VerseBlock";
 
-export function BlockRenderer({ block }: { block: Block }) {
+export function BlockRenderer({
+  block,
+  afterHeading,
+}: {
+  block: Block;
+  /** Shown between a verse block's heading and its text (the cover, in 背誦經文 on phones) */
+  afterHeading?: React.ReactNode;
+}) {
   switch (block.type) {
     case "verse":
       return (
@@ -14,6 +21,7 @@ export function BlockRenderer({ block }: { block: Block }) {
           {block.subheading && (
             <SectionHeading className="mb-4">{block.subheading}</SectionHeading>
           )}
+          {afterHeading}
 
           <div className="relative pl-5 pt-2 py-2">
             <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-primary-soft" />

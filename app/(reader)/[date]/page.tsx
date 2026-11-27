@@ -45,10 +45,10 @@ export default async function DatePage({
   const older = index >= 0 && index < dates.length - 1 ? dates[index + 1] : null;
 
   return (
-    <article>
+    <article className="reader-paged">
       <div className="mx-auto max-w-2xl px-6 py-10">
         <StaffEditTarget href={`/studio/articles/${article.id}/edit`} label="編輯這篇" />
-        <ArticleView article={article} />
+        <ArticleView article={article} paged />
 
         <nav className="mt-12 flex justify-between border-t border-pebble-200 pt-6 font-sans text-sm">
           {older ? (
