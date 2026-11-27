@@ -18,6 +18,9 @@
   --font-sans: var(--font-noto-sans-tc);
 
   --color-primary: var(--color-iris-500);
+  /* Status colours shared by reader and studio forms */
+  --color-danger: var(--color-crimson-700);
+  --color-warning: var(--color-gold-700);
 }
 
 @layer base {

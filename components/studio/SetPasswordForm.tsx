@@ -98,7 +98,7 @@ export default function SetPasswordForm({ kind, token }: { kind: Kind; token: st
             <label htmlFor="confirmation" className="text-sm text-pebble-600 font-sans">再輸入一次</label>
             <input id="confirmation" type="password" autoComplete="new-password" required value={confirmation} onChange={(e) => setConfirmation(e.target.value)} className={authInputCls} />
           </div>
-          {error && <p className="text-sm text-red-500 font-sans">{error}</p>}
+          {error && <p className="text-sm text-danger font-sans">{error}</p>}
           <button type="submit" disabled={isLoading} className={authButtonCls}>
             {isLoading ? "設定中…" : copy.submit}
           </button>

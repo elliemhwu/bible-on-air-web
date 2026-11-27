@@ -3,6 +3,7 @@
 import Avatar from "@/components/studio/shell/Avatar";
 import { useAuth } from "@/lib/auth-context";
 import { canEdit, canPublish, isImageEditor, isManager, isReviewer, isWriter, leadTeams } from "@/lib/roles";
+import { Logo } from "@/components/brand/Logo";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -73,9 +74,7 @@ export default function StudioHeader() {
 
   return (
     <header className="flex flex-wrap items-center justify-between print:hidden gap-x-7 gap-y-1 border-b border-st-line bg-st-surface px-4 py-2.5 md:flex-nowrap md:justify-start sm:px-8 md:py-3">
-      <Link href="/" className="whitespace-nowrap font-serif text-lg font-semibold text-st-ink no-underline">
-        Bible On Air
-      </Link>
+      <Logo tone="studio" />
       {/* Phones: the nav takes its own row under the brand and avatar */}
       <nav className="order-last -mx-2 flex w-full flex-wrap gap-0.5 md:order-none md:mx-0 md:w-auto md:flex-1 md:gap-1" aria-label="後台">
         {[{ href: "/studio", label: "Studio" }, ...main].map((item) => {

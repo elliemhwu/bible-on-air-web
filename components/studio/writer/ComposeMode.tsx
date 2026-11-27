@@ -342,7 +342,7 @@ export default function ComposeMode({ date }: { date: string }) {
                     key={b.id}
                     type="button"
                     onClick={() => copyTo(b)}
-                    className={`h-[34px] rounded-lg px-3 text-[13px] ${i === 0 ? "bg-st-gold font-medium text-[#1d2027]" : "border border-st-faint hover:bg-white/10"}`}
+                    className={`h-[34px] rounded-lg px-3 text-[13px] ${i === 0 ? "bg-st-gold font-medium text-night-850" : "border border-st-faint hover:bg-white/10"}`}
                   >
                     {sectionName(b)}
                   </button>

@@ -1,4 +1,5 @@
 import { getArticleDates } from "@/lib/api";
+import { Logo } from "@/components/brand/Logo";
 import Link from "next/link";
 import { AuthButton } from "./AuthButton";
 import { DatePickerButton } from "./DatePickerButton";
@@ -15,12 +16,7 @@ export async function Header() {
         className="absolute inset-0 bg-pebble-50/90 backdrop-blur-sm"
       />
       <div className="relative mx-auto max-w-2xl px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-        <Link
-          href="/"
-          className="whitespace-nowrap text-sm font-semibold text-pebble-800 hover:text-pebble-900 font-sans tracking-wide transition-colors"
-        >
-          Bible On Air
-        </Link>
+        <Logo tone="reader" />
         <nav className="flex items-center gap-4 whitespace-nowrap sm:gap-5">
           <DatePickerButton dates={dates} />
           {/* Wider screens list every link; phones fold them into the menu */}
