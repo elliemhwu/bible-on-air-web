@@ -310,11 +310,12 @@ export async function getArticle(date: string): Promise<Article> {
 
 ## 開發規範
 
-- 檢查：`yarn typecheck`、`yarn lint`、`yarn test`（Vitest，`lib/**/*.test.ts`）、`yarn build`；CI 在 `.github/workflows/ci.yml`。
+- 檢查：`yarn typecheck`、`yarn lint`、`yarn lint:styles`（顏色只能來自 `app/styles/colors.css`）、`yarn test`（Vitest，`lib/**/*.test.ts`）、`yarn build`；CI 在 `.github/workflows/ci.yml`。
+- **樣式規範：`docs/style-guide.md`**（顏色三層結構、字型分工、共用元件、待整理清單）。改樣式前先看。
 
 - 使用 TypeScript，避免 `any`。
 - Server Component 優先；只有需要互動或瀏覽器 API 的元件才加 `"use client"`。
-- 樣式使用 Tailwind CSS，避免 inline style。
+- 樣式使用 Tailwind CSS，避免 inline style；頁面寫排版，長相交給共用元件（`components/ui`、`components/brand`）或 `lib/styles.ts`。
 - 日期格式統一用 `YYYY-MM-DD`（ISO 8601），顯示時再轉換為中文格式。
 - Reader side 元件放 `components/reader/`，Studio side 元件放 `components/studio/`。
 

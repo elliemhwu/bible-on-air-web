@@ -45,7 +45,7 @@ export default function ForgotPassword() {
                 <label htmlFor="email" className="text-sm text-pebble-600">電子郵件</label>
                 <input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={authInputCls} />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-danger">{error}</p>}
               <button type="submit" disabled={isLoading} className={authButtonCls}>
                 {isLoading ? "寄送中…" : "寄出重設連結"}
               </button>

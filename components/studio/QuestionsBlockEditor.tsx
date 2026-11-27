@@ -98,7 +98,7 @@ export default function QuestionsBlockEditor({ items, onChange, appearance = "de
                 <button
                   type="button"
                   onClick={() => remove(idx)}
-                  className="text-pebble-300 hover:text-red-400 transition-colors text-lg leading-none ml-0.5"
+                  className="text-pebble-300 hover:text-danger transition-colors text-lg leading-none ml-0.5"
                   aria-label="移除此題"
                 >
                   ×

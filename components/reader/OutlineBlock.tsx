@@ -8,7 +8,7 @@ export function OutlineBlock({ block }: { block: OutlineBlockType }) {
       {block.subheading && (
         <p className="font-sans text-sm font-semibold text-primary mb-3">{block.subheading}</p>
       )}
-      <ol className="space-y-5">
+      <ol className="space-y-5 font-sans">
         {block.content.sections.map((section, i) => (
           <li key={i}>
             <p className="font-semibold leading-[1.9] text-pebble-800">

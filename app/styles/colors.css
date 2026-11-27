@@ -1,16 +1,26 @@
 @import "tailwindcss";
 
+/*
+ * The only place colour values are written. Every other file refers to these
+ * through Tailwind classes (`text-pebble-700`) or var(--color-*); semantic
+ * tokens (reader: globals.css, studio: studio.css) are built from them.
+ * See docs/style-guide.md.
+ */
 @theme inline {
-  --color-pebble-50: #f9f8f7;
-  --color-pebble-100: #f2f1f0;
-  --color-pebble-200: #e5e3e1;
-  --color-pebble-300: #cac6c2;
-  --color-pebble-400: #afa9a3;
-  --color-pebble-500: #7d7771;
-  --color-pebble-600: #645f5a;
-  --color-pebble-700: #4b4744;
-  --color-pebble-800: #322f2d;
-  --color-pebble-900: #191816;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Cool grey with a hint of violet, so the neutrals sit with the iris primary */
+  --color-pebble-50: #f8f8fc;
+  --color-pebble-100: #f0f0f7;
+  --color-pebble-200: #e3e3ee;
+  --color-pebble-300: #cacadb;
+  --color-pebble-400: #a9a8bf;
+  --color-pebble-500: #75738d;
+  --color-pebble-600: #5c5a73;
+  --color-pebble-700: #45435a;
+  --color-pebble-800: #2c2a40;
+  --color-pebble-900: #1a1929;
 
   --color-juniper-50: #edf2f1;
   --color-juniper-100: #dbe5e3;
@@ -66,4 +76,60 @@
   --color-iris-700: #332b74;
   --color-iris-800: #29235d;
   --color-iris-900: #181537;
+
+  /* Navy (Studio 晴空): Studio neutrals, ink and accent */
+  --color-navy-50: #f7f9fc;
+  --color-navy-100: #eef2f8;
+  --color-navy-150: #e8eef8;
+  --color-navy-200: #dbe3ef;
+  --color-navy-300: #c9d4e6;
+  --color-navy-400: #8c98b8;
+  --color-navy-500: #6b7798;
+  --color-navy-600: #5d6b8f;
+  --color-navy-650: #4b5a80;
+  --color-navy-700: #3f5a9e;
+  --color-navy-800: #2b3a67;
+
+  /* Gold: Studio highlights, warnings and the night-theme accent */
+  --color-gold-50: #fffaf0;
+  --color-gold-100: #fdf3dc;
+  --color-gold-150: #fbeecb;
+  --color-gold-300: #f0c977;
+  --color-gold-400: #e3b55b;
+  --color-gold-450: #dcaa52;
+  --color-gold-500: #c7962e;
+  --color-gold-700: #8a6417;
+  --color-gold-800: #6b4a0c;
+  --color-gold-850: #4a3d1e;
+  --color-gold-900: #3a3020;
+  --color-gold-950: #2a2416;
+  --color-gold-990: #1a1610;
+
+  /* Sage: success / published */
+  --color-sage-100: #e3f1e8;
+  --color-sage-300: #8fd3a8;
+  --color-sage-800: #1f5a37;
+  --color-sage-900: #1f3327;
+
+  /* Crimson: errors and destructive actions */
+  --color-crimson-200: #f2a49c;
+  --color-crimson-700: #b3261e;
+
+  /* Night (Studio 墨夜): the dark writing theme's neutrals */
+  --color-night-100: #e7e9ee;
+  --color-night-300: #b9bfcc;
+  --color-night-350: #9ea5b3;
+  --color-night-400: #8d94a3;
+  --color-night-500: #5f6676;
+  --color-night-700: #3a404c;
+  --color-night-750: #2c313b;
+  --color-night-800: #2b303b;
+  --color-night-850: #1d2027;
+  --color-night-900: #191c22;
+  --color-night-950: #14161b;
+
+  /* Print: plain ink on paper */
+  --color-print-ink: #111111;
+  --color-print-ink-2: #333333;
+  --color-print-rule: #d9dde3;
 }

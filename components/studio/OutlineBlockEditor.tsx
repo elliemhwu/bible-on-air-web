@@ -16,9 +16,9 @@ const STYLES = {
   default: {
     input:
       "rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20",
-    invalid: "border-red-400",
+    invalid: "border-danger",
     muted: "text-pebble-400",
-    error: "text-red-500",
+    error: "text-danger",
     card: "rounded-lg border border-pebble-200 bg-pebble-50/60 p-3",
     link: "text-iris-600 hover:text-iris-700",
     icon: "text-pebble-300 hover:text-pebble-600 disabled:opacity-20",
