@@ -1,12 +1,13 @@
 import { formatOutlineRange, sectionNumber } from "@/lib/outline";
+import { SectionHeading } from "@/components/reader/SectionHeading";
 import type { OutlineBlock as OutlineBlockType } from "@/lib/types";
 
 /** 本書大綱: numbered sections, each with its passages */
 export function OutlineBlock({ block }: { block: OutlineBlockType }) {
   return (
-    <div className="my-8">
+    <div>
       {block.subheading && (
-        <p className="font-sans text-sm font-semibold text-primary mb-3">{block.subheading}</p>
+        <SectionHeading>{block.subheading}</SectionHeading>
       )}
       <ol className="space-y-5 font-sans">
         {block.content.sections.map((section, i) => (

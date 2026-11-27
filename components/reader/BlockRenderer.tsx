@@ -3,17 +3,16 @@ import { formatVerseRef } from "@/lib/utils";
 import { OutlineBlock } from "./OutlineBlock";
 import { QuestionsBlock } from "./QuestionsBlock";
 import { RichtextBlock } from "./RichtextBlock";
+import { SectionHeading } from "./SectionHeading";
 import { VerseBlock } from "./VerseBlock";
 
 export function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {
     case "verse":
       return (
-        <div className="my-8">
+        <div>
           {block.subheading && (
-            <h6 className="font-sans text-sm font-semibold text-primary mb-4">
-              {block.subheading}
-            </h6>
+            <SectionHeading className="mb-4">{block.subheading}</SectionHeading>
           )}
 
           <div className="relative pl-5 pt-2 py-2">

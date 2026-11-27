@@ -81,6 +81,7 @@ components / pages            只用上面兩層的 class 或 var(--color-*)
 | `MonthCalendar` | `components/calendar/MonthCalendar.tsx` | 月曆：桌機是封面格子，手機是卡片列表；`variant="reader" \| "studio"` |
 | `StatusBadge` | `components/studio/StatusBadge.tsx` | 文章狀態標籤 |
 | `StudioPage` | `components/studio/shell/StudioHeader.tsx` | 後台頁面外框（色票、header） |
+| `SectionHeading` | `components/reader/SectionHeading.tsx` | 文章各段小標（經文、觀察與思想…），第一個字後面有對比色的墨漬圓點（`--color-ink-dot`） |
 | `StaffFabProvider`、`StaffEditTarget` | `components/reader/StaffFab.tsx` | 前台的同工鉛筆選單 |
 | `ChevronDown` | `components/icons/ChevronDown.tsx` | 下拉箭頭 |
 | `Button`、`Input`、`Field`、`TextLink` | `components/ui/` | 前台的按鈕、輸入框、標籤＋輸入框、連結（登入、密碼、404 頁在用） |

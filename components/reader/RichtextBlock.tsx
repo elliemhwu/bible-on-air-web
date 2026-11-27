@@ -1,12 +1,11 @@
+import { SectionHeading } from "@/components/reader/SectionHeading";
 import type { RichtextBlock as RichtextBlockType } from "@/lib/types";
 
 export function RichtextBlock({ block }: { block: RichtextBlockType }) {
   return (
-    <div className="my-8">
+    <div>
       {block.subheading && (
-        <p className="font-sans text-sm font-semibold text-primary mb-3">
-          {block.subheading}
-        </p>
+        <SectionHeading>{block.subheading}</SectionHeading>
       )}
       <div className="font-sans [&_.prose-tc>p]:indent-8">
         <div

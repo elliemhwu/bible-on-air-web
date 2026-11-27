@@ -19,6 +19,8 @@
   --color-primary-soft: var(--color-iris-300);
   /* One step deeper, for long runs of primary text: verse text */
   --color-primary-hard: var(--color-iris-600);
+  /* Ink blot behind each section heading's first character: a warm contrast to iris */
+  --color-ink-dot: var(--color-marigold-300);
   /* Tint behind a selected item: the date picker's chosen day */
   --color-primary-faint: var(--color-iris-50);
   /* Status colours shared by reader and studio forms */
@@ -61,6 +63,34 @@ body {
   font-family: var(--font-noto-serif-tc), "Noto Serif TC", serif;
   line-height: 1.9;
   letter-spacing: 0.04em;
+}
+
+/*
+ * Section heading (經文、觀察與思想…): a soft, slightly uneven blot of the
+ * contrast colour sits behind the first character, like a drop of ink.
+ */
+.section-heading {
+  position: relative;
+  isolation: isolate;
+  width: fit-content;
+}
+.section-heading::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -1.2em;
+  top: 30%;
+  width: 2em;
+  height: 2em;
+  translate: 0 -52%;
+  rotate: -14deg;
+  border-radius: 58% 42% 52% 48% / 46% 56% 44% 54%;
+  background: radial-gradient(
+    circle at 42% 40%,
+    var(--color-ink-dot) 0 52%,
+    color-mix(in srgb, var(--color-ink-dot) 55%, transparent) 64%,
+    transparent 74%
+  );
 }
 
 .prose-tc p {

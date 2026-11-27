@@ -1,12 +1,11 @@
+import { SectionHeading } from "@/components/reader/SectionHeading";
 import type { QuestionsBlock as QuestionsBlockType } from "@/lib/types";
 
 export function QuestionsBlock({ block }: { block: QuestionsBlockType }) {
   return (
-    <div className="my-8">
+    <div>
       {block.subheading && (
-        <p className="font-sans text-sm font-semibold text-primary mb-3">
-          {block.subheading}
-        </p>
+        <SectionHeading>{block.subheading}</SectionHeading>
       )}
       <ol className="list-decimal pl-6 space-y-3 font-sans">
         {block.content.items.map((item, i) => (

@@ -53,7 +53,7 @@ export function ArticleView({
           {ref && <span>{ref}</span>}
         </p>
         {article.title && (
-          <h1 className="text-2xl sm:text-4xl font-bold leading-snug text-pebble-800">
+          <h1 className="text-2xl sm:text-3xl font-semibold leading-snug tracking-[0.08em] text-pebble-800">
             {article.title}
           </h1>
         )}
@@ -72,7 +72,8 @@ export function ArticleView({
         </div>
       )}
 
-      <div>
+      {/* Sections are spaced by the layout, not by each block */}
+      <div className="flex flex-col gap-36">
         {blocks.map((block) => (
           <BlockRenderer key={block.id} block={block} />
         ))}
