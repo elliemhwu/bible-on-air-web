@@ -8,9 +8,6 @@
 :root {
   --background: var(--color-pebble-50);
   --foreground: var(--color-pebble-900);
-  --muted: var(--color-iris-400);
-  --accent: var(--color-iris-500);
-  --border-warm: var(--color-pebble-200);
 }
 
 @theme inline {
@@ -22,6 +19,8 @@
   --color-primary-soft: var(--color-iris-300);
   /* One step deeper, for long runs of primary text: verse text */
   --color-primary-hard: var(--color-iris-600);
+  /* Tint behind a selected item: the date picker's chosen day */
+  --color-primary-faint: var(--color-iris-50);
   /* Status colours shared by reader and studio forms */
   --color-danger: var(--color-crimson-700);
   --color-warning: var(--color-gold-700);
