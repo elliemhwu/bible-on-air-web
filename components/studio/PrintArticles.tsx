@@ -1,10 +1,10 @@
 "use client";
 
-import { ArticleView } from "@/components/reader/ArticleView";
 import { getArticleById, getArticles } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { PrintArticle } from "@/components/studio/PrintArticle";
 import { StudioPage } from "@/components/studio/shell/StudioHeader";
-import { stBtnPrimary, stBtnSecondary, stCard, stInput } from "@/lib/styles";
+import { stBtnPrimary, stBtnSecondary, stInput } from "@/lib/styles";
 import type { Article } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -83,23 +83,18 @@ export default function PrintArticles({ from, to }: { from?: string; to?: string
           包含圖片
         </label>
         <span className="flex-1" />
+        <span className="text-xs text-st-muted">列印時請在「更多設定」取消勾選「頁首和頁尾」</span>
         <button type="button" onClick={() => window.print()} disabled={!articles?.length} className={stBtnPrimary}>
           列印 / 存成 PDF
         </button>
       </form>
 
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 py-5 sm:px-8 print:max-w-none print:p-0">
+      <main className="mx-auto flex w-full max-w-[calc(210mm+4rem)] flex-col gap-5 px-4 py-5 sm:px-8 print:max-w-none print:gap-0 print:p-0">
         {error && <p className="m-0 text-sm text-st-danger print:hidden">{error}</p>}
         {!articles && !error && <p className="m-0 text-sm text-st-muted print:hidden">載入中…</p>}
         {articles?.length === 0 && <p className="m-0 text-sm text-st-muted print:hidden">這段期間沒有文章。</p>}
         {articles?.map((article) => (
-          // The page on screen; the bare article on paper
-          <article
-            key={article.id}
-            className={`${stCard} break-after-page px-6 py-8 font-serif leading-normal tracking-normal sm:px-12 print:rounded-none print:border-0 print:p-0`}
-          >
-            <ArticleView article={article} showCover={withCover} />
-          </article>
+          <PrintArticle key={article.id} article={article} withCover={withCover} />
         ))}
       </main>
     </StudioPage>

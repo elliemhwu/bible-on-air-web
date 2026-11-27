@@ -9,7 +9,7 @@ export function formatDateTC(date: string): string {
   return `${year}年${parseInt(month)}月${parseInt(day)}日`;
 }
 
-function isEmptyBlock(block: Block): boolean {
+export function isEmptyBlock(block: Block): boolean {
   switch (block.type) {
     case "verse":
       return !block.content.ranges?.length;

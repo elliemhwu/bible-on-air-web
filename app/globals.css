@@ -3,6 +3,7 @@
 @import "./styles/colors.css";
 @import "./styles/animations.css";
 @import "./styles/studio.css";
+@import "./styles/print.css";
 
 :root {
   --background: var(--color-pebble-50);
@@ -119,7 +120,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 18mm 16mm;
+    margin: 14mm 16mm 16mm;
   }
   html {
     font-size: 11pt;
