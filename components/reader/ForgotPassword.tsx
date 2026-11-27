@@ -1,6 +1,6 @@
 "use client";
 
-import { authButtonCls, authInputCls } from "@/components/studio/SetPasswordForm";
+import { authButtonCls, authInputCls } from "@/components/reader/SetPasswordForm";
 import { forgotPassword } from "@/lib/api";
 import Link from "next/link";
 import { useState } from "react";

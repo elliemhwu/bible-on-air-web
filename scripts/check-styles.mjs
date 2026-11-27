@@ -9,6 +9,7 @@ const ROOT = process.cwd();
 const DIRS = ["app", "components", "lib"];
 const EXTS = [".ts", ".tsx", ".css"];
 const PALETTE_FILE = join("app", "styles", "colors.css");
+const STUDIO_PATHS = [join("components", "studio") + sep, join("app", "(studio)") + sep];
 
 const TAILWIND_SCALES =
   "slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose";
@@ -29,6 +30,11 @@ const RULES = [
     name: "arbitrary colour value in a class (add a token instead)",
     re: /-\[(?:#|rgb|hsl|oklch)[^\]]*\]/g,
   },
+  {
+    name: "reader colour in a Studio file (use st-* so the night theme follows)",
+    re: /(?<![\w-])[a-z-]*-(?:pebble|iris)-\d{2,3}\b|(?<![\w-])[a-z]+-primary(?![\w-])/g,
+    only: (file) => STUDIO_PATHS.some((p) => file.startsWith(p)),
+  },
 ];
 
 function walk(dir, out = []) {
@@ -48,6 +54,7 @@ for (const dir of DIRS) {
     const lines = readFileSync(path, "utf8").split(/\r?\n/);
     lines.forEach((line, i) => {
       for (const rule of RULES) {
+        if (rule.only && !rule.only(file)) continue;
         if (rule.skip?.(file, line)) continue;
         for (const m of line.matchAll(rule.re)) {
           problems.push(`${file.split(sep).join("/")}:${i + 1}  ${m[0]}  — ${rule.name}`);

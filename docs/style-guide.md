@@ -24,7 +24,7 @@ components / pages            只用上面兩層的 class 或 var(--color-*)
 1. **色碼只能寫在 `app/styles/colors.css`。** 其他檔案不能出現 `#xxxxxx`、`rgb()`、`hsl()`、`oklch()`，也不能用 `bg-[#...]` 這種任意值。
 2. **不用 Tailwind 內建色階**（`gray-*`、`red-*`、`blue-*`、`amber-*`…）。需要的顏色先加進 `colors.css`，或用語意 token。
 3. **前台元件**用 `pebble-*`（中性色）、`iris-*`、`primary`、`danger`、`warning`。
-4. **後台元件只用 `st-*`**（`bg-st-surface`、`text-st-muted`、`border-st-line`…），這樣深色寫作主題（墨夜）才會跟著切換。`danger`、`warning` 在後台也可以用，但會跟著主題切換的地方請用 `st-danger`。
+4. **後台元件只用 `st-*`**（`lint:styles` 會檢查 `components/studio`、`app/(studio)`）（`bg-st-surface`、`text-st-muted`、`border-st-line`…），這樣深色寫作主題（墨夜）才會跟著切換。`danger`、`warning` 在後台也可以用，但會跟著主題切換的地方請用 `st-danger`。
 5. `white`、`black` 也定義在 `colors.css`，可以直接用：例如封面圖上的白字、`bg-black/30` 的遮罩。
 6. 狀態用語意 token，不用直接選色：錯誤訊息用 `text-danger`，提醒用 `text-warning`，已發布等狀態用 `StatusBadge`。
 
@@ -110,8 +110,8 @@ components / pages            只用上面兩層的 class 或 var(--color-*)
 
 這些是規範訂下之前就存在的地方，改到相關頁面時順手整理：
 
-- [ ] **後台仍在用前台色票的檔案**（應改成 `st-*`）：`CreateArticleForm`、`EditArticleForm`、`ArticleStatusActions`、`ReviewArticle`、`LegacySyncPanel`、`LookupVerseBlock`、`VerseBlockEditor`、`QuestionsBlockEditor`、`RichtextBlockEditor`、`OutlineBlockEditor`、`ForgotPassword`、`SetPasswordForm`、`app/(studio)/layout.tsx`
-- [ ] **`lib/styles.ts` 裡前台風格的常數**（`inputCls`、`selectCls`、`btnPrimaryCls`、`btnSecondaryCls`）：只剩登入、密碼頁在用，整理成 `components/ui` 的 `Button`、`Input`
+- [x] **後台仍在用前台色票的檔案**：都改成 `st-*` 了；`yarn lint:styles` 現在會擋下 `components/studio`、`app/(studio)` 裡的 `pebble-*`、`iris-*`、`*-primary`。新增、編輯、校閱文章頁也套上了 `StudioPage` 外框
+- [ ] **前台的登入、密碼表單**（`components/reader/SetPasswordForm` 的 `authInputCls`、`authButtonCls`）：整理成 `components/ui` 的 `Button`、`Input`
 - [ ] **大約 120 個手寫的 `<button>`**：逐步改用共用的 `Button`
 - [ ] **文字符號當圖示**（`‹ › ⠿ × ✎`）：換成 `components/icons/`
 - [ ] **`colors.css` 裡沒用到的色階**（`juniper`、`zinnia`、`poppy`、`marigold`）：決定要留還是刪

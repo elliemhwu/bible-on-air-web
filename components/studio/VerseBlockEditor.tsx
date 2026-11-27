@@ -14,7 +14,7 @@ type Props = {
 };
 
 const smSelect =
-  "rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition";
+  "rounded-md border border-st-line bg-st-surface px-2.5 py-1.5 text-sm text-st-ink outline-none focus:border-st-accent focus:ring-2 focus:ring-st-accent/20 transition";
 
 export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
   const [books, setBooks] = useState<BibleBook[]>([]);
@@ -133,13 +133,13 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
   }
 
   if (books.length === 0) {
-    return <p className="text-xs text-pebble-400">載入書卷清單中…</p>;
+    return <p className="text-xs text-st-faint">載入書卷清單中…</p>;
   }
 
   return (
     <div className="flex flex-col gap-3">
       {isEmpty(previews) && (
-        <p className="text-xs text-pebble-300">尚未加入任何經文段落</p>
+        <p className="text-xs text-st-faint">尚未加入任何經文段落</p>
       )}
 
       {ranges.map((range, idx) => {
@@ -160,7 +160,7 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
       <button
         type="button"
         onClick={openDialog}
-        className="self-start rounded-md border border-pebble-200 px-3 py-1.5 text-xs text-pebble-600 hover:border-pebble-300 hover:text-pebble-800 transition-colors"
+        className="self-start rounded-md border border-st-line px-3 py-1.5 text-xs text-st-ink-2 hover:border-st-line-strong hover:text-st-ink transition-colors"
       >
         ＋ 新增經文
       </button>
@@ -168,17 +168,17 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
       {/* Add dialog */}
       <dialog
         ref={dialogRef}
-        className="m-auto rounded-xl border border-pebble-200 bg-white p-6 shadow-lg backdrop:bg-black/30 w-full max-w-md"
+        className="m-auto rounded-xl border border-st-line bg-st-surface p-6 shadow-lg backdrop:bg-black/30 w-full max-w-md"
         onCancel={closeDialog}
       >
-        <h3 className="text-sm font-semibold text-pebble-800 mb-4">
+        <h3 className="text-sm font-semibold text-st-ink mb-4">
           新增經文段落
         </h3>
 
         <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2.5">
           {/* Book */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-pebble-500">書卷</label>
+            <label className="text-xs text-st-muted">書卷</label>
             <select
               value={formData.abbrZh}
               onChange={(e) => onFormChange("abbrZh", e.target.value)}
@@ -194,7 +194,7 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
 
           {/* Chapter start */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-pebble-500">章</label>
+            <label className="text-xs text-st-muted">章</label>
             <select
               value={formData.chapterStart}
               onChange={(e) =>
@@ -212,7 +212,7 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
 
           {/* Verse start */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-pebble-500">節</label>
+            <label className="text-xs text-st-muted">節</label>
             <select
               value={formData.verseStart}
               onChange={(e) =>
@@ -231,7 +231,7 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
           </div>
 
           {/* Range toggle */}
-          <label className="flex items-center gap-1.5 h-9 cursor-pointer select-none text-sm text-pebble-600 mt-5 ml-1">
+          <label className="flex items-center gap-1.5 h-9 cursor-pointer select-none text-sm text-st-ink-2 mt-5 ml-1">
             <input
               type="checkbox"
               checked={formData.isRange}
@@ -243,7 +243,7 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
                   verseEnd: prev.verseStart,
                 }))
               }
-              className="accent-iris-500"
+              className="accent-st-accent"
             />
             範圍
           </label>
@@ -251,11 +251,11 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
           {/* End chapter + verse */}
           {formData.isRange && (
             <>
-              <span className="text-pebble-400 text-sm flex items-center justify-end mt-5 mr-2">
+              <span className="text-st-faint text-sm flex items-center justify-end mt-5 mr-2">
                 至
               </span>
               <div className="flex flex-col gap-1">
-                <label className="text-xs text-pebble-500">章</label>
+                <label className="text-xs text-st-muted">章</label>
                 <select
                   value={formData.chapterEnd}
                   onChange={(e) =>
@@ -273,7 +273,7 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs text-pebble-500">節</label>
+                <label className="text-xs text-st-muted">節</label>
                 <select
                   value={formData.verseEnd}
                   onChange={(e) =>
@@ -305,14 +305,14 @@ export default function VerseBlockEditor({ ranges = [], onChange }: Props) {
             type="button"
             onClick={handleAdd}
             disabled={isAdding}
-            className="rounded-lg bg-iris-500 px-4 py-2 text-sm font-semibold text-white hover:bg-iris-600 disabled:opacity-50 transition-colors"
+            className="rounded-lg bg-st-primary px-4 py-2 text-sm font-semibold text-st-on-primary hover:opacity-90 disabled:opacity-50 transition-colors"
           >
             {isAdding ? "查詢中…" : "新增"}
           </button>
           <button
             type="button"
             onClick={closeDialog}
-            className="rounded-lg border border-pebble-200 px-4 py-2 text-sm text-pebble-600 hover:border-pebble-300 transition-colors"
+            className="rounded-lg border border-st-line px-4 py-2 text-sm text-st-ink-2 hover:border-st-line-strong transition-colors"
           >
             取消
           </button>

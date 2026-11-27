@@ -7,10 +7,9 @@ import VerseBlockEditor from "@/components/studio/VerseBlockEditor";
 import { createArticle, getArticleTemplates } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import {
-  btnPrimaryCls,
-  btnSecondaryCls,
-  inputCls,
-  selectCls,
+  stBtnPrimary,
+  stBtnSecondary,
+  stInput,
 } from "@/lib/styles";
 import type { ArticleTemplate, VerseRange } from "@/lib/types";
 import { useDatePicker } from "@/lib/useDatePicker";
@@ -112,15 +111,15 @@ export default function CreateArticleForm({
   }
 
   return (
-    <main className="min-h-screen md:px-48 px-6 py-12 font-sans">
-      <h1 className="text-2xl font-semibold text-pebble-800 mb-8">新增文章</h1>
+    <main className="mx-auto w-full max-w-3xl px-4 py-9 sm:px-8">
+      <h1 className="mb-8 font-serif text-[28px] font-semibold text-st-ink">新增文章</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {/* Template */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm text-pebble-600">文章模板</label>
+          <label className="text-sm text-st-ink-2">文章模板</label>
           {isLoadingTemplates ? (
-            <p className="text-sm text-pebble-400">載入中…</p>
+            <p className="text-sm text-st-faint">載入中…</p>
           ) : (
             <select
               value={selectedTemplateId}
@@ -130,7 +129,7 @@ export default function CreateArticleForm({
                   e.target.value === "" ? "" : Number(e.target.value),
                 )
               }
-              className={selectCls}
+              className={`${stInput} w-full`}
             >
               {templates.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -143,7 +142,7 @@ export default function CreateArticleForm({
 
         {/* Date */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm text-pebble-600">日期</label>
+          <label className="text-sm text-st-ink-2">日期</label>
           <div ref={dateContainerRef} className="relative">
             <button
               type="button"
@@ -152,9 +151,9 @@ export default function CreateArticleForm({
                   ? datePickerRef.current?.close()
                   : setDatePickerOpen(true)
               }
-              className={`${selectCls} text-left`}
+              className={`${stInput} w-full text-left`}
             >
-              <span className={date ? "text-pebble-900" : "text-pebble-300"}>
+              <span className={date ? "text-st-ink" : "text-st-faint"}>
                 {date || "選擇日期"}
               </span>
             </button>
@@ -171,7 +170,7 @@ export default function CreateArticleForm({
 
         {/* Title */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="title" className="text-sm text-pebble-600">
+          <label htmlFor="title" className="text-sm text-st-ink-2">
             標題
           </label>
           <input
@@ -180,7 +179,7 @@ export default function CreateArticleForm({
             value={title}
             onChange={(e) => onFormChange("title", e.target.value)}
             placeholder="留空則無標題"
-            className={inputCls}
+            className={`${stInput} w-full`}
           />
         </div>
 
@@ -194,7 +193,7 @@ export default function CreateArticleForm({
               .map((block) => (
                 <div key={block.order} className="flex flex-col gap-1.5">
                   {block.label && (
-                    <div className="text-sm text-pebble-600">{block.label}</div>
+                    <div className="text-sm text-st-ink-2">{block.label}</div>
                   )}
                   {block.type === "richtext" ? (
                     <RichtextBlockEditor
@@ -210,7 +209,7 @@ export default function CreateArticleForm({
                       }
                     />
                   ) : (
-                    <div className="rounded-lg border border-pebble-200 bg-white p-4">
+                    <div className="rounded-lg border border-st-line bg-st-surface p-4">
                       {block.type === "verse" ? (
                         <VerseBlockEditor
                           ranges={formData.verseRanges[block.order]}
@@ -238,28 +237,28 @@ export default function CreateArticleForm({
                           }
                         />
                       ) : (
-                        <p className="text-xs text-pebble-400">[待實作]</p>
+                        <p className="text-xs text-st-faint">[待實作]</p>
                       )}
                     </div>
                   )}
                 </div>
               ))
           : !isLoadingTemplates && (
-              <p className="text-sm text-pebble-400">選擇模板後顯示區塊預覽</p>
+              <p className="text-sm text-st-faint">選擇模板後顯示區塊預覽</p>
             )}
 
         <div className="flex items-center gap-3">
           <button
             type="submit"
             disabled={isSubmitting || !date}
-            className={btnPrimaryCls}
+            className={stBtnPrimary}
           >
             {isSubmitting ? "儲存中…" : "儲存"}
           </button>
           <button
             type="button"
             onClick={() => router.push("/studio")}
-            className={btnSecondaryCls}
+            className={stBtnSecondary}
           >
             取消
           </button>

@@ -57,7 +57,7 @@ export default function QuestionsBlockEditor({ items, onChange, appearance = "de
       <ol className="flex flex-col gap-2 list-none">
         {items.map((item, idx) => (
           <li key={idx} className="flex items-center gap-2">
-            <span className={`text-xs w-5 text-right shrink-0 ${paper ? "text-st-muted" : "text-pebble-400"}`}>
+            <span className={`text-xs w-5 text-right shrink-0 ${paper ? "text-st-muted" : "text-st-faint"}`}>
               {idx + 1}.
             </span>
             <input
@@ -72,7 +72,7 @@ export default function QuestionsBlockEditor({ items, onChange, appearance = "de
               className={
                 paper
                   ? PAPER_INPUT
-                  : "flex-1 rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20 transition"
+                  : "flex-1 rounded-md border border-st-line bg-st-surface px-2.5 py-1.5 text-sm text-st-ink placeholder:text-st-placeholder outline-none focus:border-st-accent focus:ring-2 focus:ring-st-accent/20 transition"
               }
             />
             <div className="flex gap-0.5">
@@ -80,7 +80,7 @@ export default function QuestionsBlockEditor({ items, onChange, appearance = "de
                 type="button"
                 onClick={() => move(idx, -1)}
                 disabled={idx === 0}
-                className="text-pebble-300 hover:text-pebble-600 disabled:opacity-20 transition-colors px-0.5"
+                className="text-st-faint hover:text-st-ink-2 disabled:opacity-20 transition-colors px-0.5"
                 aria-label="上移"
               >
                 ↑
@@ -89,7 +89,7 @@ export default function QuestionsBlockEditor({ items, onChange, appearance = "de
                 type="button"
                 onClick={() => move(idx, 1)}
                 disabled={idx === items.length - 1}
-                className="text-pebble-300 hover:text-pebble-600 disabled:opacity-20 transition-colors px-0.5"
+                className="text-st-faint hover:text-st-ink-2 disabled:opacity-20 transition-colors px-0.5"
                 aria-label="下移"
               >
                 ↓
@@ -98,7 +98,7 @@ export default function QuestionsBlockEditor({ items, onChange, appearance = "de
                 <button
                   type="button"
                   onClick={() => remove(idx)}
-                  className="text-pebble-300 hover:text-danger transition-colors text-lg leading-none ml-0.5"
+                  className="text-st-faint hover:text-danger transition-colors text-lg leading-none ml-0.5"
                   aria-label="移除此題"
                 >
                   ×
@@ -112,7 +112,7 @@ export default function QuestionsBlockEditor({ items, onChange, appearance = "de
       <button
         type="button"
         onClick={add}
-        className={`self-start text-xs font-medium transition-colors ${paper ? "text-st-accent hover:underline" : "text-iris-600 hover:text-iris-700"}`}
+        className={`self-start text-xs font-medium transition-colors ${paper ? "text-st-accent hover:underline" : "text-st-accent hover:text-st-ink"}`}
       >
         + 新增問題
       </button>

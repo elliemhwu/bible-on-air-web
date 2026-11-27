@@ -15,13 +15,13 @@ type Props = {
 const STYLES = {
   default: {
     input:
-      "rounded-md border border-pebble-200 bg-white px-2.5 py-1.5 text-sm text-pebble-900 placeholder:text-pebble-300 outline-none focus:border-iris-400 focus:ring-2 focus:ring-iris-400/20",
+      "rounded-md border border-st-line bg-st-surface px-2.5 py-1.5 text-sm text-st-ink placeholder:text-st-placeholder outline-none focus:border-st-accent focus:ring-2 focus:ring-st-accent/20",
     invalid: "border-danger",
-    muted: "text-pebble-400",
+    muted: "text-st-faint",
     error: "text-danger",
-    card: "rounded-lg border border-pebble-200 bg-pebble-50/60 p-3",
-    link: "text-iris-600 hover:text-iris-700",
-    icon: "text-pebble-300 hover:text-pebble-600 disabled:opacity-20",
+    card: "rounded-lg border border-st-line bg-st-sunken/60 p-3",
+    link: "text-st-accent hover:text-st-ink",
+    icon: "text-st-faint hover:text-st-ink-2 disabled:opacity-20",
   },
   paper: {
     input:

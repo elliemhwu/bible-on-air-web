@@ -33,30 +33,27 @@ export default function ReviewArticle({ articleId }: { articleId: string }) {
   }, [token, queueStatus]);
 
   if (error) return <p className="px-6 py-12 text-sm text-danger font-sans">{error}</p>;
-  if (!article) return <p className="px-6 py-12 text-sm text-pebble-400 font-sans">載入中…</p>;
+  if (!article) return <p className="px-6 py-12 text-sm text-st-faint font-sans">載入中…</p>;
 
   const next = queue.filter((a) => a.id !== article.id).sort((a, b) => a.date.localeCompare(b.date))[0];
 
   return (
     <div className="flex flex-col">
-      <div className="sticky top-0 z-30 border-b border-pebble-200 bg-pebble-50/95 backdrop-blur">
+      <div className="sticky top-0 z-30 border-b border-st-line bg-st-bg/95 backdrop-blur">
         <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 px-6 py-3 font-sans text-sm">
           <ArticleStatusActions
             article={article}
             onChanged={(status) => setArticle({ ...article, status })}
           />
           <div className="flex gap-4">
-            <Link href={`/studio/articles/${article.id}/edit`} className="text-iris-600 hover:text-iris-700">
+            <Link href={`/studio/articles/${article.id}/edit`} className="text-st-accent hover:text-st-ink">
               編輯
             </Link>
             {next && (
-              <Link href={`/studio/articles/${next.id}/review`} className="text-iris-600 hover:text-iris-700">
+              <Link href={`/studio/articles/${next.id}/review`} className="text-st-accent hover:text-st-ink">
                 下一篇 {next.date.slice(5)} →
               </Link>
             )}
-            <Link href="/studio" className="text-pebble-500 hover:text-pebble-800">
-              後台
-            </Link>
           </div>
         </div>
       </div>

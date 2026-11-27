@@ -1,3 +1,4 @@
+import { StudioPage } from "@/components/studio/shell/StudioHeader";
 import CreateArticleForm from "@/components/studio/CreateArticleForm";
 
 export default async function NewArticlePage({
@@ -7,8 +8,12 @@ export default async function NewArticlePage({
 }) {
   const { date } = await searchParams;
   return (
-    <CreateArticleForm
-      initialDate={date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined}
-    />
+    <StudioPage>
+      <CreateArticleForm
+        initialDate={
+          date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined
+        }
+      />
+    </StudioPage>
   );
 }

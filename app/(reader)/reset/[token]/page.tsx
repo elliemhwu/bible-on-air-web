@@ -1,4 +1,4 @@
-import SetPasswordForm from "@/components/studio/SetPasswordForm";
+import SetPasswordForm from "@/components/reader/SetPasswordForm";
 
 export const metadata = { title: "重設密碼｜Bible On Air" };
 

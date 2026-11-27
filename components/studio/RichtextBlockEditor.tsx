@@ -12,8 +12,8 @@ type Props = {
 };
 
 const TOOLBAR_BTN =
-  "px-2 py-1 rounded text-sm text-pebble-600 hover:bg-pebble-100 transition-colors disabled:opacity-30";
-const TOOLBAR_BTN_ACTIVE = "bg-pebble-100 text-pebble-900 font-semibold";
+  "px-2 py-1 rounded text-sm text-st-ink-2 hover:bg-st-soft transition-colors disabled:opacity-30";
+const TOOLBAR_BTN_ACTIVE = "bg-st-soft text-st-ink font-semibold";
 
 const PAPER_TOOLBAR_BTN =
   "px-2 py-0.5 rounded text-xs text-st-muted hover:bg-st-soft transition-colors disabled:opacity-30";
@@ -34,7 +34,7 @@ export default function RichtextBlockEditor({ html, onChange, appearance = "defa
       attributes: {
         class: paper
           ? "min-h-[3.5rem] py-1 outline-none text-base leading-[2] text-st-ink prose-tc [&_p]:indent-8 [&_p]:mb-2"
-          : "min-h-[120px] px-3.5 py-2.5 outline-none text-sm text-pebble-900 prose-tc [&_p]:indent-8",
+          : "min-h-[120px] px-3.5 py-2.5 outline-none text-sm text-st-ink prose-tc [&_p]:indent-8",
       },
     },
   });
@@ -52,7 +52,7 @@ export default function RichtextBlockEditor({ html, onChange, appearance = "defa
       className={
         paper
           ? "group relative"
-          : "rounded-lg border border-pebble-200 bg-white overflow-hidden focus-within:border-iris-400 focus-within:ring-2 focus-within:ring-iris-400/20 transition"
+          : "rounded-lg border border-st-line bg-st-surface overflow-hidden focus-within:border-st-accent focus-within:ring-2 focus-within:ring-st-accent/20 transition"
       }
     >
       {/* Toolbar */}
@@ -60,7 +60,7 @@ export default function RichtextBlockEditor({ html, onChange, appearance = "defa
         className={
           paper
             ? "hidden flex-wrap gap-0.5 rounded-md border border-st-line bg-st-surface px-1.5 py-1 group-focus-within:flex"
-            : "flex flex-wrap gap-0.5 border-b border-pebble-100 px-2 py-1.5"
+            : "flex flex-wrap gap-0.5 border-b border-st-line px-2 py-1.5"
         }
       >
         <button
@@ -77,7 +77,7 @@ export default function RichtextBlockEditor({ html, onChange, appearance = "defa
         >
           I
         </button>
-        <div className={paper ? "w-px bg-st-line mx-1" : "w-px bg-pebble-200 mx-1"} />
+        <div className={paper ? "w-px bg-st-line mx-1" : "w-px bg-st-line mx-1"} />
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -92,7 +92,7 @@ export default function RichtextBlockEditor({ html, onChange, appearance = "defa
         >
           1. 清單
         </button>
-        <div className={paper ? "w-px bg-st-line mx-1" : "w-px bg-pebble-200 mx-1"} />
+        <div className={paper ? "w-px bg-st-line mx-1" : "w-px bg-st-line mx-1"} />
         <button
           type="button"
           onClick={() => editor.chain().focus().setParagraph().run()}
@@ -109,7 +109,7 @@ export default function RichtextBlockEditor({ html, onChange, appearance = "defa
         >
           H3
         </button>
-        <div className={paper ? "w-px bg-st-line mx-1" : "w-px bg-pebble-200 mx-1"} />
+        <div className={paper ? "w-px bg-st-line mx-1" : "w-px bg-st-line mx-1"} />
         <button
           type="button"
           onClick={() => editor.chain().focus().undo().run()}
