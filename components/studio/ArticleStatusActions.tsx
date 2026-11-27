@@ -33,7 +33,7 @@ export default function ArticleStatusActions({ article, onChanged }: Props) {
   }
 
   const btn =
-    "rounded-md border border-pebble-200 bg-white px-3 py-1 text-sm text-pebble-700 hover:border-iris-300 hover:text-iris-600 disabled:opacity-50 transition-colors";
+    "rounded-md border border-st-line bg-st-surface px-3 py-1 text-sm text-st-ink-2 hover:border-st-accent hover:text-st-accent disabled:opacity-50 transition-colors";
 
   return (
     <div className="flex flex-wrap items-center gap-2 font-sans">
@@ -58,7 +58,7 @@ export default function ArticleStatusActions({ article, onChanged }: Props) {
           取消發布
         </button>
       )}
-      {error && <span className="text-sm text-danger">{error}</span>}
+      {error && <span className="text-sm text-st-danger">{error}</span>}
     </div>
   );
 }

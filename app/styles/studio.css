@@ -82,6 +82,12 @@
   color-scheme: dark;
 }
 
+/* Native checkboxes, radios and pickers follow the Studio theme */
+.studio,
+.studio-night {
+  accent-color: var(--st-accent);
+}
+
 /* Studio screens use the sans face and a tighter rhythm than the reader */
 .studio {
   font-family: var(--font-noto-sans-tc), "Noto Sans TC", system-ui, sans-serif;

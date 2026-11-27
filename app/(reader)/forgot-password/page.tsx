@@ -1,4 +1,4 @@
-import ForgotPassword from "@/components/studio/ForgotPassword";
+import ForgotPassword from "@/components/reader/ForgotPassword";
 
 export const metadata = { title: "忘記密碼｜Bible On Air" };
 

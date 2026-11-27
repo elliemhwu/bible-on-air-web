@@ -62,15 +62,15 @@ export default function LegacySyncPanel({ token, date, disabled, onSynced }: Pro
   }
 
   return (
-    <div className="rounded-lg border border-dashed border-pebble-300 bg-pebble-50 px-4 py-3 text-sm">
+    <div className="rounded-lg border border-dashed border-st-line-strong bg-st-sunken px-4 py-3 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-pebble-600">舊網站（Google Site）</span>
+        <span className="text-st-ink-2">舊網站（Google Site）</span>
         {item === undefined && (
           <button
             type="button"
             onClick={check}
             disabled={busy}
-            className="text-iris-600 hover:text-iris-700 disabled:opacity-50"
+            className="text-st-accent hover:text-st-ink disabled:opacity-50"
           >
             {busy ? "檢查中…" : "檢查是否有缺少的內容"}
           </button>
@@ -78,16 +78,16 @@ export default function LegacySyncPanel({ token, date, disabled, onSynced }: Pro
       </div>
 
       {item === null && (
-        <p className="mt-2 text-pebble-500">舊網站沒有這一天的內容。</p>
+        <p className="mt-2 text-st-muted">舊網站沒有這一天的內容。</p>
       )}
 
       {item && item.gaps.length === 0 && !message && (
-        <p className="mt-2 text-pebble-500">內容完整，不需要補齊。</p>
+        <p className="mt-2 text-st-muted">內容完整，不需要補齊。</p>
       )}
 
       {item && item.gaps.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <span className="text-pebble-700">
+          <span className="text-st-ink-2">
             舊網站有、這裡是空的：{item.gaps.map(gapLabel).join("、")}
           </span>
           <button
@@ -95,18 +95,18 @@ export default function LegacySyncPanel({ token, date, disabled, onSynced }: Pro
             onClick={sync}
             disabled={busy || disabled}
             title={disabled ? "請先儲存目前的修改" : undefined}
-            className="rounded-md bg-iris-500 px-3 py-1 text-white hover:bg-iris-600 disabled:opacity-50"
+            className="rounded-md bg-st-primary px-3 py-1 text-st-on-primary hover:opacity-90 disabled:opacity-50"
           >
             {busy ? "補齊中…" : "從舊網站補齊"}
           </button>
-          {disabled && <span className="text-xs text-pebble-400">請先儲存目前的修改</span>}
+          {disabled && <span className="text-xs text-st-faint">請先儲存目前的修改</span>}
         </div>
       )}
 
       {item?.warnings.map((w) => (
-        <p key={w} className="mt-1 text-xs text-warning">⚠ {w}</p>
+        <p key={w} className="mt-1 text-xs text-st-gold-ink">⚠ {w}</p>
       ))}
-      {message && <p className="mt-2 text-pebble-700">{message}</p>}
+      {message && <p className="mt-2 text-st-ink-2">{message}</p>}
     </div>
   );
 }

@@ -13,7 +13,7 @@ import {
   updateArticle,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { btnPrimaryCls, btnSecondaryCls, inputCls } from "@/lib/styles";
+import { stBtnPrimary, stBtnSecondary, stInput } from "@/lib/styles";
 import type {
   Article,
   ArticleSummary,
@@ -63,7 +63,7 @@ const DISPLAY_MODES: { value: VerseDisplayMode; label: string }[] = [
 ];
 
 const smallBtn =
-  "rounded px-2 py-0.5 text-xs text-pebble-500 hover:bg-pebble-100 hover:text-pebble-800 disabled:opacity-30 transition-colors";
+  "rounded px-2 py-0.5 text-xs text-st-muted hover:bg-st-soft hover:text-st-ink disabled:opacity-30 transition-colors";
 
 let keySeq = 0;
 const newKey = () => `new-${++keySeq}`;
@@ -255,29 +255,29 @@ export default function EditArticleForm({ articleId }: Props) {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen md:px-48 px-6 py-12 font-sans">
-        <p className="text-sm text-pebble-400">載入文章中…</p>
+      <main className="mx-auto w-full max-w-3xl px-4 py-9 sm:px-8">
+        <p className="text-sm text-st-faint">載入文章中…</p>
       </main>
     );
   }
 
   if (!article) {
     return (
-      <main className="min-h-screen md:px-48 px-6 py-12 font-sans">
-        <p className="text-sm text-danger">{formError ?? "找不到這篇文章"}</p>
+      <main className="mx-auto w-full max-w-3xl px-4 py-9 sm:px-8">
+        <p className="text-sm text-st-danger">{formError ?? "找不到這篇文章"}</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen md:px-48 px-6 py-12 font-sans">
+    <main className="mx-auto w-full max-w-3xl px-4 py-9 sm:px-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-pebble-800">編輯文章</h1>
+        <h1 className="font-serif text-[28px] font-semibold text-st-ink">編輯文章</h1>
         <div className="flex gap-4 text-sm">
-          <Link href={`/studio/articles/${article.id}/review`} className="text-iris-600 hover:text-iris-700">
+          <Link href={`/studio/articles/${article.id}/review`} className="text-st-accent hover:text-st-ink">
             預覽 / 校閱
           </Link>
-          <Link href="/studio/articles" className="text-pebble-500 hover:text-pebble-800">
+          <Link href="/studio/articles" className="text-st-muted hover:text-st-ink">
             回文章管理
           </Link>
         </div>
@@ -296,15 +296,15 @@ export default function EditArticleForm({ articleId }: Props) {
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {/* Date */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm text-pebble-600">日期</label>
-          <div className="w-full rounded-lg border border-pebble-200 bg-pebble-50 px-3.5 py-2.5 text-sm text-left text-pebble-900">
+          <label className="text-sm text-st-ink-2">日期</label>
+          <div className="w-full rounded-lg border border-st-line bg-st-sunken px-3.5 py-2.5 text-sm text-left text-st-ink">
             {article.date}
           </div>
         </div>
 
         {/* Title */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="title" className="text-sm text-pebble-600">
+          <label htmlFor="title" className="text-sm text-st-ink-2">
             標題
           </label>
           <input
@@ -316,7 +316,7 @@ export default function EditArticleForm({ articleId }: Props) {
               setDirty(true);
             }}
             placeholder="留空則無標題"
-            className={inputCls}
+            className={`${stInput} w-full`}
           />
         </div>
 
@@ -324,10 +324,10 @@ export default function EditArticleForm({ articleId }: Props) {
         {blocks.map((block, index) => (
           <section
             key={`${block.key}-${reloadCount}`}
-            className="flex flex-col gap-2 rounded-xl border border-pebble-200 bg-pebble-50/50 p-3"
+            className="flex flex-col gap-2 rounded-xl border border-st-line bg-st-sunken/50 p-3"
           >
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded bg-pebble-200/70 px-1.5 py-0.5 text-xs text-pebble-600">
+              <span className="rounded bg-st-soft px-1.5 py-0.5 text-xs text-st-ink-2">
                 {block.label ?? BLOCK_TYPE_LABEL[block.type]}
               </span>
               <input
@@ -336,7 +336,7 @@ export default function EditArticleForm({ articleId }: Props) {
                 onChange={(e) => updateBlock(block.key, { subheading: e.target.value })}
                 placeholder="小標題（可留空）"
                 aria-label="小標題"
-                className="min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm text-pebble-800 hover:border-pebble-200 focus:border-iris-400 focus:bg-white outline-none"
+                className="min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-sm text-st-ink hover:border-st-line focus:border-st-accent focus:bg-st-surface outline-none"
               />
               <div className="flex items-center">
                 <button type="button" onClick={() => moveBlock(index, -1)} disabled={index === 0} className={smallBtn} aria-label="上移">
@@ -351,7 +351,7 @@ export default function EditArticleForm({ articleId }: Props) {
                 >
                   ↓
                 </button>
-                <button type="button" onClick={() => removeBlock(block)} className={`${smallBtn} hover:!text-danger`}>
+                <button type="button" onClick={() => removeBlock(block)} className={`${smallBtn} hover:!text-st-danger`}>
                   刪除
                 </button>
               </div>
@@ -360,21 +360,21 @@ export default function EditArticleForm({ articleId }: Props) {
             {block.type === "richtext" ? (
               <RichtextBlockEditor html={block.html} onChange={(html) => updateBlock(block.key, { html })} />
             ) : (
-              <div className="rounded-lg border border-pebble-200 bg-white p-4">
+              <div className="rounded-lg border border-st-line bg-st-surface p-4">
                 {block.type === "verse" ? (
                   <div className="flex flex-col gap-3">
                     <VerseBlockEditor
                       ranges={block.ranges}
                       onChange={(ranges) => updateBlock(block.key, { ranges })}
                     />
-                    <label className="flex items-center gap-2 text-xs text-pebble-500">
+                    <label className="flex items-center gap-2 text-xs text-st-muted">
                       顯示方式
                       <select
                         value={block.displayMode ?? "ordered"}
                         onChange={(e) =>
                           updateBlock(block.key, { displayMode: e.target.value as VerseDisplayMode })
                         }
-                        className="rounded-md border border-pebble-200 bg-white px-2 py-1 text-xs text-pebble-800"
+                        className="rounded-md border border-st-line bg-st-surface px-2 py-1 text-xs text-st-ink"
                       >
                         {DISPLAY_MODES.map((m) => (
                           <option key={m.value} value={m.value}>
@@ -398,7 +398,7 @@ export default function EditArticleForm({ articleId }: Props) {
           <select
             value=""
             onChange={(e) => e.target.value && addBlock(e.target.value)}
-            className="rounded-lg border border-dashed border-pebble-300 bg-white px-3 py-2 text-sm text-pebble-600"
+            className="rounded-lg border border-dashed border-st-line-strong bg-st-surface px-3 py-2 text-sm text-st-ink-2"
             aria-label="新增區塊"
           >
             <option value="">＋ 新增區塊…</option>
@@ -421,16 +421,16 @@ export default function EditArticleForm({ articleId }: Props) {
           </select>
         </div>
 
-        {formError && <p className="text-sm text-danger">{formError}</p>}
+        {formError && <p className="text-sm text-st-danger">{formError}</p>}
 
-        <div className="sticky bottom-0 -mx-2 flex items-center gap-3 border-t border-pebble-200 bg-pebble-50/95 px-2 py-3 backdrop-blur">
-          <button type="submit" disabled={isSubmitting || !dirty} className={btnPrimaryCls}>
+        <div className="sticky bottom-0 -mx-2 flex items-center gap-3 border-t border-st-line bg-st-bg/95 px-2 py-3 backdrop-blur">
+          <button type="submit" disabled={isSubmitting || !dirty} className={stBtnPrimary}>
             {isSubmitting ? "儲存中…" : "儲存"}
           </button>
-          <button type="button" onClick={() => router.push("/studio/articles")} className={btnSecondaryCls}>
+          <button type="button" onClick={() => router.push("/studio/articles")} className={stBtnSecondary}>
             離開
           </button>
-          <span className="text-xs text-pebble-400">
+          <span className="text-xs text-st-faint">
             {dirty ? "有尚未儲存的修改" : savedAt ? `已於 ${savedAt} 儲存` : ""}
           </span>
         </div>

@@ -12,9 +12,9 @@ export default function LookupVerseBlock({
   onRemove,
 }: Props) {
   return (
-    <div className="rounded-lg bg-iris-50 p-4">
+    <div className="rounded-lg bg-st-sunken p-4">
       <div className="mb-2 flex justify-between align-center">
-        <h6 className="text-xs font-semibold text-primary">
+        <h6 className="text-xs font-semibold text-st-accent">
           {formatVerseRef(ranges)}
         </h6>
 
@@ -22,7 +22,7 @@ export default function LookupVerseBlock({
           <button
             type="button"
             onClick={onRemove}
-            className="shrink-0 text-xs text-primary hover:text-accent transition-colors"
+            className="shrink-0 text-xs text-st-accent hover:text-accent transition-colors"
           >
             移除
           </button>

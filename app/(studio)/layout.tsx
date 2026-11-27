@@ -33,7 +33,7 @@ export default function StudioLayout({
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-pebble-400 font-sans">載入中…</p>
+        <p className="text-sm text-st-faint font-sans">載入中…</p>
       </div>
     );
   }
