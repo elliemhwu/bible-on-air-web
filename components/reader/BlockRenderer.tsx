@@ -19,7 +19,7 @@ export function BlockRenderer({
       return (
         <div>
           {block.subheading && (
-            <SectionHeading className="mb-4">{block.subheading}</SectionHeading>
+            <SectionHeading className="mb-6">{block.subheading}</SectionHeading>
           )}
           {afterHeading}
 

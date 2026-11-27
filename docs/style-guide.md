@@ -48,7 +48,8 @@ components / pages            只用上面兩層的 class 或 var(--color-*)
 | `crimson` | 錯誤、刪除（`danger`） |
 | `night` | 後台墨夜主題的中性色 |
 | `print` | 列印頁的墨色和分隔線 |
-| `juniper`、`zinnia`、`poppy`、`marigold` | 目前沒有使用（juniper 的 200–900 還是同一個值，要用之前先補齊） |
+| `marigold` | 小標的螢光筆（`--color-highlight`） |
+| `juniper`、`zinnia`、`poppy` | 目前沒有使用（juniper 的 200–900 還是同一個值，要用之前先補齊） |
 
 ---
 
@@ -81,7 +82,7 @@ components / pages            只用上面兩層的 class 或 var(--color-*)
 | `MonthCalendar` | `components/calendar/MonthCalendar.tsx` | 月曆：桌機是封面格子，手機是卡片列表；`variant="reader" \| "studio"` |
 | `StatusBadge` | `components/studio/StatusBadge.tsx` | 文章狀態標籤 |
 | `StudioPage` | `components/studio/shell/StudioHeader.tsx` | 後台頁面外框（色票、header） |
-| `SectionHeading` | `components/reader/SectionHeading.tsx` | 文章各段小標（經文、觀察與思想…），第一個字後面有對比色的墨漬圓點（`--color-ink-dot`） |
+| `SectionHeading` | `components/reader/SectionHeading.tsx` | 文章各段小標（經文、觀察與思想…），文字下半部有對比色的螢光筆筆劃（`--color-highlight`） |
 | `StaffFabProvider`、`StaffEditTarget` | `components/reader/StaffFab.tsx` | 前台的同工鉛筆選單 |
 | `ChevronDown` | `components/icons/ChevronDown.tsx` | 下拉箭頭 |
 | `Button`、`Input`、`Field`、`TextLink` | `components/ui/` | 前台的按鈕、輸入框、標籤＋輸入框、連結（登入、密碼、404 頁在用） |
@@ -118,4 +119,4 @@ components / pages            只用上面兩層的 class 或 var(--color-*)
 - [x] **前台的登入、密碼表單**：改用 `components/ui` 的 `Button`、`Input`、`Field`、`TextLink`
 - [ ] **大約 120 個手寫的 `<button>`**：逐步改用共用的 `Button`
 - [ ] **文字符號當圖示**（`‹ › ⠿ × ✎`）：換成 `components/icons/`
-- [ ] **`colors.css` 裡沒用到的色階**（`juniper`、`zinnia`、`poppy`、`marigold`）：決定要留還是刪
+- [ ] **`colors.css` 裡沒用到的色階**（`juniper`、`zinnia`、`poppy`）：決定要留還是刪

@@ -19,8 +19,8 @@
   --color-primary-soft: var(--color-iris-300);
   /* One step deeper, for long runs of primary text: verse text */
   --color-primary-hard: var(--color-iris-600);
-  /* Ink blot behind each section heading's first character: a warm contrast to iris */
-  --color-ink-dot: var(--color-marigold-300);
+  /* Highlighter stroke behind each section heading: a warm contrast to iris */
+  --color-highlight: var(--color-marigold-300);
   /* Tint behind a selected item: the date picker's chosen day */
   --color-primary-faint: var(--color-iris-50);
   /* Status colours shared by reader and studio forms */
@@ -66,8 +66,9 @@ body {
 }
 
 /*
- * Section heading (經文、觀察與思想…): a soft, slightly uneven blot of the
- * contrast colour sits behind the first character, like a drop of ink.
+ * Section heading (經文、觀察與思想…): a highlighter stroke across the lower
+ * half of the words, a little past both ends, slightly tilted, with ends that
+ * fade like a marker lifting off the paper.
  */
 .section-heading {
   position: relative;
@@ -78,19 +79,20 @@ body {
   content: "";
   position: absolute;
   z-index: -1;
-  left: -1.2em;
-  top: 30%;
-  width: 2em;
-  height: 2em;
-  translate: 0 -52%;
-  rotate: -14deg;
-  border-radius: 58% 42% 52% 48% / 46% 56% 44% 54%;
-  background: radial-gradient(
-    circle at 42% 40%,
-    var(--color-ink-dot) 0 52%,
-    color-mix(in srgb, var(--color-ink-dot) 55%, transparent) 64%,
-    transparent 74%
+  left: -0.3em;
+  right: -0.45em;
+  bottom: 0.2em;
+  height: 0.8em;
+  rotate: -1.5deg;
+  border-radius: 0.2em 0.5em 0.3em 0.6em / 0.5em 0.25em 0.6em 0.3em;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-highlight) 55%, transparent),
+    var(--color-highlight) 0.5em,
+    var(--color-highlight) calc(100% - 0.6em),
+    color-mix(in srgb, var(--color-highlight) 45%, transparent)
   );
+  opacity: 0.85;
 }
 
 .prose-tc p {
