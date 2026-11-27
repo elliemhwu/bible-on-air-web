@@ -1,4 +1,4 @@
-import { StaffEditLink } from "@/components/reader/StaffEditLink";
+import { StaffEditTarget } from "@/components/reader/StaffFab";
 import { getPublication } from "@/lib/api";
 
 // Always fresh, so edits from the studio show up immediately
@@ -15,9 +15,7 @@ export default async function AboutPage() {
   return (
     <main>
       <div className="mx-auto max-w-2xl px-6 py-10">
-        <div className="mb-4 flex justify-end empty:hidden">
-          <StaffEditLink href="/studio/about" label="編輯關於頁" />
-        </div>
+        <StaffEditTarget href="/studio/about" label="編輯關於頁" />
         <h1 className="text-2xl font-bold text-pebble-800 mb-2">
           關於 {publication?.name ?? "Bible On Air"}
         </h1>
