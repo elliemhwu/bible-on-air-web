@@ -34,7 +34,7 @@ export default async function HistoryPage() {
               <li key={month}>
                 <Link
                   href={`/history/${month}`}
-                  className="flex flex-col items-center rounded-lg border border-pebble-200 bg-white px-3 py-3 hover:border-iris-300 transition-colors"
+                  className="flex flex-col items-center rounded-lg border border-pebble-200 bg-white px-3 py-3 hover:border-primary-soft transition-colors"
                 >
                   <span className="text-base text-pebble-800">
                     {parseInt(month.slice(5))} 月

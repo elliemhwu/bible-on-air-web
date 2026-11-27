@@ -18,8 +18,8 @@ const THEME: Record<
   { card: string; addRow: string; empty: string; ink: string; muted: string; accent: string; today: string; plain: string }
 > = {
   reader: {
-    card: "border-pebble-200 bg-white group-hover:border-iris-300",
-    addRow: "border-pebble-300 hover:border-iris-300",
+    card: "border-pebble-200 bg-white group-hover:border-primary-soft",
+    addRow: "border-pebble-300 hover:border-primary-soft",
     empty: "bg-pebble-100/60",
     ink: "text-pebble-800",
     muted: "text-pebble-400",

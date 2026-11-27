@@ -17,7 +17,8 @@ const TAILWIND_SCALES =
 const RULES = [
   {
     name: "raw colour value (move it to app/styles/colors.css)",
-    re: /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch)\(/g,
+    // No \b before rgba(: inside `shadow-[0_2px_rgba(...)]` it follows an underscore
+    re: /#[0-9a-fA-F]{3,8}\b|(?<![a-zA-Z-])(?:rgba?|hsla?|oklch)\(/g,
     skip: (file, line) =>
       // Hex-looking anchors and HTML entities are not colours
       /href=|&#/.test(line),
@@ -34,6 +35,11 @@ const RULES = [
     name: "reader colour in a Studio file (use st-* so the night theme follows)",
     re: /(?<![\w-])[a-z-]*-(?:pebble|iris)-\d{2,3}\b|(?<![\w-])[a-z]+-(?:primary|danger|warning)(?![\w-])/g,
     only: (file) => STUDIO_PATHS.some((p) => file.startsWith(p)),
+  },
+  {
+    name: "iris shade in a reader component (use primary, primary-soft or primary-hard)",
+    re: /(?<![\w-])[a-z:-]*-iris-\d{2,3}\b/g,
+    only: (file) => file.endsWith(".tsx") && !STUDIO_PATHS.some((p) => file.startsWith(p)),
   },
 ];
 

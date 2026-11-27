@@ -8,9 +8,6 @@
 :root {
   --background: var(--color-pebble-50);
   --foreground: var(--color-pebble-900);
-  --muted: var(--color-iris-400);
-  --accent: var(--color-iris-500);
-  --border-warm: var(--color-pebble-200);
 }
 
 @theme inline {
@@ -18,9 +15,23 @@
   --font-sans: var(--font-noto-sans-tc);
 
   --color-primary: var(--color-iris-500);
+  /* Light primary for decoration: hover borders on cards */
+  --color-primary-soft: var(--color-iris-300);
+  /* Highlighter stroke behind each section heading: a warm contrast to iris */
+  --color-highlight: var(--color-marigold-300);
+  /* Tint behind a selected item: the date picker's chosen day */
+  --color-primary-faint: var(--color-iris-50);
   /* Status colours shared by reader and studio forms */
   --color-danger: var(--color-crimson-700);
   --color-warning: var(--color-gold-700);
+
+  /* Floating action button (Google-Sites-like pencil) */
+  --shadow-fab:
+    0 2px 6px color-mix(in srgb, var(--color-black) 20%, transparent),
+    0 6px 16px color-mix(in srgb, var(--color-black) 18%, transparent);
+  --shadow-fab-hover:
+    0 4px 10px color-mix(in srgb, var(--color-black) 22%, transparent),
+    0 10px 24px color-mix(in srgb, var(--color-black) 20%, transparent);
 }
 
 @layer base {
@@ -50,6 +61,36 @@ body {
   font-family: var(--font-noto-serif-tc), "Noto Serif TC", serif;
   line-height: 1.9;
   letter-spacing: 0.04em;
+}
+
+/*
+ * Section heading (經文、觀察與思想…): a highlighter stroke across the lower
+ * half of the words, a little past both ends, slightly tilted, with ends that
+ * fade like a marker lifting off the paper.
+ */
+.section-heading {
+  position: relative;
+  isolation: isolate;
+  width: fit-content;
+}
+.section-heading::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -0.3em;
+  right: -0.45em;
+  bottom: 0.2em;
+  height: 0.8em;
+  rotate: -1.5deg;
+  border-radius: 0.2em 0.5em 0.3em 0.6em / 0.5em 0.25em 0.6em 0.3em;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-highlight) 55%, transparent),
+    var(--color-highlight) 0.5em,
+    var(--color-highlight) calc(100% - 0.6em),
+    color-mix(in srgb, var(--color-highlight) 45%, transparent)
+  );
+  opacity: 0.85;
 }
 
 .prose-tc p {
@@ -104,13 +145,13 @@ body {
 }
 
 .prose-tc a {
-  color: var(--color-pebble-600);
+  color: var(--color-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .prose-tc a:hover {
-  color: var(--color-pebble-800);
+  text-decoration-thickness: 2px;
 }
 
 .prose-tc blockquote {
@@ -131,5 +172,57 @@ body {
   }
   body {
     background: var(--color-white);
+  }
+}
+
+/*
+ * Reader on phones: the opening and each section are pages. Scrolling settles
+ * on the start of a page (proximity, so long sections still scroll freely) and
+ * each page's content rises in as it arrives, like turning to it.
+ */
+@media (max-width: 639.98px) {
+  html:has(.reader-paged) {
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 3.5rem; /* the sticky header */
+  }
+  .reader-page {
+    min-height: calc(100svh - 3.5rem);
+    padding-block: 2.5rem;
+    scroll-snap-align: start;
+  }
+  /* The title page is only the title (the cover moved into 背誦經文), so the
+     passage starts right below it instead of a screen further down */
+  .reader-opening {
+    min-height: 0;
+    padding-top: 1.5rem;
+    padding-bottom: 0;
+  }
+  .reader-opening header {
+    margin-bottom: 0;
+  }
+  /* …and the first section sits close under the title's rule */
+  .reader-opening + div > .reader-page:first-child {
+    padding-top: 1.5rem;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (max-width: 639.98px) and (prefers-reduced-motion: no-preference) {
+    .reader-page > * {
+      animation: reader-page-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}
+
+@keyframes reader-page-in {
+  from {
+    opacity: 0.15;
+    transform: translateY(1.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

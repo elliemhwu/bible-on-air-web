@@ -1,4 +1,4 @@
-import { formatDateTC, isEmptyBlock } from "@/components/reader/ArticleView";
+import { formatDateTC, isEmptyBlock, isMemoryBlock } from "@/components/reader/ArticleView";
 import { OutlineBlock } from "@/components/reader/OutlineBlock";
 import { VerseBlock } from "@/components/reader/VerseBlock";
 import type { Article, Block } from "@/lib/types";
@@ -7,7 +7,6 @@ import { weekday } from "@/lib/week";
 
 /** The reading passage has no subheading; the others are named (背誦經文…) */
 const isReading = (b: Block) => b.type === "verse" && !b.subheading;
-const isMemory = (b: Block) => b.type === "verse" && !!b.subheading?.includes("背誦");
 
 function Body({ block }: { block: Block }) {
   switch (block.type) {
@@ -46,7 +45,7 @@ export function PrintArticle({ article, withCover }: { article: Article; withCov
   const ref = reading?.type === "verse" ? formatVerseRef(reading.content.ranges) : null;
   const cover = withCover && article.coverImageUrl ? article.coverImageUrl : null;
   // The picture is the memory verse, so it sits in that box; without one it closes the day
-  const coverInMemory = !!cover && blocks.some(isMemory);
+  const coverInMemory = !!cover && blocks.some(isMemoryBlock);
   // eslint-disable-next-line @next/next/no-img-element -- printed as-is
   const img = cover && <img src={cover} alt={article.title ?? article.date} className="ps-cover" />;
 
@@ -61,7 +60,7 @@ export function PrintArticle({ article, withCover }: { article: Article; withCov
       </header>
 
       {blocks.map((block) => {
-        const memory = isMemory(block);
+        const memory = isMemoryBlock(block);
         const label = block.subheading || (isReading(block) ? "經文" : null);
         return (
           <section key={block.id} className={`ps-section ${memory ? "ps-memory" : ""}`}>

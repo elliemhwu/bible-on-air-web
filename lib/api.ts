@@ -82,7 +82,12 @@ export async function login(
       password,
     });
     return data;
-  } catch {
+  } catch (e) {
+    // The API says why only once the password is right
+    const code = isAxiosError(e) ? (e.response?.data as { code?: string } | undefined)?.code : undefined;
+    if (code === "ACCOUNT_DISABLED") throw new Error("這個帳號已停用，如需恢復請聯絡管理者");
+    if (code === "ACCOUNT_INVITED") throw new Error("這個帳號還沒完成邀請，請用邀請信中的連結設定密碼");
+    if (isAxiosError(e) && !e.response) throw new Error("無法連線，請稍後再試");
     throw new Error("登入失敗，請確認帳號密碼");
   }
 }
@@ -464,7 +469,7 @@ export async function updateUser(token: string, id: string, changes: UserChanges
 
 /** Emails a fresh invitation to someone who has not joined yet */
 export async function reinviteUser(token: string, id: string): Promise<InviteResult> {
-  const { data } = await apiClient.post<InviteResult>(`${MAG}/users/${id}/invite`, null, { headers: authHeaders(token) });
+  const { data } = await apiClient.post<InviteResult>(`${MAG}/users/${id}/invite`, {}, { headers: authHeaders(token) });
   return data;
 }
 

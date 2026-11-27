@@ -7,7 +7,7 @@
    overrides must sit on that element (or deeper), not on the popover */
 .date-picker-popover .rdp-root {
   --rdp-accent-color: var(--color-primary);
-  --rdp-accent-background-color: var(--color-iris-50);
+  --rdp-accent-background-color: var(--color-primary-faint);
   --rdp-today-color: var(--color-primary);
 }
 
