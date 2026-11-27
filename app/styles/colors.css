@@ -1,16 +1,17 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-pebble-50: #f9f8f7;
-  --color-pebble-100: #f2f1f0;
-  --color-pebble-200: #e5e3e1;
-  --color-pebble-300: #cac6c2;
-  --color-pebble-400: #afa9a3;
-  --color-pebble-500: #7d7771;
-  --color-pebble-600: #645f5a;
-  --color-pebble-700: #4b4744;
-  --color-pebble-800: #322f2d;
-  --color-pebble-900: #191816;
+  /* Cool grey with a hint of violet, so the neutrals sit with the iris primary */
+  --color-pebble-50: #f8f8fc;
+  --color-pebble-100: #f0f0f7;
+  --color-pebble-200: #e3e3ee;
+  --color-pebble-300: #cacadb;
+  --color-pebble-400: #a9a8bf;
+  --color-pebble-500: #75738d;
+  --color-pebble-600: #5c5a73;
+  --color-pebble-700: #45435a;
+  --color-pebble-800: #2c2a40;
+  --color-pebble-900: #1a1929;
 
   --color-juniper-50: #edf2f1;
   --color-juniper-100: #dbe5e3;

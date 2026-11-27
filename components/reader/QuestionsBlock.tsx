@@ -8,7 +8,7 @@ export function QuestionsBlock({ block }: { block: QuestionsBlockType }) {
           {block.subheading}
         </p>
       )}
-      <ol className="list-decimal pl-6 space-y-3">
+      <ol className="list-decimal pl-6 space-y-3 font-sans">
         {block.content.items.map((item, i) => (
           <li key={i} className="leading-[1.9]">
             {item}

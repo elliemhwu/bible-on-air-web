@@ -17,7 +17,7 @@
   --font-serif: var(--font-noto-serif-tc);
   --font-sans: var(--font-noto-sans-tc);
 
-  --color-primary: var(--color-iris-400);
+  --color-primary: var(--color-iris-500);
 }
 
 @layer base {
